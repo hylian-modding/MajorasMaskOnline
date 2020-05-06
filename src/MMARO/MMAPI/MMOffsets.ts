@@ -9,4 +9,34 @@ export class MMOffsets {
     save_context: number = 0x1EF670;
     mask_offset: number = 0x0020;
     anim: number = 0x400500;
+
+    //Save Context
+    max_heart_flag: number = 0x801EF6A4; //0x2
+    hearts: number = 0x801EF6A6; //0x2
+    magic: number = 0x801EF6A9; //0x1
+    magic_amt: number = 0x801EF6A8; //0x1
+    magic_bool1: number = 0x801EF6B0;
+    magic_bool2: number = 0x801EF6B1;
+    owl_statues: number = 0x801EF6B6; //0x2
+    tunic_boots: number = 0x801EF6DC; //0x1
+    sword_sheild: number = 0x801EF6DD;
+    inventory: number = 0x801EF6E0; //0x18
+    masks: number = 0x801EF6F8; //0x18
+    item_amts: number = 0x801EF710; //0x18
+    updrades: number = 0x801EF728; //0x4
+
+
+    live_flags: number = 0x801EF768 //size: 0xD20 //0x1C per scene, as opposed to the 0x14 used ingame
+
+
+    //quest items
+    questflg1: number = 0x801EF72C; //0x1 bit 0: Lullaby Intro; bits 4-7: heart pieces
+    questflg2: number = 0x801EF72D; //0x1 bits 0-1: songs; bit 2: Bomber's Notebook; bit 3: unknown
+    questflg3: number = 0x801EF72E; //0x1 bits 0-7: songs
+    questflg4: number = 0x801EF72F; //0x1 bits 0-3: Remains; bits 6-7: songs
+
+    dungeon_flg: number = 0x801EF730; //0xA
+    double_defense: number = 0x801EF743; //0x1
+    scene_flags = 0x801EF768; //0xD20 dig chest flags out of here
+    bank_rupees = 0x801F054E; //0x2
 }
