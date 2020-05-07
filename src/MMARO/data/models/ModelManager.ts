@@ -184,14 +184,14 @@ export class ModelManager {
     }
 
     private adultHeightFix(code: ManifestBuffer, player: ManifestBuffer): ManifestBuffer {
-        code.GoTo(VROM_CODE+0x11A378);
+        code.GoTo(0x11A378);
         code.HexString("00C803E8012C02BC0226010E02BC012C007803200258FF9C0258024E02EE007D00C80082");
-        code.GoTo(0x00CD6218);
+        code.GoTo(0x2E318);
 
         return code;
     }
 
-    //@EventHandler(ModLoaderEvents.ON_ROM_PATCHED_POST)
+    @EventHandler(ModLoaderEvents.ON_ROM_PATCHED_POST)
     onRomPatched(evt: any) {
         if (this.container.hasChildModel()) {
             evt.rom = this.injectChildModel(evt.rom, this.container.childFile);
