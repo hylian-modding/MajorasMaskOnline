@@ -1,5 +1,5 @@
-#include <D:/OoT_Modding/Code/CAT/gcc/mips64/include/z64ovl/mm/u10.h>
-#include <D:/OoT_Modding/Code/CAT/gcc/mips64/include\z64ovl/z64ovl_helpers.h>
+#include <z64ovl/mm/u10.h>
+#include <z64ovl/mm/helpers.h>
 #include "defines_limbs.h"
 #include "defines_mm.h"
 
@@ -7,18 +7,13 @@
 #define OBJ_ID_CHILD 0x11
 
 #define get_addr_offset(l, o) ((uint32_t *)((uint32_t)l + (uint32_t)o))
-#define POLY_OPA ZQDL(global, poly_opa)
-#define POLY_XLU ZQDL(global, poly_xlu)
-
-/* Base Offset: 0x06000000 */
 
 typedef struct
 {
-	uint8_t r;
-	uint8_t g;
-	uint8_t b;
-	uint8_t a;
-} z_color;
+	uint32_t base;	 // Base RAM Address
+	uint16_t radius; // Collision Cylinder Radius
+	uint16_t height; // Collision Cylinder Height
+} puppet_init_t;
 
 typedef struct
 {
@@ -31,8 +26,8 @@ typedef struct
 
 typedef struct
 {
-	z_color tunicColor;
-	z_color bottleColor;
+	rgba8_t tunicColor;
+	rgba8_t bottleColor;
 	zz_playas playasData;
 	uint16_t form;
 	uint8_t isHandClosed;
@@ -47,10 +42,10 @@ typedef struct
 	uint8_t current_frame_data[0x86];
 	z_link_puppet puppetData;
 	z64_skelanime_t skelanime;
-	z64_collider_cylinder_main_t Collision;
+	z64_collider_cylinder_main_t cylinder;
 } entity_t;
 
-z64_collider_cylinder_init_t Collision =
+z64_collider_cylinder_init_t cylinder =
 	{
 		.body = {
 			.unk_0x14 = 0x07,
@@ -72,112 +67,139 @@ z64_collider_cylinder_init_t Collision =
 		.y_shift = 0,
 		.position = {.x = 0, .y = 0, .z = 0}};
 
-static int8_t copyPlayerAnimFrame(entity_t *en, z64_global_t *global)
-{
-	memcpy(en->current_frame_data, get_addr_offset(0x80400500, 0x0), 0x86);
-}
+// Function Prototypes
+static void init(entity_t *en, z64_global_t *global);
+static void destroy(entity_t *en, z64_global_t *global);
+static void play(entity_t *en, z64_global_t *global);
+static void draw(entity_t *en, z64_global_t *global);
+static void callback_animate_face(z64_global_t *global, uint8_t limb, uint32_t dlist, vec3s_t *rotation, entity_t *en);
+static int32_t callback_set_limb(z64_global_t *global, int32_t limb, uint32_t *dl, vec3f_t *translation, vec3s_t *rotation, entity_t *en);
 
 static void init(entity_t *en, z64_global_t *global)
 {
-	uint32_t base;
+	puppet_init_t puppet_init;
 	if (en->actor.variable < 0xFFFF)
 	{
 		en->puppetData.form = en->actor.variable;
 		en->puppetData.playasData.isZZ = 1;
 
-		if (en->puppetData.form == MM_FORM_FIERCE)
+		switch (en->puppetData.form)
 		{
-			base = 0x80900000;
-			Collision.radius = 0x10;
-			Collision.height = 0x003;
-		}
-		else if (en->puppetData.form == MM_FORM_GORON)
-		{
-			base = 0x80910000;
-			Collision.radius = 0x20;
-			Collision.height = 0x0025;
-		}
-		else if (en->puppetData.form == MM_FORM_ZORA)
-		{
-			base = 0x80920000;
-			Collision.radius = 0x9;
-			Collision.height = 0x0023;
-		}
-		else if (en->puppetData.form == MM_FORM_DEKU)
-		{
-			base = 0x80930000;
-			Collision.radius = 0x05;
-			Collision.height = 0x0015;
-		}
-		else if (en->puppetData.form == MM_FORM_HUMAN)
-		{
-			base = 0x80940000;
-			Collision.radius = 0x05;
-			Collision.height = 0x002;
+		case FORM_LINK_DEITY:
+			puppet_init = (puppet_init_t){0x80900000, 0x0010, 0x0003};
+			break;
+		case FORM_LINK_GORON:
+			puppet_init = (puppet_init_t){0x80910000, 0x0020, 0x0025};
+			break;
+		case FORM_LINK_ZORA:
+			puppet_init = (puppet_init_t){0x80920000, 0x0009, 0x0023};
+			break;
+		case FORM_LINK_DEKU:
+			puppet_init = (puppet_init_t){0x80930000, 0x0005, 0x0015};
+			break;
+		case FORM_LINK_HUMAN:
+			puppet_init = (puppet_init_t){0x80940000, 0x0005, 0x0002};
+			break;
 		}
 
-		en->puppetData.playasData.base = base;
-		uint32_t skele = base + 0x0000500C;
-		uint32_t *seg2 = (uint32_t *)skele;
-		en->puppetData.playasData.skeleton = *seg2;
+		en->puppetData.playasData.base = puppet_init.base;
+		en->puppetData.playasData.skeleton = AVAL(puppet_init.base, uint32_t, 0x500C);
+	}
+
+	z_skelanime_init(global, 1, &en->skelanime, en->puppetData.playasData.skeleton, 2);
+
+	z_actor_set_scale(&en->actor, 0.01f);
+	z_collider_cylinder_init(global, &en->cylinder, &en->actor, &cylinder);
+
+	en->puppetData.bottleColor = (rgba8_t){0xFF, 0xFF, 0xFF, 0xFF};
+	en->puppetData.tunicColor = (rgba8_t){0x1E, 0x69, 0x1B, 0xFF};
+}
+
+static void destroy(entity_t *en, z64_global_t *global)
+{
+	z_collider_cylinder_free(global, &en->cylinder);
+	if (en->actor.attached_b)
+	{
+		en->actor.attached_b->attached_a = 0;
+		z_actor_kill(en->actor.attached_b);
+		en->actor.attached_b = 0;
+	}
+}
+
+static void play(entity_t *en, z64_global_t *global)
+{
+	if (en->puppetData.playasData.isZZ)
+	{
+		const uint32_t eyes[3] = {
+			en->puppetData.playasData.base + 0x00000000, en->puppetData.playasData.base + 0x00000800, en->puppetData.playasData.base + 0x00001000};
+		en->puppetData.playasData.eye_texture = eyes[helper_eye_blink(&en->puppetData.playasData.eye_index)];
+	}
+
+	z_collider_cylinder_update(&en->actor, &en->cylinder);
+	z_collider_set_ot(global, AADDR(global, 0x18884), &en->cylinder);
+}
+
+static void draw(entity_t *en, z64_global_t *global)
+{
+	z64_disp_buf_t *opa = &ZQDL(global, poly_opa);
+
+	/* 	gDPSetEnvColor(
+		opa->p++
+		, en->puppetData.tunicColor.r
+		, en->puppetData.tunicColor.g
+		, en->puppetData.tunicColor.b
+		, en->puppetData.tunicColor.a
+	); */
+
+	z_skelanime_draw(global, 0x12, en, &en->skelanime, &callback_set_limb, &callback_animate_face);
+}
+
+static void callback_animate_face(z64_global_t *global, uint8_t limb, uint32_t dlist, vec3s_t *rotation, entity_t *en)
+{
+	z64_disp_buf_t *opa = &ZQDL(global, poly_opa);
+
+	if (en->puppetData.playasData.isZZ)
+	{
+		gSPSegment(opa->p++, 8, en->puppetData.playasData.eye_texture);
+		gSPSegment(opa->p++, 9, en->puppetData.playasData.base + 0x00004000);
 	}
 	else
 	{
-		en->puppetData.form = ((uint8_t *)0x801EF690)[0];
-		base = 0x80900000 + (en->puppetData.form * 10000);
-		en->puppetData.playasData.base = base;
-		uint32_t skele = base + 0x0000500C;
-		uint32_t *seg2 = (uint32_t *)skele;
-		en->puppetData.playasData.skeleton = *seg2;
-		en->puppetData.form = *((uint8_t *)base + 0x0000500B);
-
-		Collision.radius = 0x12;
-		Collision.height = 0x0020;
+		gSPSegment(opa->p++, 8, zh_seg2ram(0x06000000));
+		gSPSegment(opa->p++, 9, zh_seg2ram(0x06004000));
 	}
 
-	skelanime_init_mtx(
-		global,
-		&en->skelanime,
-		en->puppetData.playasData.skeleton,
-		2,
-		0, 0, 0);
+	return 1;
 
-	actor_anime_change(&en->skelanime, 0, 0.0, 0.0, 0, 0, 1);
-
-	actor_set_scale(&en->actor, 0.01f);
-
-	actor_collider_cylinder_init(global, &en->Collision, &en->actor, &Collision);
-
-	//en->actor.room_index = 0xFF;
-	//en->actor.flags = 0x08;
-
-	en->puppetData.bottleColor.r = 0xFF;
-	en->puppetData.bottleColor.g = 0xFF;
-	en->puppetData.bottleColor.b = 0xFF;
-	en->puppetData.bottleColor.a = 0xFF;
-
-	en->puppetData.tunicColor.r = 0xDE;
-	en->puppetData.tunicColor.g = 0xAD;
-	en->puppetData.tunicColor.b = 0xBE;
-	en->puppetData.tunicColor.a = 0xEF;
+	//gMoveWd(opa->p++, G_MW_SEGMENT, G_MWO_SEGMENT_C, 0x800F7A68);
 }
 
-static int MMAnimate(z64_global_t *global, int limb_number, uint32_t *display_list, vec3f_t *translation, vec3s_t *rotation, entity_t *en)
+static int32_t callback_set_limb(z64_global_t *global, int32_t limb, uint32_t *dl, vec3f_t *translation, vec3s_t *rotation, entity_t *en)
 {
-	float height;
-	if (en->puppetData.form == MM_FORM_FIERCE)
-		height = 1.4f; //Size = 1458
-	else if (en->puppetData.form == MM_FORM_GORON)
-		height = 0.64f;
-	else if (en->puppetData.form == MM_FORM_ZORA)
-		height = 0.90f;
-	else if (en->puppetData.form == MM_FORM_DEKU)
-		height = 0.20f;
-	else if (en->puppetData.form == MM_FORM_HUMAN)
-		height = 0.55f;
 
-	limb_number -= 1;
-	if (limb_number == 0)
+	float height;
+
+	switch (en->puppetData.form)
+	{
+	case FORM_LINK_DEITY:
+		height = 1.40f;
+		break;
+	case FORM_LINK_GORON:
+		height = 0.64f;
+		break;
+	case FORM_LINK_ZORA:
+		height = 0.90f;
+		break;
+	case FORM_LINK_DEKU:
+		height = 0.20f;
+		break;
+	case FORM_LINK_HUMAN:
+		height = 0.55f;
+		break;
+	}
+
+	limb -= 1;
+	if (limb == 0)
 	{
 		z64_rot_t *frame_translation = (z64_rot_t *)en->current_frame_data;
 		translation->x += frame_translation->x;
@@ -185,16 +207,16 @@ static int MMAnimate(z64_global_t *global, int limb_number, uint32_t *display_li
 		translation->z += frame_translation->z;
 	}
 
-	z64_rot_t *frame_limb_rotation = (z64_rot_t *)AADDR(&en->current_frame_data, 6 + (6 * limb_number));
+	z64_rot_t *frame_limb_rotation = (z64_rot_t *)AADDR(&en->current_frame_data, 6 + (6 * limb));
 
 	rotation->x += frame_limb_rotation->x;
 	rotation->y += frame_limb_rotation->y;
 	rotation->z += frame_limb_rotation->z;
 
-	if (limb_number == LHAND) // left hand
+	if (limb == LIMB_HAND_L) // left hand
 	{
 
-		if (en->puppetData.form == MM_FORM_HUMAN)
+		if (en->puppetData.form == FORM_LINK_HUMAN)
 		{
 			switch (en->puppetData.heldItemLeft)
 			{
@@ -213,38 +235,38 @@ static int MMAnimate(z64_global_t *global, int limb_number, uint32_t *display_li
 			*/
 
 			case 1:
-				*display_list = en->puppetData.playasData.isZZ ? en->puppetData.playasData.base + HUMAN_DL_BLADE_KOKIRI_ZZ : HUMAN_DL_BLADE_KOKIRI;
+				*dl = MM_ZZ_PUPPET_DLIST(HUMAN_DL_BLADE_KOKIRI);
 				break;
 			case 2:
-				*display_list = en->puppetData.playasData.isZZ ? en->puppetData.playasData.base + HUMAN_DL_BLADE_RAZOR_ZZ : HUMAN_DL_BLADE_RAZOR;
+				*dl = MM_ZZ_PUPPET_DLIST(HUMAN_DL_BLADE_RAZOR);
 				break;
 			case 3:
-				*display_list = en->puppetData.playasData.isZZ ? en->puppetData.playasData.base + HUMAN_DL_BLADE_GILDED_ZZ : HUMAN_DL_BLADE_GILDED;
+				*dl = MM_ZZ_PUPPET_DLIST(HUMAN_DL_BLADE_GILDED);
 				break;
 			case 4:
-				*display_list = en->puppetData.playasData.isZZ ? en->puppetData.playasData.base + HUMAN_DL_BLADE_GFSWORD_ZZ : HUMAN_DL_BLADE_GFSWORD;
+				*dl = MM_ZZ_PUPPET_DLIST(HUMAN_DL_BLADE_GFSWORD);
 				break;
 			case 5:
-				*display_list = en->puppetData.playasData.isZZ ? en->puppetData.playasData.base + HUMAN_DL_HOOKSHOT_ZZ : HUMAN_DL_HOOKSHOT;
+				*dl = MM_ZZ_PUPPET_DLIST(HUMAN_DL_HOOKSHOT);
 				break;
 			case 6:
 				break;
 			case 7:
-				*display_list = en->puppetData.playasData.isZZ ? en->puppetData.playasData.base + HUMAN_DL_LHAND_ZZ : HUMAN_DL_OPEN_HAND;
+				*dl = MM_ZZ_PUPPET_DLIST(HUMAN_DL_LHAND_BOTTLE);
 				break;
 			case 8:
-				*display_list = en->puppetData.playasData.isZZ ? en->puppetData.playasData.base + HUMAN_DL_LFIST_ZZ : HUMAN_DL_LFIST;
+				*dl = MM_ZZ_PUPPET_DLIST(HUMAN_DL_LFIST);
 				break;
 			case 9:
-				*display_list = en->puppetData.playasData.isZZ ? en->puppetData.playasData.base + HUMAN_DL_LHAND_BOTTLE_ZZ : HUMAN_DL_LHAND_BOTTLE;
+				*dl = MM_ZZ_PUPPET_DLIST(HUMAN_DL_LHAND_BOTTLE);
 				break;
 			}
 		}
 	}
 
-	else if (limb_number == RHAND)
+	else if (limb == LIMB_HAND_R)
 	{
-		if (en->puppetData.form == MM_FORM_HUMAN)
+		if (en->puppetData.form == FORM_LINK_HUMAN)
 		{
 
 			/*
@@ -260,30 +282,30 @@ static int MMAnimate(z64_global_t *global, int limb_number, uint32_t *display_li
 			switch (en->puppetData.heldItemRight)
 			{
 			case 1:
-				*display_list = en->puppetData.playasData.isZZ ? en->puppetData.playasData.base + HUMAN_DL_BOW_ZZ : HUMAN_DL_BOW;
+				*dl = MM_ZZ_PUPPET_DLIST(HUMAN_DL_BOW);
 				break;
 			case 2:
-				*display_list = en->puppetData.playasData.isZZ ? en->puppetData.playasData.base + HUMAN_DL_HOOKSHOT_ZZ : HUMAN_DL_HOOKSHOT;
+				*dl = MM_ZZ_PUPPET_DLIST(HUMAN_DL_HOOKSHOT);
 				break;
 			case 3:
-				*display_list = en->puppetData.playasData.isZZ ? en->puppetData.playasData.base + HUMAN_DL_RHAND_OCARINA_ZZ : HUMAN_DL_RHAND_OCARINA;
+				*dl = MM_ZZ_PUPPET_DLIST(HUMAN_DL_RHAND_OCARINA);
 				break;
 			case 4:
-				*display_list = en->puppetData.playasData.isZZ ? en->puppetData.playasData.base + HUMAN_DL_SHIELD_HERO_ZZ : HUMAN_DL_SHIELD_HERO;
+				*dl = MM_ZZ_PUPPET_DLIST(HUMAN_DL_SHIELD_HERO);
 				break;
 			case 5:
-				*display_list = en->puppetData.playasData.isZZ ? en->puppetData.playasData.base + HUMAN_DL_SHIELD_MIRROR_ZZ : HUMAN_DL_SHIELD_MIRROR_ZZ;
+				*dl = MM_ZZ_PUPPET_DLIST(HUMAN_DL_SHIELD_MIRROR);
 				break;
 			case 6:
-				*display_list = en->puppetData.playasData.isZZ ? en->puppetData.playasData.base + HUMAN_DL_SHIELD_MIRROR_FACE_ZZ : HUMAN_DL_SHIELD_MIRROR_FACE_ZZ;
+				*dl = MM_ZZ_PUPPET_DLIST(HUMAN_DL_SHIELD_MIRROR_FACE);
 				break;
 			}
 		}
 	}
 
-	else if (limb_number == SHEATH)
+	else if (limb == LIMB_SHEATH)
 	{
-		if (en->puppetData.form == MM_FORM_HUMAN)
+		if (en->puppetData.form == FORM_LINK_HUMAN)
 		{
 
 			/*
@@ -299,82 +321,28 @@ static int MMAnimate(z64_global_t *global, int limb_number, uint32_t *display_li
 			switch (en->puppetData.backItem)
 			{
 			case 1:
-				*display_list = en->puppetData.playasData.isZZ ? HUMAN_DL_SHEATH_KOKIRI_ZZ : HUMAN_DL_SHEATH_KOKIRI;
+				*dl = MM_ZZ_PUPPET_DLIST(HUMAN_DL_SHEATH_KOKIRI);
 				break;
 			case 2:
-				*display_list = en->puppetData.playasData.isZZ ? HUMAN_DL_SHEATH_RAZOR_ZZ : HUMAN_DL_SHEATH_RAZOR;
+				*dl = MM_ZZ_PUPPET_DLIST(HUMAN_DL_SHEATH_RAZOR);
 				break;
 			case 3:
-				*display_list = en->puppetData.playasData.isZZ ? HUMAN_DL_SHEATH_GILDED_ZZ : HUMAN_DL_SHEATH_GILDED;
+				*dl = MM_ZZ_PUPPET_DLIST(HUMAN_DL_SHEATH_GILDED);
 				break;
 			case 4:
-				*display_list = en->puppetData.playasData.isZZ ? HUMAN_DL_SHIELD_HERO_ZZ : HUMAN_DL_SHIELD_HERO;
+				*dl = MM_ZZ_PUPPET_DLIST(HUMAN_DL_SHIELD_HERO);
 				break;
 			case 5:
-				*display_list = en->puppetData.playasData.isZZ ? HUMAN_DL_SHIELD_MIRROR_ZZ : HUMAN_DL_SHIELD_MIRROR;
+				*dl = MM_ZZ_PUPPET_DLIST(HUMAN_DL_SHIELD_MIRROR);
 				break;
 			case 6:
-				*display_list = en->puppetData.playasData.isZZ ? HUMAN_DL_SHIELD_MIRROR_FACE_ZZ : HUMAN_DL_SHIELD_MIRROR_FACE;
+				*dl = MM_ZZ_PUPPET_DLIST(HUMAN_DL_SHIELD_MIRROR_FACE);
 				break;
 			}
 		}
 	}
 
 	return 0;
-}
-
-static void play(entity_t *en, z64_global_t *global)
-{
-	if (en->puppetData.playasData.isZZ)
-	{
-		const uint32_t eyes[3] = {en->puppetData.playasData.base + 0x00000000, en->puppetData.playasData.base + 0x00000800, en->puppetData.playasData.base + 0x00001000};
-		en->puppetData.playasData.eye_texture = eyes[helper_eye_blink(&en->puppetData.playasData.eye_index)];
-	}
-
-	actor_collider_cylinder_update(&en->actor, &en->Collision);
-
-	actor_collision_check_set_ot(global, AADDR(global, 0x18884), &en->Collision);
-}
-
-#define GFX_POLY_OPA ZQDL(global, poly_opa)
-
-static void otherCallback(z64_global_t *global, uint8_t limb, uint32_t dlist, vec3s_t *rotation, entity_t *en)
-{
-	z64_disp_buf_t *opa = &GFX_POLY_OPA;
-	if (en->puppetData.playasData.isZZ)
-	{
-		gMoveWd(opa->p++, G_MW_SEGMENT, G_MWO_SEGMENT_8, en->puppetData.playasData.eye_texture);
-		gMoveWd(opa->p++, G_MW_SEGMENT, G_MWO_SEGMENT_9, en->puppetData.playasData.base + 0x00004000);
-	}
-	else
-	{
-		gMoveWd(opa->p++, G_MW_SEGMENT, G_MWO_SEGMENT_8, zh_seg2ram(0x06000000));
-		gMoveWd(opa->p++, G_MW_SEGMENT, G_MWO_SEGMENT_9, zh_seg2ram(0x06004000));
-	}
-
-	gMoveWd(opa->p++, G_MW_SEGMENT, G_MWO_SEGMENT_C, 0x800F7A68);
-
-	return 1;
-}
-
-static void draw(entity_t *en, z64_global_t *global)
-{
-
-	//copyPlayerAnimFrame(en, global);
-
-	gDPSetEnvColor(POLY_OPA.p++, en->puppetData.tunicColor.r, en->puppetData.tunicColor.g, en->puppetData.tunicColor.b, en->puppetData.tunicColor.a);
-	//draw_dlist_opa(global, 0x0600C048);
-	skelanime_draw_mtx(
-		global,
-		en->skelanime.limb_index,
-		en->skelanime.unk5,
-		en->skelanime.dlist_count,
-		&MMAnimate, &otherCallback,
-		&en->actor);
-}
-
-static void destroy(entity_t *en, z64_global_t *global)
-{
 }
 
 /* .data */

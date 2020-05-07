@@ -15,9 +15,6 @@
     "paths": {
       "@MMARO/*": [
         "./src/MMARO/*"
-      ],
-      "Z64Lib/*": [
-        "libs\\Z64Lib/*"
       ]
     }
   },

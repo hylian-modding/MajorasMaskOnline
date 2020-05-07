@@ -1,6 +1,6 @@
 {
   "name": "MMARO",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -8,5 +8,13 @@
   },
   "keywords": [],
   "author": "Denoflions, Drahsid",
-  "license": "ISC"
+  "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hylian-modding/MMARO.git"
+  },
+  "bugs": {
+    "url": "https://github.com/hylian-modding/MMARO/issues"
+  },
+  "homepage": "https://github.com/hylian-modding/MMARO#readme"
 }

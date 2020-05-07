@@ -9,6 +9,7 @@ import { GlobalContext } from "./GlobalContext";
 import { SaveContext } from "./SaveContext";
 import { OverlayPayload } from "./ovl/ovlinjector";
 import { CommandBuffer } from "./CommandBuffer";
+import { MMOffsets } from "./MMOffsets";
 
 export class MMCore {
 
@@ -28,6 +29,7 @@ export class MMCore {
 
     @Preinit()
     preinit() {
+        global.ModLoader["MMOffsets"] = new MMOffsets();
     }
 
     @Init()
