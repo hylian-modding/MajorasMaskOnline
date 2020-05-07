@@ -179,9 +179,9 @@ export class PuppetOverlord implements IPuppetOverlord {
   sendPuppetPacket() {
     if (!this.amIAlone) {
       let packet = new Ooto_PuppetPacket(this.fakeClientPuppet.data, this.ModLoader.clientLobby);
-/*       if (this.Epona !== undefined) {
-        packet.setHorseData(this.Epona);
-      } */
+      /*       if (this.Epona !== undefined) {
+              packet.setHorseData(this.Epona);
+            } */
       this.ModLoader.clientSide.sendPacket(new Ooto_PuppetWrapperPacket(packet, this.ModLoader.clientLobby));
     }
   }
@@ -192,7 +192,7 @@ export class PuppetOverlord implements IPuppetOverlord {
       let actualPacket = JSON.parse(packet.data) as Ooto_PuppetPacket;
       puppet.processIncomingPuppetData(actualPacket.data);
       if (actualPacket.horse_data !== undefined) {
-/*         puppet.processIncomingHorseData(actualPacket.horse_data); */
+        /*         puppet.processIncomingHorseData(actualPacket.horse_data); */
       }
     }
   }
@@ -217,7 +217,7 @@ export class PuppetOverlord implements IPuppetOverlord {
   }
 
   // TODO
-  isCurrentlyWarping(){
+  isCurrentlyWarping() {
     return false;
   }
 
@@ -297,43 +297,43 @@ export class PuppetOverlord implements IPuppetOverlord {
 
   @EventHandler(OotEvents.ON_ACTOR_SPAWN)
   onEponaSpawned(actor: IActor) {
-/*     if (actor.actorID === 0x0014) {
-      // Epona spawned.
-      this.ModLoader.logger.debug("Epona spawned");
-      this.Epona = new HorseData(actor, this.fakeClientPuppet, this.core);
-    } */
+    /*     if (actor.actorID === 0x0014) {
+          // Epona spawned.
+          this.ModLoader.logger.debug("Epona spawned");
+          this.Epona = new HorseData(actor, this.fakeClientPuppet, this.core);
+        } */
   }
 
   @EventHandler(OotEvents.ON_ACTOR_DESPAWN)
   onEponaDespawned(actor: IActor) {
-/*     if (actor.actorID === 0x0014) {
-      // Epona despawned.
-      //@ts-ignore
-      this.Epona = undefined;
-      this.ModLoader.logger.debug("Epona despawned");
-    } */
+    /*     if (actor.actorID === 0x0014) {
+          // Epona despawned.
+          //@ts-ignore
+          this.Epona = undefined;
+          this.ModLoader.logger.debug("Epona despawned");
+        } */
   }
 
   @EventHandler("OotOnline:RoguePuppet")
   onRoguePuppet(puppet: Puppet) {
-    if (this.puppets.has(puppet.player.uuid)){
+    if (this.puppets.has(puppet.player.uuid)) {
       this.puppets.delete(puppet.player.uuid);
     }
   }
 
   @EventHandler(ModLoaderEvents.ON_SOFT_RESET_PRE)
-  onReset(evt: any){
+  onReset(evt: any) {
     this.localPlayerLoadingZone();
   }
 
   @EventHandler(OotOnlineEvents.PLAYER_PUPPET_SPAWNED)
-  onSpawn(puppet: Puppet){
+  onSpawn(puppet: Puppet) {
     this.ModLoader.logger.debug("Unlocking puppet spawner.")
     this.queuedSpawn = false;
   }
 
   @EventHandler(OotOnlineEvents.PLAYER_PUPPET_PRESPAWN)
-  onPreSpawn(puppet: Puppet){
+  onPreSpawn(puppet: Puppet) {
     this.ModLoader.logger.debug("Locking puppet spawner.")
     this.queuedSpawn = true;
   }

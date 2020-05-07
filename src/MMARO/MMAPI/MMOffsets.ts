@@ -5,7 +5,7 @@ export class MMOffsets {
     scene_frame_count: number = 0x3FF360;
     checksum: number = 0x1EF694;
     paused: number = 0x1D1500;
-    interface_shown: number = 0x20E30F;
+    interface_shown: number = 0x3FD77B;
     save_context: number = 0x1EF670;
     mask_offset: number = 0x0020;
     anim: number = 0x400500;
@@ -23,12 +23,8 @@ export class MMOffsets {
     inventory: number = 0x801EF6E0; //0x18
     masks: number = 0x801EF6F8; //0x18
     item_amts: number = 0x801EF710; //0x18
-    updrades: number = 0x801EF728; //0x4
-
-
-    live_flags: number = 0x801EF768 //size: 0xD20 //0x1C per scene, as opposed to the 0x14 used ingame
-
-
+    upgrades: number = 0x801EF728; //0x4
+    
     //quest items
     questflg1: number = 0x801EF72C; //0x1 bit 0: Lullaby Intro; bits 4-7: heart pieces
     questflg2: number = 0x801EF72D; //0x1 bits 0-1: songs; bit 2: Bomber's Notebook; bit 3: unknown

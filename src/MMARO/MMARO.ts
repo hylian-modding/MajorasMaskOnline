@@ -1,4 +1,4 @@
-import { IPlugin, IModLoaderAPI, IPluginServerConfig } from 'modloader64_api/IModLoaderAPI';
+import { IPlugin, IModLoaderAPI, IPluginServerConfig, ModLoaderEvents } from 'modloader64_api/IModLoaderAPI';
 import { EventHandler, bus, EventsServer, EventsClient, EventServerJoined, EventServerLeft } from 'modloader64_api/EventHandler';
 import { Link } from './MMAPI/Link';
 import { MMHelper } from './MMAPI/MMHelper';
@@ -7,7 +7,6 @@ import { IOotOnlineHelpers, OotOnlineEvents, OotOnline_PlayerScene } from './Oot
 import { OotOnlineStorageClient } from './OotOnlineStorageClient';
 import { IPacketHeader, ServerNetworkHandler, NetworkHandler, INetworkPlayer } from 'modloader64_api/NetworkHandler';
 import { OotEvents } from 'modloader64_api/OOT/OOTAPI';
-import { MMOffsets } from './MMAPI/MMOffsets';
 import { Ooto_ScenePacket, Ooto_SceneRequestPacket } from './data/OotOPackets';
 import { OotOnlineStorage } from './OotOnlineStorage';
 import { PuppetOverlord } from './data/linkPuppet/PuppetOverlord';
@@ -15,19 +14,26 @@ import path from 'path';
 import fs from 'fs';
 import { MMForms } from './MMAPI/mmForms';
 import { zzstatic } from './Z64Lib/API/zzstatic';
+import { Z64RomTools } from './Z64Lib/API/Z64RomTools';
+import { DiscordStatus } from 'modloader64_api/Discord';
+import { FileSystemCompare } from './Z64Lib/API/FileSystemCompare';
+import { Z64LibSupportedGames } from './Z64Lib/API/Z64LibSupportedGames';
+import { ManifestMapper } from './data/models/ManifestMapper';
+import { ModelManager } from './data/models/ModelManager';
 
 class MMARO implements IPlugin, IOotOnlineHelpers, IPluginServerConfig {
 
     ModLoader!: IModLoaderAPI;
-    pluginName?: string = "MMARO";
     core: MMCore;
     puppets: PuppetOverlord;
     // Storage
     clientStorage: OotOnlineStorageClient = new OotOnlineStorageClient;
+    models: ModelManager;
 
     constructor() {
         this.core = new MMCore();
         this.puppets = new PuppetOverlord(this, this.core);
+        this.models = new ModelManager();
     }
 
     // This packet is basically 'where the hell are you?' if a player has a puppet on file but doesn't know what scene its suppose to be in.
@@ -94,14 +100,16 @@ class MMARO implements IPlugin, IOotOnlineHelpers, IPluginServerConfig {
     }
 
     preinit(): void {
-        global.ModLoader["MMOffsets"] = new MMOffsets();
     }
     init(): void { }
     postinit(): void {
+        this.ModLoader.gui.setDiscordStatus(new DiscordStatus("No peeking", "Testing a secret project"));
+        this.writeModel();
     }
 
     writeModel() {
-        let zz: zzstatic = new zzstatic();
+        // These use the OOT adult format.
+        let zz: zzstatic = new zzstatic(Z64LibSupportedGames.MAJORAS_MASK);
         this.ModLoader.emulator.rdramWriteBuffer(0x80900000, zz.doRepoint(fs.readFileSync(path.resolve(__dirname, "data", "models", "zobjs", "Deity.zobj")), 0, true, 0x80900000));
         this.ModLoader.emulator.rdramWriteBuffer(0x80910000, zz.doRepoint(fs.readFileSync(path.resolve(__dirname, "data", "models", "zobjs", "Goron.zobj")), 0, true, 0x80910000));
         this.ModLoader.emulator.rdramWriteBuffer(0x80920000, zz.doRepoint(fs.readFileSync(path.resolve(__dirname, "data", "models", "zobjs", "Zora.zobj")), 0, true, 0x80920000));
