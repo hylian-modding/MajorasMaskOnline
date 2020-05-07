@@ -137,8 +137,8 @@ export class zzstatic {
           ALIAS_TABLE_END = 0x50C8;
           break;
         case 4:
-          ALIAS_TABLE_START = 0x5010;
-          ALIAS_TABLE_END = 0x5378;
+          ALIAS_TABLE_START = 0x5110;
+          ALIAS_TABLE_END = 0x5418;
           break;
       }
     }
