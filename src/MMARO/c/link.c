@@ -1,5 +1,13 @@
-#include <z64ovl/mm/u10.h>
-#include <z64ovl/mm/helpers.h>
+//#define Z64OLDVL
+
+#ifdef Z64OLDVL
+    #include "D:\OoT_Modding\Code\mmpuppet\OLD_z64ovl\mm\u10.h"
+    #include "D:\OoT_Modding\Code\mmpuppet\OLD_z64ovl\mm\helpers.h"
+#else
+    #include <z64ovl\mm\u10.h>
+    #include <z64ovl\mm\helpers.h>
+#endif
+
 #include "defines_limbs.h"
 #include "defines_mm.h"
 
@@ -43,6 +51,10 @@ typedef struct
 	z_link_puppet puppetData;
 	z64_skelanime_t skelanime;
 	z64_collider_cylinder_main_t cylinder;
+
+	vec3s_t dt_rot[LIMB_TOTAL +1];
+    vec3s_t dt_pos[LIMB_TOTAL +1];
+	
 } entity_t;
 
 z64_collider_cylinder_init_t cylinder =
@@ -105,8 +117,14 @@ static void init(entity_t *en, z64_global_t *global)
 		en->puppetData.playasData.base = puppet_init.base;
 		en->puppetData.playasData.skeleton = AVAL(puppet_init.base, uint32_t, 0x500C);
 	}
-
-	z_skelanime_init(global, 1, &en->skelanime, en->puppetData.playasData.skeleton, 2);
+	
+    z_skelanime_init_ext(
+        global,
+		1,
+        &en->skelanime,
+        en->puppetData.playasData.skeleton,
+        0,
+        en->dt_rot, en->dt_pos, LIMB_TOTAL+1);
 
 	z_actor_set_scale(&en->actor, 0.01f);
 	z_collider_cylinder_init(global, &en->cylinder, &en->actor, &cylinder);
@@ -150,7 +168,6 @@ static void draw(entity_t *en, z64_global_t *global)
 		, en->puppetData.tunicColor.b
 		, en->puppetData.tunicColor.a
 	); */
-
 	z_skelanime_draw(global, 0x12, en, &en->skelanime, &callback_set_limb, &callback_animate_face);
 }
 
@@ -182,19 +199,19 @@ static int32_t callback_set_limb(z64_global_t *global, int32_t limb, uint32_t *d
 	switch (en->puppetData.form)
 	{
 	case FORM_LINK_DEITY:
-		height = 1.40f;
+		height = 1.50f;
 		break;
 	case FORM_LINK_GORON:
-		height = 0.64f;
+		height = 0.75f;
 		break;
 	case FORM_LINK_ZORA:
-		height = 0.90f;
+		height = 1.0f;
 		break;
 	case FORM_LINK_DEKU:
-		height = 0.20f;
+		height = 0.30f;
 		break;
 	case FORM_LINK_HUMAN:
-		height = 0.55f;
+		height = 0.65f;
 		break;
 	}
 

@@ -1,7 +1,7 @@
 {
   "ModLoader64": {
     "rom": "Legend of Zelda, The - Majora's Mask (USA).z64",
-    "patch": "MMR_Faster_Quest_Cheat.bps",
+    "patch": "",
     "isServer": false,
     "isClient": true,
     "isAnalyticsServer": false,
