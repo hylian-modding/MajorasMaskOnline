@@ -11,13 +11,16 @@ export class MMOffsets {
     anim: number = 0x400500;
 
     //Save Context
+
     max_heart_flag: number = 0x801EF6A4; //0x2
     hearts: number = 0x801EF6A6; //0x2
     magic: number = 0x801EF6A9; //0x1
     magic_amt: number = 0x801EF6A8; //0x1
+    razor_hits: number = 0x801EF6AC; // 0x2
     magic_bool1: number = 0x801EF6B0;
     magic_bool2: number = 0x801EF6B1;
     owl_statues: number = 0x801EF6B6; //0x2
+    sword_equip: number = 0x801EF6BC; // 0x1
     tunic_boots: number = 0x801EF6DC; //0x1
     sword_sheild: number = 0x801EF6DD;
     inventory: number = 0x801EF6E0; //0x18

@@ -1,3 +1,6 @@
+#define SHIELD_HERO   0x01
+#define SHIELD_MIRROR 0x02
+
 typedef struct
 {
 	uint32_t base;	 // Base RAM Address
@@ -9,9 +12,11 @@ typedef struct
 
 typedef struct
 {
-    uint32_t Back;  // Item on Back
-    uint32_t Left;  // Held Item (Left Hand)
-    uint32_t Right; // Held Item (Right Hand)
+    uint32_t Back;  	// Item on Back
+    uint32_t Left;  	// Held Item (Left Hand)
+    uint32_t Right; 	// Held Item (Right Hand)
+	uint8_t nowShield; 	// Currently Equipped Shield
+	uint8_t nowMask;    // Currently Worn Mask
 } puppet_items_t;
 
 typedef struct

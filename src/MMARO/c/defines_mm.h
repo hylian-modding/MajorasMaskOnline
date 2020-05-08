@@ -4,21 +4,111 @@
 #define FORM_DEKU  3 // Deku Link
 #define FORM_HUMAN 4 // Hylian Link
 
-// Hands
-#define DL_HUMAN_HAND_L
-#define DL_HUMAN_HAND_L_BOTTLE
-#define DL_HUMAN_FIST_L
-#define DL_HUMAN_HAND_R
-#define DL_HUMAN_FIST_R
-#define DL_HUMAN_HAND_R_OCARINA
+// Mask IDs
+#define MASK_NONE      0x00
+#define MASK_OF_TRUTH  0x01
+#define MASK_KAFEI     0x02
+#define MASK_ALL_NIGHT 0x03
+#define MASK_BUNNY     0x04
+#define MASK_KEATON    0x05
+#define MASK_GARO      0x06
+#define MASK_ROMANI    0x07
+#define MASK_CIRCUS    0x08
+#define MASK_POSTMAN   0x09
+#define MASK_COUPLES   0x0A
+#define MASK_FAIRY     0x0B
+#define MASK_GIBDO     0x0C
+#define MASK_DON_GERO  0x0D
+#define MASK_KAMARO    0x0E
+#define MASK_CAPTAIN   0x0F
+#define MASK_STONE     0x10
+#define MASK_BREMEN    0x11
+#define MASK_BLAST     0x12
+#define MASK_OF_SCENTS 0x13
+#define MASK_GIANT     0x14
+#define MASK_DEITY     0x15
+#define MASK_GORON     0x16
+#define MASK_ZORA      0x17
+#define MASK_DEKU      0x18
 
-// ZZ Hands
-#define DL_HUMAN_HAND_L_ZZ
-#define DL_HUMAN_HAND_L_BOTTLE_ZZ
-#define DL_HUMAN_FIST_L_ZZ
-#define DL_HUMAN_HAND_R_ZZ
-#define DL_HUMAN_FIST_R_ZZ
-#define DL_HUMAN_HAND_R_OCARINA_ZZ
+// Mask Display LIsts
+#define DL_MASK_OF_TRUTH  0x0A0001A0
+#define DL_MASK_KAFEI     0x0A000D40
+#define DL_MASK_ALL_NIGHT 0x0A000490
+#define DL_MASK_BUNNY     0x0A000610
+#define DL_MASK_KEATON    0x0A0004A0
+#define DL_MASK_GARO      0x0A0004C0
+#define DL_MASK_ROMANI    0x0A0007A0
+#define DL_MASK_CIRCUS    0x0A000700
+#define DL_MASK_POSTMAN   0x0A000290
+#define DL_MASK_COUPLES   0x0A0005A0
+#define DL_MASK_FAIRY     0x0A0016FA
+#define DL_MASK_GIBDO     0x0A000250
+#define DL_MASK_DON_GERO  0x0A000DC0
+#define DL_MASK_KAMARO    0x0A000EF0
+#define DL_MASK_CAPTAIN   0x0A0009F0
+#define DL_MASK_STONE     0x0A000820
+#define DL_MASK_BREMEN    0x0A0003C0
+#define DL_MASK_BLAST_1   0x0A000440
+#define DL_MASK_BLASE_2   0x0A0005C0
+#define DL_MASK_OF_SCENTS 0x0A000710
+#define DL_MASK_GIANT     0x0A000380
+#define DL_MASK_DEITY     0x0A000900
+#define DL_MASK_GORON     0x0A0014A0
+#define DL_MASK_ZORA      0x0A000DB0
+#define DL_MASK_DEKU      0x0A001D90
+
+
+// Human Form
+#define DL_HUMAN_HAND_L                0x0600D528    
+#define DL_HUMAN_HAND_L_BOTTLE         0x0601DFA8
+#define DL_HUMAN_FIST_L                0x0600E1C8
+#define DL_HUMAN_HAND_R                0x0600D058
+#define DL_HUMAN_FIST_R                0x0600E738
+#define DL_HUMAN_HAND_R_OCARINA        0x0600ED18
+#define DL_SHIELD_HERO                 0x06017458
+#define DL_SHIELD_HERO_FIST_R          0x0601DC28
+#define DL_SHIELD_HERO_ROTATED         0x0601DBC8
+#define DL_SHIELD_MIRROR               0x06016480
+#define DL_SHIELD_MIRROR_FIST_R        0x0601DC48
+#define DL_SHIELD_MIRROR_ROTATED       0x0601DC18
+#define DL_SWORD_KOKIRI                0x04003050
+#define DL_SHEATH_KOKIRI               0x06017700
+#define DL_SHEATHED_KOKIRI             0x0601DAD8
+#define DL_SWORD_RAZOR                 0x04003060
+#define DL_SHEATH_RAZOR                0x06017338
+#define DL_SHEATHED_RAZOR              0x0601DB40
+#define DL_SWORD_GILDED_HILT           0x06017058
+#define DL_SWORD_GILDED_BLADE          0x06017310
+#define DL_SHEATH_GILDED               0x06016B80
+#define DL_SHEATHED_GILDED             0x0601DB60
+#define DL_SWORD_FAIRY                 0x06016898
+#define DL_DEKU_STICK                  0x040032B0
+
+#define DL_HUMAN_HAND_L_ZZ             0x00005188
+#define DL_HUMAN_HAND_L_BOTTLE_ZZ      0x00005198
+#define DL_HUMAN_FIST_L_ZZ             0x00005190
+#define DL_HUMAN_HAND_R_ZZ             0x000051A0
+#define DL_HUMAN_FIST_R_ZZ             0x000051A8
+#define DL_HUMAN_HAND_R_OCARINA_ZZ     0x000053D8
+#define DL_SHIELD_HERO_ZZ              0x000051E8
+#define DL_SHIELD_HERO_FIST_R_ZZ       0x00005378
+#define DL_SHIELD_HERO_ROTATED_ZZ      0x00005238
+#define DL_SHIELD_MIRROR_ZZ            0x00005250
+#define DL_SHIELD_MIRROR_FIST_R_ZZ     0x00005390
+#define DL_SHIELD_MIRROR_ROTATED_ZZ    0x00005268
+#define DL_SWORD_KOKIRI_ZZ             0x00005300
+#define DL_SHEATH_KOKIRI_ZZ            0x000051F0
+#define DL_SHEATHED_KOKIRI_ZZ          0x00005290
+#define DL_SWORD_RAZOR_ZZ              0x00005320
+#define DL_SHEATH_RAZOR_ZZ             0x000051E0
+#define DL_SHEATHED_RAZOR_ZZ           0x000052B8
+#define DL_SWORD_GILDED_HILT_ZZ        0x000051D0
+#define DL_SWORD_GILDED_BLADE_ZZ       0x000051D8
+#define DL_SHEATH_GILDED_ZZ            0x000051C8
+#define DL_SHEATHED_GILDED_ZZ          0x000052E0
+#define DL_SWORD_FAIRY_ZZ              0x000051C0
+#define DL_DEKU_STICK_ZZ               0x040032B0
 
 // Equipment
 #define HUMAN_DL_SHIELD_MIRROR_FACE 0x06015F98
@@ -167,4 +257,4 @@
 #define DEITY_DL_BOTTLE_FILLING 0x060144D8
 #define DEITY_DL_BOTTLE_EMPTY 0x060143C0
 
-#define MM_ZZ_PUPPET_DLIST(DLARG0) ((en->puppetData.playasData.isZZ) ? (en->puppetData.playasData.base + DLARG0##_ZZ) : (DLARG0))
+#define MM_ZZ_PUPPET_DLIST(DLARG0) en->puppet.playas.isZZ ? (en->puppet.playas.init.base + DLARG0##_ZZ) : (DLARG0)
