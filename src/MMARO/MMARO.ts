@@ -20,6 +20,7 @@ import { FileSystemCompare } from './Z64Lib/API/FileSystemCompare';
 import { Z64LibSupportedGames } from './Z64Lib/API/Z64LibSupportedGames';
 import { ManifestMapper } from './data/models/ManifestMapper';
 import { ModelManager } from './data/models/ModelManager';
+import printf from './printf'
 
 class MMARO implements IPlugin, IOotOnlineHelpers, IPluginServerConfig {
 
@@ -119,6 +120,7 @@ class MMARO implements IPlugin, IOotOnlineHelpers, IPluginServerConfig {
 
     onTick(frame?: number): void {
         if (this.core.helper.isTitleScreen() || !this.core.helper.isSceneNumberValid()) return;
+        printf(this.ModLoader)
     }
 
     @EventHandler(EventsServer.ON_LOBBY_CREATE)
