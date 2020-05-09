@@ -3,7 +3,7 @@
 
 #include <stdarg.h>
 
-#define stdout 0x80E00000
+#define stdout (char*)0x80E00000
 
 /* Return the length of the null-terminated string STR. Scan for the null terminator quickly by testing four bytes at a time.  
    from glibc*/

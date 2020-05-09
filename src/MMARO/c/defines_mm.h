@@ -1,63 +1,156 @@
-#define FORM_DEITY 0 // Fierce Deity Link
-#define FORM_GORON 1 // Goron Link
-#define FORM_ZORA  2 // Zora Link
-#define FORM_DEKU  3 // Deku Link
-#define FORM_HUMAN 4 // Hylian Link
+#define FORM_DEITY                     0 // Fierce Deity Link
+#define FORM_GORON                     1 // Goron Link
+#define FORM_ZORA                      2 // Zora Link
+#define FORM_DEKU                      3 // Deku Link
+#define FORM_HUMAN                     4 // Hylian Link
+
+// Action Parameters
+#define ACTION_PUT_AWAY                0x00
+#define ACTION_PULL_OUT                0x01
+#define ACTION_FISHING_ROD             0x02
+#define ACTION_SWORD_KOKIRI            0x03
+#define ACTION_SWORD_RAZOR             0x04
+#define ACTION_SWORD_GILDED            0x05
+#define ACTION_SWORD_FAIRY             0x06
+#define ACTION_DEKU_STICK              0x07
+#define ACTION_KAFEI_ATTACK            0x08
+#define ACTION_BOW                     0x09
+#define ACTION_FIRE_ARROW              0x0A
+#define ACTION_ICE_ARROW               0x0B
+#define ACTION_LIGHT_ARROW             0x0C
+#define ACTION_HOOKSHOT                0x0D
+#define ACTION_BOMB                    0x0E
+#define ACTION_POWDER_KEG              0x0F
+#define ACTION_BOMBCHU                 0x10
+#define ACTION_ZORA_BOOMERANG          0x11
+#define ACTION_DEKU_NUT                0x12
+#define ACTION_PICTOGRAPH              0x13
+#define ACTION_OCARINA                 0x14
+#define ACTION_BOTTLE_EMPTY            0x15
+#define ACTION_BOTTLE_FISH             0x16
+#define ACTION_BOTTLE_WATER            0x17
+#define ACTION_BOTTLE_WATER_HOT        0x18
+#define ACTION_BOTTLE_ZORA_EGG         0x19
+#define ACTION_BOTTLE_DEKU_PRINCESS    0x1A
+#define ACTION_BOTTLE_GOLD_DUST        0x1B
+#define ACTION_UNUSED                  0x1C
+#define ACTION_BOTTLE_SEAHORSE         0x1D
+#define ACTION_BOTTLE_MUSHROOM         0x1E
+#define ACTION_BOTTLE_LOACH            0x1F
+#define ACTION_BOTTLE_BUG              0x20
+#define ACTION_BOTTLE_POE              0x21
+#define ACTION_BOTTLE_POE_BIG          0x22
+#define ACTION_BOTTLE_POTION_RED       0x23
+#define ACTION_BOTTLE_POTION_BLUE      0x24
+#define ACTION_BOTTLE_POTION_GREEN     0x25
+#define ACTION_BOTTLE_MILK             0x26
+#define ACTION_BOTTLE_MILK_HALF        0x27
+#define ACTION_BOTTLE_MILK_MAGIC       0x28
+#define ACTION_BOTTLE_FAIRY            0x29
+#define ACTION_MOON_TEAR               0x2A
+#define ACTION_DEED_LAND               0x2B
+#define ACTION_ROOM_KEY                0x2C
+#define ACTION_LETTER_KAFEI            0x2D
+#define ACTION_MAGIC_BEAN              0x2E
+#define ACTION_DEED_SWAMP              0x2F
+#define ACTION_DEED_MOUNTAIN           0x30
+#define ACTION_DEED_OCEAN              0x31
+#define ACTION_MOON_TEAR_2             0x32
+#define ACTION_LETTER_MAMA             0x33
+#define ACTION_POACHERS_SAW            0x34
+#define ACTION_GORON_SWORD_BROKEN      0x35
+#define ACTION_PENDANT                 0x36
+#define ACTION_EYEBALL_FROG            0x37
+#define ACTION_EYE_DROPS               0x38
+#define ACTION_PENDANT_2               0x39
+#define ACTION_MASK_OF_TRUTH           0x3A
+#define ACTION_MASK_KAFEI              0x3B
+#define ACTION_MASK_ALL_NIGHT          0x3C
+#define ACTION_MASK_BUNNY              0x3D
+#define ACTION_MASK_KEATON             0x3E
+#define ACTION_MASK_GARO               0x3F
+#define ACTION_MASK_ROMANI             0x40
+#define ACTION_MASK_CIRCUS             0x41
+#define ACTION_MASK_POSTMAN            0x42
+#define ACTION_MASK_COUPLES            0x43
+#define ACTION_MASK_FAIRY              0x44
+#define ACTION_MASK_GIBDO              0x45
+#define ACTION_MASK_DON_GERO           0x46
+#define ACTION_MASK_KAMARO             0x47
+#define ACTION_MASK_CAPTAIN            0x48
+#define ACTION_MASK_STONE              0x49
+#define ACTION_ACTION_MASK_BREMEN      0x4A
+#define ACTION_MASK_BLAST                     0x4B
+#define ACTION_MASK_OF_SCENTS          0x4C
+#define ACTION_MASK_GIANT              0x4D
+#define ACTION_MASK_DEITY              0x4E
+#define ACTION_MASK_GORON              0x4F
+#define ACTION_MASK_ZORA               0x50
+#define ACTION_MASK_DEKU               0x51
+#define ACTION_LENS_OF_TRUTH           0x51
 
 // Mask IDs
-#define MASK_NONE      0x00
-#define MASK_OF_TRUTH  0x01
-#define MASK_KAFEI     0x02
-#define MASK_ALL_NIGHT 0x03
-#define MASK_BUNNY     0x04
-#define MASK_KEATON    0x05
-#define MASK_GARO      0x06
-#define MASK_ROMANI    0x07
-#define MASK_CIRCUS    0x08
-#define MASK_POSTMAN   0x09
-#define MASK_COUPLES   0x0A
-#define MASK_FAIRY     0x0B
-#define MASK_GIBDO     0x0C
-#define MASK_DON_GERO  0x0D
-#define MASK_KAMARO    0x0E
-#define MASK_CAPTAIN   0x0F
-#define MASK_STONE     0x10
-#define MASK_BREMEN    0x11
-#define MASK_BLAST     0x12
-#define MASK_OF_SCENTS 0x13
-#define MASK_GIANT     0x14
-#define MASK_DEITY     0x15
-#define MASK_GORON     0x16
-#define MASK_ZORA      0x17
-#define MASK_DEKU      0x18
+#define MASK_NONE                      0x00
+#define MASK_OF_TRUTH                  0x01
+#define MASK_KAFEI                     0x02
+#define MASK_ALL_NIGHT                 0x03
+#define MASK_BUNNY                     0x04
+#define MASK_KEATON                    0x05
+#define MASK_GARO                      0x06
+#define MASK_ROMANI                    0x07
+#define MASK_CIRCUS                    0x08
+#define MASK_POSTMAN                   0x09
+#define MASK_COUPLES                   0x0A
+#define MASK_FAIRY                     0x0B
+#define MASK_GIBDO                     0x0C
+#define MASK_DON_GERO                  0x0D
+#define MASK_KAMARO                    0x0E
+#define MASK_CAPTAIN                   0x0F
+#define MASK_STONE                     0x10
+#define MASK_BREMEN                    0x11
+#define MASK_BLAST                     0x12
+#define MASK_OF_SCENTS                 0x13
+#define MASK_GIANT                     0x14
+#define MASK_DEITY                     0x15
+#define MASK_GORON                     0x16
+#define MASK_ZORA                      0x17
+#define MASK_DEKU                      0x18
 
 // Mask Display LIsts
-#define DL_MASK_OF_TRUTH  0x0A0001A0
-#define DL_MASK_KAFEI     0x0A000D40
-#define DL_MASK_ALL_NIGHT 0x0A000490
-#define DL_MASK_BUNNY     0x0A000610
-#define DL_MASK_KEATON    0x0A0004A0
-#define DL_MASK_GARO      0x0A0004C0
-#define DL_MASK_ROMANI    0x0A0007A0
-#define DL_MASK_CIRCUS    0x0A000700
-#define DL_MASK_POSTMAN   0x0A000290
-#define DL_MASK_COUPLES   0x0A0005A0
-#define DL_MASK_FAIRY     0x0A0016FA
-#define DL_MASK_GIBDO     0x0A000250
-#define DL_MASK_DON_GERO  0x0A000DC0
-#define DL_MASK_KAMARO    0x0A000EF0
-#define DL_MASK_CAPTAIN   0x0A0009F0
-#define DL_MASK_STONE     0x0A000820
-#define DL_MASK_BREMEN    0x0A0003C0
-#define DL_MASK_BLAST_1   0x0A000440
-#define DL_MASK_BLASE_2   0x0A0005C0
-#define DL_MASK_OF_SCENTS 0x0A000710
-#define DL_MASK_GIANT     0x0A000380
-#define DL_MASK_DEITY     0x0A000900
-#define DL_MASK_GORON     0x0A0014A0
-#define DL_MASK_ZORA      0x0A000DB0
-#define DL_MASK_DEKU      0x0A001D90
+#define DL_MASK_OF_TRUTH               0x0A0001A0
+#define DL_MASK_KAFEI                  0x0A000D40
+#define DL_MASK_ALL_NIGHT              0x0A000490
+#define DL_MASK_BUNNY                  0x0A000610
+#define DL_MASK_KEATON                 0x0A0004A0
+#define DL_MASK_GARO                   0x0A0004C0
+#define DL_MASK_ROMANI                 0x0A0007A0
+#define DL_MASK_CIRCUS                 0x0A000700
+#define DL_MASK_POSTMAN                0x0A000290
+#define DL_MASK_COUPLES                0x0A0005A0
+#define DL_MASK_FAIRY                  0x0A0016FA
+#define DL_MASK_GIBDO                  0x0A000250
+#define DL_MASK_DON_GERO               0x0A000DC0
+#define DL_MASK_KAMARO                 0x0A000EF0
+#define DL_MASK_CAPTAIN                0x0A0009F0
+#define DL_MASK_STONE                  0x0A000820
+#define DL_MASK_BREMEN                 0x0A0003C0
+#define DL_MASK_BLAST_1                0x0A000440
+#define DL_MASK_BLASE_2                0x0A0005C0
+#define DL_MASK_OF_SCENTS              0x0A000710
+#define DL_MASK_GIANT                  0x0A000380
+#define DL_MASK_DEITY                  0x0A000900
+#define DL_MASK_GORON                  0x0A0014A0
+#define DL_MASK_ZORA                   0x0A000DB0
+#define DL_MASK_DEKU                   0x0A001D90
 
+// gameplay_keep
+#define DL_BOTTLE_CONTENTS             0x04000320
+#define DL_EMPTY_BOTTLE                0x040003E0
+#define DL_DEKU_STICK                  0x040032B0
+#define DL_MASK_ZORA_GK                0x04005360
+#define DL_MASK_DEKU_GK                0x040056C0
+#define DL_MASK_GORON_GK               0x04005A10
+#define DL_MASK_DEITY_GK               0x0400B260
 
 // Human Form
 #define DL_HUMAN_HAND_L                0x0600D528    
@@ -83,7 +176,6 @@
 #define DL_SHEATH_GILDED               0x06016B80
 #define DL_SHEATHED_GILDED             0x0601DB60
 #define DL_SWORD_FAIRY                 0x06016898
-#define DL_DEKU_STICK                  0x040032B0
 
 #define DL_HUMAN_HAND_L_ZZ             0x00005188
 #define DL_HUMAN_HAND_L_BOTTLE_ZZ      0x00005198
@@ -108,7 +200,6 @@
 #define DL_SHEATH_GILDED_ZZ            0x000051C8
 #define DL_SHEATHED_GILDED_ZZ          0x000052E0
 #define DL_SWORD_FAIRY_ZZ              0x000051C0
-#define DL_DEKU_STICK_ZZ               0x040032B0
 
 // Equipment
 #define HUMAN_DL_SHIELD_MIRROR_FACE 0x06015F98
