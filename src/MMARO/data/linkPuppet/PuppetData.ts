@@ -42,6 +42,7 @@ export class PuppetData implements IPuppetData {
     this.copyFields.push('equipSword');
     this.copyFields.push('razorDurability');
     this.copyFields.push('shieldRot');
+    this.copyFields.push('dekuStickLength');
     //this.copyFields.push('maskOBJ');
   }
 
@@ -149,6 +150,15 @@ export class PuppetData implements IPuppetData {
 
   set razorDurability(razorDurability: number) {
     this.ModLoader.emulator.rdramWrite16(this.pointer + 0x390, razorDurability);
+  }
+
+  get dekuStickLength(): number {
+    let offsets = (global.ModLoader.MMOffsets as MMOffsets);
+    return this.ModLoader.emulator.rdramReadF32(offsets.link_instance + 0xB0C);
+  }
+
+  set dekuStickLength(dekuStickLength: number) {
+    this.ModLoader.emulator.rdramWriteF32(this.pointer + 0x398, dekuStickLength);
   }
 
   get form(): MMForms {

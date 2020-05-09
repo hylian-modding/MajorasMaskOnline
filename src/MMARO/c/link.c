@@ -29,6 +29,7 @@ typedef struct
 	uint8_t save_sword_equip;
 	uint16_t razor_durability;
 	vec3s_t shield_rot;
+	float deku_stick_length;
 } entity_t;
 
 /*const uint32_t shield_wield[3] = {
@@ -66,16 +67,18 @@ static void init(entity_t *en, z64_global_t *gl);
 static void destroy(entity_t *en, z64_global_t *gl);
 static void play(entity_t *en, z64_global_t *gl);
 static void draw(entity_t *en, z64_global_t *gl);
-static void callback_animate_face(z64_global_t *gl, uint8_t limb, uint32_t dlist, vec3s_t *rotation, entity_t *en);
-static int32_t callback_set_limb(z64_global_t *gl, int32_t limb, uint32_t *dl, vec3f_t *pos, vec3s_t *rot, entity_t *en);
+static void callback_animate_face(z64_global_t *gl, int32_t limb, uint32_t dlist, vec3s_t *rotation, void* _en);
+static int32_t callback_set_limb(z64_global_t *gl, int32_t limb, uint32_t *dl, vec3f_t *pos, vec3s_t *rot, void* _en);
 static void load_mask_object(entity_t* en, uint8_t id);
+static rgb8_t bottle_handler(int32_t action_param);
 
 static void init(entity_t *en, z64_global_t *gl)
 {
 	//Debugging
 	uint32_t _inst = (uint32_t)en;
 	uint32_t _nowMask = (uint32_t)&(en->puppet).item.nowMask;
-	printf("nowMask: 0x%08X; 0x%02X", _nowMask - _inst, (en->puppet).item.nowMask);
+	char* _debug = "nowMask: 0x%08X; 0x%02X";
+	printf(_debug, _nowMask - _inst, (en->puppet).item.nowMask);
 
 	if ((en->actor).variable < 0xFFFF)
 	{
@@ -154,13 +157,14 @@ static void draw(entity_t *en, z64_global_t *gl)
 		, 0x12
 		, en
 		, &en->skelanime
-		, &callback_set_limb
-		, &callback_animate_face
+		, callback_set_limb
+		, callback_animate_face
 	);
 }
 
-static void callback_animate_face(z64_global_t *gl, uint8_t limb, uint32_t dlist, vec3s_t *rotation, entity_t *en)
+static void callback_animate_face(z64_global_t* gl, int32_t limb, uint32_t dlist, vec3s_t* rotation, void* _en)
 {
+	entity_t* en = _en;
 	z64_disp_buf_t *opa = &ZQDL(gl, poly_opa);
 
 	if ((en->puppet).playas.isZZ)
@@ -175,8 +179,9 @@ static void callback_animate_face(z64_global_t *gl, uint8_t limb, uint32_t dlist
 	}
 }
 
-static int32_t callback_set_limb(z64_global_t *gl, int32_t limb, uint32_t *dl, vec3f_t *pos, vec3s_t *rot, entity_t *en)
+static int32_t callback_set_limb(z64_global_t* gl, int32_t limb, uint32_t* dl, vec3f_t* pos, vec3s_t* rot, void* _en)
 {
+	entity_t* en = _en;
 	z64_disp_buf_t* opa = &ZQDL(gl, poly_opa);
 	z64_disp_buf_t* xlu = &ZQDL(gl, poly_xlu);
 
@@ -228,7 +233,7 @@ static int32_t callback_set_limb(z64_global_t *gl, int32_t limb, uint32_t *dl, v
 						break;
 				}
 			}
-			else if (en->action_param_2 > 2 && en->action_param_2 < 6)
+			else if (en->action_param_2 > (ACTION_SWORD_KOKIRI + 1) && en->action_param_2 < (ACTION_SWORD_FAIRY - 1))
 			{
 				*dl = MM_ZZ_PUPPET_DLIST(DL_HUMAN_FIST_R);
 				switch((en->puppet).item.nowShield)
@@ -267,29 +272,57 @@ static int32_t callback_set_limb(z64_global_t *gl, int32_t limb, uint32_t *dl, v
 				z_matrix_rotate_3s(rot->x, rot->y, rot->z, 1);
 				switch(en->action_param_1)
 				{
-					case 3:
+					case ACTION_SWORD_KOKIRI:
 						z_cheap_proc_draw_opa(gl, MM_ZZ_PUPPET_DLIST(DL_SWORD_KOKIRI));
 						break;
-					case 4:
+					case ACTION_SWORD_RAZOR:
 						z_cheap_proc_draw_opa(gl, MM_ZZ_PUPPET_DLIST(DL_SWORD_RAZOR));
 						break;
-					case 5:
+					case ACTION_SWORD_GILDED:
 						z_cheap_proc_draw_opa(gl, MM_ZZ_PUPPET_DLIST(DL_SWORD_GILDED_HILT));
 						z_cheap_proc_draw_opa(gl, MM_ZZ_PUPPET_DLIST(DL_SWORD_GILDED_BLADE));
 						break;
-					case 6:
+					case ACTION_SWORD_FAIRY:
 						z_cheap_proc_draw_opa(gl, MM_ZZ_PUPPET_DLIST(DL_SWORD_FAIRY));
 						break;
-					case 7:
+					case ACTION_DEKU_STICK:
 						matrix_push();
 						z_matrix_translate_3f(-428.26f, 267.20f, -33.82f, 1);
 						z_matrix_rotate_3s(ROT16(-180), ROT16(0), ROT16(90), 1);
-						z_cheap_proc_draw_opa(gl, MM_ZZ_PUPPET_DLIST(DL_DEKU_STICK));
+						z_matrix_scale_3f(1.0f, en->deku_stick_length, 1.0f, 1);
+						z_cheap_proc_draw_opa(gl, DL_DEKU_STICK);
 						matrix_pop();
 						break;
 				}
 				matrix_pop();
-			}	
+			}
+
+			if	(en->action_param_2 > 0)
+			{
+				matrix_push();
+				z_matrix_translate_3f(pos->x, pos->y, pos->z, 1);
+				z_matrix_rotate_3s(rot->x, rot->y, rot->z, 1);
+
+				// Bottle
+				if (en->action_param_2 > (ACTION_BOTTLE_EMPTY - 1) && en->action_param_2 < (ACTION_BOTTLE_FAIRY + 1))
+				{
+					*dl = MM_ZZ_PUPPET_DLIST(DL_HUMAN_HAND_L_BOTTLE);
+					rgb8_t bc = bottle_handler(en->action_param_2);
+					gSPMatrix(xlu->p++, z_matrix_alloc((gl->common).gfx_ctxt, ""), G_MTX_LOAD);
+					gDPSetEnvColor(
+						xlu->p++
+						, bc.r
+						, bc.g
+						, bc.b
+						, 255
+					);
+					if (en->action_param_2 > ACTION_BOTTLE_EMPTY)
+						gSPDisplayList(xlu->p++, DL_BOTTLE_CONTENTS);
+					gSPDisplayList(xlu->p++, DL_EMPTY_BOTTLE);
+				}
+
+				matrix_pop();
+			}
 		}
 
 		if (limb == LIMB_SHEATH)
@@ -477,6 +510,40 @@ static void load_mask_object(entity_t* en, uint8_t id)
 	//uint32_t vRam = (uint32_t)en->mask_object;
 	//printf("Loading mask (0x%08X - 0x%08X); 0x%04X to 0x%08X...\n", vStart, vEnd, vSize, vRam);
 	//load_data_from_rom((uint32_t*)vRam, (uint32_t*)vStart, vSize, "");
+}
+
+static rgb8_t bottle_handler(int32_t action_param)
+{
+  int32_t bottle_id = (action_param - ACTION_BOTTLE_EMPTY);
+  rgb8_t bottle_colors[] = {
+		{0xFF, 0xFF, 0xFF} /* Empty Bottle */
+		, {0x50, 0x50, 0xFF} /* Fish */
+		, {0x88, 0xC0, 0xFF} /* Spring Water */
+		, {0x88, 0xC0, 0xFF} /* Hot Spring Water */
+		, {0xB8, 0xE8, 0xE8} /* Zora Egg */
+		, {0xF8, 0xC8, 0x00} /* Deku Princess */
+		, {0xFF, 0xB4, 0x00} /* Gold Dust*/
+		, {0x00, 0x80, 0x00} /* Unused */
+		, {0xFC, 0xEE, 0x00} /* Seahorse */
+		, {0x83, 0x00, 0xAE} /* Magic Mushroom */
+		, {0x40, 0x40, 0x20} /* Hylian Loach */
+		, {0x00, 0x00, 0xFF} /* Bug */
+		, {0xFF, 0x00, 0xFF} /* Poe */
+		, {0xFF, 0x00, 0xFF} /* Big Poe */
+		, {0xFF, 0x00, 0x00} /* Red Potion */
+		, {0x00, 0x00, 0xFF} /* Blue Potion */
+		, {0x00, 0xC8, 0x00} /* Green Potion */
+		, {0xFF, 0xFF, 0xFF} /* Milk */
+		, {0xFF, 0xFF, 0xFF} /* Milk (Half) */
+		, {0xFF, 0xFF, 0xFF} /* Chateau Romani */
+		, {0x50, 0x50, 0xFF} /* Fairy */
+	};
+
+  if ((-1 < bottle_id) && (bottle_id < ACTION_BOTTLE_EMPTY))
+  {
+    return bottle_colors[bottle_id];
+  }
+  return bottle_colors[0];
 }
 
 /* .data */
