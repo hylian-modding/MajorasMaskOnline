@@ -26,3 +26,18 @@ typedef struct
 	uint32_t eye_texture;
 	puppet_init_t init;
 } zzplayas_t;
+
+typedef struct
+{
+	uint8_t fairy_mask[0x100];
+	struct cm
+	{
+		vec3f_t pos[2]; // Right, Left
+		int32_t frame[2]; // Left, Right; Some sort of frame counter for the tear growing before it falls from the mask.
+	} circus_mask;
+	struct bh
+	{
+		vec3s_t rot;
+		vec3s_t unk;
+	} bunny_hood;
+} mask_properties_t;

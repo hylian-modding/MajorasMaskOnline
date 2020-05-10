@@ -38,4 +38,8 @@ export class MMOffsets {
     double_defense: number = 0x801EF743; //0x1
     scene_flags = 0x801EF768; //0xD20 dig chest flags out of here
     bank_rupees = 0x801F054E; //0x2
+
+    //misc
+    mask_object_vram = 0x80402B50;
+    mask_props = 0x801F58B0;
 }

@@ -30,6 +30,11 @@ typedef struct
 	uint16_t razor_durability;
 	vec3s_t shield_rot;
 	float deku_stick_length;
+	uint32_t now_anime;
+	uint8_t lastMask;
+	uint16_t blast_mask_timer;
+	mask_properties_t mask_props;
+	uint32_t mask_ram_addresses[24];
 } entity_t;
 
 /*const uint32_t shield_wield[3] = {
@@ -69,16 +74,26 @@ static void play(entity_t *en, z64_global_t *gl);
 static void draw(entity_t *en, z64_global_t *gl);
 static void callback_animate_face(z64_global_t *gl, int32_t limb, uint32_t dlist, vec3s_t *rotation, void* _en);
 static int32_t callback_set_limb(z64_global_t *gl, int32_t limb, uint32_t *dl, vec3f_t *pos, vec3s_t *rot, void* _en);
-static void load_mask_object(entity_t* en, uint8_t id);
+//static int32_t load_mask_object(uint8_t id, void* vRam);
+static void load_masks(entity_t* en, void* vRam);
 static rgb8_t bottle_handler(int32_t action_param);
+
+// External Functions
+extern void func_801309F4(z64_global_t* gl, uint32_t segment, char* tile_settings);
+asm("func_801309F4 = 0x801309F4");
+
+extern void func_8013178C(z64_global_t* gl, char* header);
+asm("func_8013178C = 0x8013178C");
 
 static void init(entity_t *en, z64_global_t *gl)
 {
 	//Debugging
-	uint32_t _inst = (uint32_t)en;
-	uint32_t _nowMask = (uint32_t)&(en->puppet).item.nowMask;
-	char* _debug = "nowMask: 0x%08X; 0x%02X";
-	printf(_debug, _nowMask - _inst, (en->puppet).item.nowMask);
+	//uint32_t _inst = (uint32_t)en;
+	//uint32_t _nowMask = (uint32_t)&(en->puppet).item.nowMask;
+	//char* _debug = "nowMask: 0x%08X; 0x%02X";
+	//printf(_debug, _nowMask - _inst, (en->puppet).item.nowMask);
+
+	load_masks(en, (void*)0x80958700);
 
 	if ((en->actor).variable < 0xFFFF)
 	{
@@ -121,6 +136,33 @@ static void init(entity_t *en, z64_global_t *gl)
 
 	z_actor_set_scale(&en->actor, 0.01f);
 	z_collider_cylinder_init(gl, &en->collider, &en->actor, &collider_init);
+
+	/*printf("%d en->mask_ram_addresses = \n", 0);
+	char* _debug = "0x%08X\n";
+	printf(_debug, en->mask_ram_addresses[0]);
+	printf(_debug, en->mask_ram_addresses[1]);
+	printf(_debug, en->mask_ram_addresses[2]);
+	printf(_debug, en->mask_ram_addresses[3]);
+	printf(_debug, en->mask_ram_addresses[4]);
+	printf(_debug, en->mask_ram_addresses[5]);
+	printf(_debug, en->mask_ram_addresses[6]);
+	printf(_debug, en->mask_ram_addresses[7]);
+	printf(_debug, en->mask_ram_addresses[8]);
+	printf(_debug, en->mask_ram_addresses[9]);
+	printf(_debug, en->mask_ram_addresses[10]);
+	printf(_debug, en->mask_ram_addresses[11]);
+	printf(_debug, en->mask_ram_addresses[12]);
+	printf(_debug, en->mask_ram_addresses[13]);
+	printf(_debug, en->mask_ram_addresses[14]);
+	printf(_debug, en->mask_ram_addresses[15]);
+	printf(_debug, en->mask_ram_addresses[16]);
+	printf(_debug, en->mask_ram_addresses[17]);
+	printf(_debug, en->mask_ram_addresses[18]);
+	printf(_debug, en->mask_ram_addresses[19]);
+	printf(_debug, en->mask_ram_addresses[20]);
+	printf(_debug, en->mask_ram_addresses[21]);
+	printf(_debug, en->mask_ram_addresses[22]);
+	printf(_debug, en->mask_ram_addresses[23]);*/
 }
 
 static void destroy(entity_t *en, z64_global_t *gl)
@@ -206,6 +248,10 @@ static int32_t callback_set_limb(z64_global_t* gl, int32_t limb, uint32_t* dl, v
 		// Right Hand
 		if (limb == LIMB_HAND_R)
 		{
+			matrix_push();
+			z_matrix_translate_3f(pos->x, pos->y, pos->z, 1);
+			z_matrix_rotate_3s(rot->x, rot->y, rot->z, 1);
+
 			// Velocity Hands
 			if ((en->actor).xz_speed > 2.0f)
 			{
@@ -215,10 +261,6 @@ static int32_t callback_set_limb(z64_global_t* gl, int32_t limb, uint32_t* dl, v
 			{
 				*dl = MM_ZZ_PUPPET_DLIST(DL_HUMAN_HAND_R);
 			}
-
-			matrix_push();
-			z_matrix_translate_3f(pos->x, pos->y, pos->z, 1);
-			z_matrix_rotate_3s(rot->x, rot->y, rot->z, 1);
 
 			if (en->action_param_2 == 0xFF)
 			{
@@ -233,7 +275,7 @@ static int32_t callback_set_limb(z64_global_t* gl, int32_t limb, uint32_t* dl, v
 						break;
 				}
 			}
-			else if (en->action_param_2 > (ACTION_SWORD_KOKIRI + 1) && en->action_param_2 < (ACTION_SWORD_FAIRY - 1))
+			else if (en->action_param_2 > (ACTION_SWORD_KOKIRI - 1) && en->action_param_2 < ACTION_SWORD_FAIRY)
 			{
 				*dl = MM_ZZ_PUPPET_DLIST(DL_HUMAN_FIST_R);
 				switch((en->puppet).item.nowShield)
@@ -253,6 +295,10 @@ static int32_t callback_set_limb(z64_global_t* gl, int32_t limb, uint32_t* dl, v
 		// Left Hand
 		if (limb == LIMB_HAND_L)
 		{
+			matrix_push();
+			z_matrix_translate_3f(pos->x, pos->y, pos->z, 1);
+			z_matrix_rotate_3s(rot->x, rot->y, rot->z, 1);
+
 			// Velocity Hands
 			if ((en->actor).xz_speed > 2.0f)
 			{
@@ -267,9 +313,6 @@ static int32_t callback_set_limb(z64_global_t* gl, int32_t limb, uint32_t* dl, v
 			{
 				*dl = MM_ZZ_PUPPET_DLIST(DL_HUMAN_FIST_L);
 
-				matrix_push();
-				z_matrix_translate_3f(pos->x, pos->y, pos->z, 1);
-				z_matrix_rotate_3s(rot->x, rot->y, rot->z, 1);
 				switch(en->action_param_1)
 				{
 					case ACTION_SWORD_KOKIRI:
@@ -294,35 +337,23 @@ static int32_t callback_set_limb(z64_global_t* gl, int32_t limb, uint32_t* dl, v
 						matrix_pop();
 						break;
 				}
-				matrix_pop();
 			}
 
 			if	(en->action_param_2 > 0)
 			{
-				matrix_push();
-				z_matrix_translate_3f(pos->x, pos->y, pos->z, 1);
-				z_matrix_rotate_3s(rot->x, rot->y, rot->z, 1);
-
 				// Bottle
 				if (en->action_param_2 > (ACTION_BOTTLE_EMPTY - 1) && en->action_param_2 < (ACTION_BOTTLE_FAIRY + 1))
 				{
 					*dl = MM_ZZ_PUPPET_DLIST(DL_HUMAN_HAND_L_BOTTLE);
 					rgb8_t bc = bottle_handler(en->action_param_2);
 					gSPMatrix(xlu->p++, z_matrix_alloc((gl->common).gfx_ctxt, ""), G_MTX_LOAD);
-					gDPSetEnvColor(
-						xlu->p++
-						, bc.r
-						, bc.g
-						, bc.b
-						, 255
-					);
+					gDPSetEnvColor(xlu->p++, bc.r, bc.g, bc.b, 255);
 					if (en->action_param_2 > ACTION_BOTTLE_EMPTY)
 						gSPDisplayList(xlu->p++, DL_BOTTLE_CONTENTS);
 					gSPDisplayList(xlu->p++, DL_EMPTY_BOTTLE);
 				}
-
-				matrix_pop();
 			}
+			matrix_pop();
 		}
 
 		if (limb == LIMB_SHEATH)
@@ -370,7 +401,7 @@ static int32_t callback_set_limb(z64_global_t* gl, int32_t limb, uint32_t* dl, v
 			}
 
 			// Sword put away, not shielding.
-			if ((en->action_param_1 < 3 || en->action_param_1 > 5) && en->action_param_2 != 0xFF)
+			if ((en->action_param_1 < ACTION_SWORD_KOKIRI || en->action_param_1 > ACTION_SWORD_GILDED) && en->action_param_2 != 0xFF)
 			{
 				switch((en->puppet).item.nowShield)
 				{
@@ -392,109 +423,200 @@ static int32_t callback_set_limb(z64_global_t* gl, int32_t limb, uint32_t* dl, v
 		}
 
 		if (limb == LIMB_HEAD)
-		{
-			/*matrix_push();
+		{	
+			matrix_push();
 			z_matrix_translate_3f(pos->x, pos->y, pos->z, 1);
 			z_matrix_rotate_3s(rot->x, rot->y, rot->z, 1);
 
-			//load_mask_object(en, 0x02);
-			//gSPSegment(xlu->p++, 0x0A, &en->mask_object);
-			//printf("Loaded Mask into Segment 0x0A!", 0);
-			switch((en->puppet).item.nowMask)
+			if ((en->puppet).item.nowMask > 0)
 			{
-				case MASK_NONE:
-					break;
-				case MASK_OF_TRUTH:
-					z_cheap_proc_draw_xlu(gl, DL_MASK_OF_TRUTH);
-					break;
-				case MASK_KAFEI:
-					z_cheap_proc_draw_xlu(gl, DL_MASK_KAFEI);
-					break;
-				case MASK_ALL_NIGHT:
-					z_cheap_proc_draw_xlu(gl, DL_MASK_ALL_NIGHT);
-					break;
-				case MASK_BUNNY:
-					//z_cheap_proc_draw_xlu(gl, DL_MASK_BUNNY);
-					break;
-				case MASK_KEATON:
-					z_cheap_proc_draw_xlu(gl, DL_MASK_KEATON);
-					break;
-				case MASK_GARO:
-					z_cheap_proc_draw_xlu(gl, DL_MASK_GARO);
-					break;
-				case MASK_ROMANI:
-					z_cheap_proc_draw_xlu(gl, DL_MASK_ROMANI);
-					break;
-				case MASK_CIRCUS:
-					z_cheap_proc_draw_xlu(gl, DL_MASK_CIRCUS);
-					break;
-				case MASK_POSTMAN:
-					z_cheap_proc_draw_xlu(gl, DL_MASK_POSTMAN);
-					break;
-				case MASK_COUPLES:
-					z_cheap_proc_draw_xlu(gl, DL_MASK_COUPLES);
-					break;
-				case MASK_FAIRY:
-					//z_cheap_proc_draw_xlu(gl, DL_MASK_FAIRY);
-					break;
-				case MASK_GIBDO:
-					z_cheap_proc_draw_xlu(gl, DL_MASK_GIBDO);
-					break;
-				case MASK_DON_GERO:
-					z_cheap_proc_draw_xlu(gl, DL_MASK_DON_GERO);
-					break;
-				case MASK_KAMARO:
-					z_cheap_proc_draw_xlu(gl, DL_MASK_KAMARO);
-					break;
-				case MASK_CAPTAIN:
-					z_cheap_proc_draw_xlu(gl, DL_MASK_CAPTAIN);
-					break;
-				case MASK_STONE:
-					z_cheap_proc_draw_xlu(gl, DL_MASK_STONE);
-					break;
-				case MASK_BREMEN:
-					z_cheap_proc_draw_xlu(gl, DL_MASK_BREMEN);
-					break;
-				case MASK_BLAST:
-					//z_cheap_proc_draw_xlu(gl, DL_MASK_BLAST1);
-					break;
-				case MASK_OF_SCENTS:
-					z_cheap_proc_draw_xlu(gl, DL_MASK_OF_SCENTS);
-					break;
-				case MASK_GIANT:
-					z_cheap_proc_draw_xlu(gl, DL_MASK_GIANT);
-					break;
-				case MASK_DEITY:
-					z_cheap_proc_draw_xlu(gl, DL_MASK_DEITY);
-					break;
-				case MASK_GORON:
-					z_cheap_proc_draw_xlu(gl, DL_MASK_GORON);
-					break;
-				case MASK_ZORA:
-					z_cheap_proc_draw_xlu(gl, DL_MASK_ZORA);
-					break;
-				case MASK_DEKU:
-					z_cheap_proc_draw_xlu(gl, DL_MASK_DEKU);
-					break;
+				uint32_t mask_dlists[] = {
+					DL_MASK_OF_TRUTH, DL_MASK_KAFEI, DL_MASK_ALL_NIGHT, DL_MASK_BUNNY
+					, DL_MASK_KEATON, DL_MASK_GARO, DL_MASK_ROMANI, DL_MASK_CIRCUS
+					, DL_MASK_POSTMAN, DL_MASK_COUPLES, DL_MASK_FAIRY, DL_MASK_GIBDO
+					, DL_MASK_DON_GERO, DL_MASK_KAMARO, DL_MASK_CAPTAIN, DL_MASK_STONE
+					, DL_MASK_BREMEN, DL_MASK_BLAST, DL_MASK_OF_SCENTS, DL_MASK_GIANT
+					, DL_MASK_DEITY, DL_MASK_GORON, DL_MASK_ZORA, DL_MASK_DEKU
+				};
+				uint32_t mask_id = (en->puppet).item.nowMask - 1;
+				gSPSegment(opa->p++, 0x0A, en->mask_ram_addresses[mask_id]);
+				if ((en->puppet).item.nowMask == MASK_BUNNY)
+				{	
+					Mtx* ear_mtx = graph_alloc((gl->common).gfx_ctxt, 0x80);
+					vec3s_t* r = &(en->mask_props).bunny_hood.rot;
+					vec3s_t ear;
+					gSPSegment(opa->p++, 0x0B, ear_mtx);
+
+					// Right Ear
+					ear.x = r->y + 0x03E2; ear.y = r->z + 0x0D8E; ear.z = r->x + 0xCB76;
+					z_matrix_translate_3f_800D1694(97.0f, -1203.0f, -240.0f, &ear);
+					z_matrix_top_to_fixed(ear_mtx, 0, 0);
+
+					// Left Ear
+					ear.x = r->y + 0xFC1E; ear.y = 0xF242 - r->z; ear.z = r->x + 0xCB76;
+					z_matrix_translate_3f_800D1694(97.0f, -1203.0f, 240.0f, &ear);
+					z_matrix_top_to_fixed(ear_mtx + 1, 0, 0);
+				}
+				/* else if ((en->puppet).item.nowMask == MASK_CIRCUS)
+				{
+					vec3f_t src_pos_arr[2] = {
+						{950.0f, -800.0f, 300.0f}
+						, {950.0f, -800.0f, -300.0f}
+					};
+
+					vec3f_t* src_pos = src_pos_arr;
+					vec3f_t* dest_pos = (vec3f_t*)&(en->mask_props).circus_mask.pos;
+					int32_t* frames = (int32_t*)&(en->mask_props).circus_mask.frame;
+					float now_framef;
+					float now_framei;
+					float z;
+
+					do
+					{	
+						now_framef = ((float)*frames / 400.0f) * 0.1f;
+						now_framei = *frames;
+						z_matrix_mult_vec3f(src_pos, dest_pos);
+						dest_pos->y += now_framef * -10.0f;
+
+						if (now_framei < 400)
+						{
+							z = 0.05f;
+							if (now_framef <= z)
+								z = now_framef;
+
+							// Teardrop Display List
+							matrix_push();
+							z_matrix_translate_3f(dest_pos->x, dest_pos->y, dest_pos->z, 0);
+							z_matrix_scale_3f(dest_pos->x, dest_pos->y, dest_pos->z, 1);
+
+							gSPMatrix(xlu->p++, z_matrix_alloc((gl->common).gfx_ctxt, ""), G_MTX_PUSH | G_MTX_LOAD | G_MTX_MODELVIEW);
+							gSPSegment(xlu->p++, 8, 0x04091BE0);
+							gDPSetPrimColor(xlu->p++, 0, 0, 255, 255, 255, 255);
+							gDPSetEnvColor(xlu->p++, 150, 150, 150, 0);
+							gSPDisplayList(xlu->p++, DL_DT_BUBBLE);
+							gSPPopMatrix(G_MTX_MODELVIEW);
+
+							matrix_pop();
+						}
+						else
+						{
+							vec3f_t vel;
+							vec3f_t acc;
+
+							float vel_sqrt = SQRT(pow((en->actor).velocity.x, 2) + pow((en->actor).velocity.z, 2));
+							uint16_t angle;
+							int32_t angle_mult = (vel_sqrt * 2000.0f);
+
+							vel.y = vel_sqrt * 0.4f;
+							acc.y = -0.3f;
+
+							if (16000 < angle_mult)
+								angle_mult = 16000;
+
+							if (dest_pos == &(en->mask_props).circus_mask.pos[0])
+								angle_mult = -angle_mult;
+
+							angle = (uint16_t)((uint32_t)((angle_mult + (en->actor).rot_focus.y) & 0xFFFF));
+
+							z = 4.0f;
+							if (vel_sqrt * 0.2f <= z) 
+								z = vel_sqrt * 0.2f;
+
+							vel.x = -(z_sin_s(angle) * z);
+							vel.z = -(z_cos_s(angle) * z);
+							z_effect_spawn_dt_bubble_0(
+								gl
+								, dest_pos
+								, &vel
+								, &acc
+								, 0x14
+								, 0x14
+								, 3
+								, 0
+							);
+							*frames -= 400;
+						}
+						dest_pos += 1; // Next position.
+						frames += 1;
+						src_pos += 1;
+					} while (dest_pos != (vec3f_t*)frames); // Cycle through position vectors.
+				} */
+				else if ((en->puppet).item.nowMask == MASK_COUPLES)
+				{
+					// TODO: Mask isn't attached to face?
+					// TODO: Eyes break when the mask is worn because segment 0x08 is reassigned.
+					// ! Puppet client crashes, despite the mask drawing perfectly well.
+
+					func_8013178C(gl, (char*)zh_seg2ram(DL_MASK_COUPLES_SETTILE));
+				}
+				else if ((en->puppet).item.nowMask == MASK_FAIRY)
+				{
+					//Mtx* hair_mtx = graph_alloc((gl->common).gfx_ctxt, 0x180);
+				}
+				else if ((en->puppet).item.nowMask == MASK_BLAST)
+				{
+					// TODO: Dynamically allocate 0x801C0BC0 / 0x801C0BD0
+					// TODO: Mask isn't attached to face?
+					// TODO: Eyes and mouth break when the mask are worn because segment 0x08 and 0x09 are reassigned.
+
+					uint32_t alpha;
+
+					/* Gfx* dl = graph_alloc((gl->common).gfx_ctxt, 0x20);
+
+					gDPSetEnvColor(dl++, 0, 0, 0, 255);
+					gSPEndDisplayList(dl++);
+					gDPSetRenderMode(dl++, AA_EN | Z_CMP | Z_UPD | IM_RD | CLR_ON_CVG | CVG_DST_WRAP | ZMODE_XLU | FORCE_BL | GBL_c1(G_BL_CLR_FOG, G_BL_A_SHADE, G_BL_CLR_IN, G_BL_1MA), AA_EN | Z_CMP | Z_UPD | IM_RD | CLR_ON_CVG | CVG_DST_WRAP | ZMODE_XLU | FORCE_BL | GBL_c2(G_BL_CLR_IN, G_BL_A_IN, G_BL_CLR_MEM, G_BL_1MA));
+					gSPEndDisplayList(dl++); */
+
+					if (en->blast_mask_timer == 0)
+					{
+						gSPSegment(opa->p++, 9, 0x801C0BC0);
+					}
+					else
+					{
+						func_8013178C(gl, (char*)zh_seg2ram(DL_MASK_BLAST_SETTILE)); // Segment 0x08
+
+						if (en->blast_mask_timer < 11)
+						{
+							alpha = ((en->blast_mask_timer) / 10) * 255;
+						}
+						else
+						{
+							alpha = 255;
+						}
+						gDPSetEnvColor(opa->p++, 0, 0, 0, (alpha & 0xFF));
+						gSPDisplayList(opa->p++, DL_MASK_BLAST_1);
+						gSPSegment(opa->p++, 9, 0x801C0BD0);
+						gDPSetEnvColor(opa->p++, 0, 0, 0, (255 - (alpha & 0xFF)));
+					}
+				}
+				else
+				{
+					if ((en->puppet).item.nowMask < MASK_GIANT)
+					{
+						// TODO: An exception for the transformation masks.
+					}
+					gSPMatrix(opa->p++, z_matrix_alloc((gl->common).gfx_ctxt, ""), G_MTX_LOAD);
+				}
+				gSPDisplayList(opa->p++, mask_dlists[mask_id]);
 			}
 
-			matrix_pop();*/
+			matrix_pop();
 		}
 	}
 
 	return 0;
 }
 
-static void load_mask_object(entity_t* en, uint8_t id)
+static void load_masks(entity_t* en, void* vRam)
 {
-	uint16_t mask_objects[25] = {
-		0x0000, 0x01DE, 0x01FF, 0x025D
-	  , 0x01DB, 0x01DA, 0x01FE, 0x0219
-	  , 0x024C, 0x0221, 0x025E, 0x0200
-	  , 0x01FD, 0x025C, 0x025F, 0x01DC
-	  , 0x024E, 0x0252, 0x01DD, 0x01D9
-	  , 0x0214, 0x01E4, 0x01E1, 0x01E2
-	  , 0x01E3
+	uint16_t mask_objects[24] = {
+		0x01DE, 0x01FF, 0x025D, 0x01DB
+	  , 0x01DA, 0x01FE, 0x0219, 0x024C
+	  , 0x0221, 0x025E, 0x0200, 0x01FD
+	  , 0x025C, 0x025F, 0x01DC, 0x024E
+	  , 0x0252, 0x01DD, 0x01D9, 0x0214
+	  , 0x01E4, 0x01E1, 0x01E2, 0x01E3
 	};
 
 	struct objtable
@@ -503,13 +625,20 @@ static void load_mask_object(entity_t* en, uint8_t id)
 		uint32_t end;
 	};
 
+	uint32_t vStart, vEnd, vSize;
+	int32_t r;
 	struct objtable* table = (void*)(0x801C2738 + 8);
-	uint32_t vStart = table[mask_objects[id]].start;
-	uint32_t vEnd = table[mask_objects[id]].end;
-	uint32_t vSize = vEnd - vStart;
-	//uint32_t vRam = (uint32_t)en->mask_object;
-	//printf("Loading mask (0x%08X - 0x%08X); 0x%04X to 0x%08X...\n", vStart, vEnd, vSize, vRam);
-	//load_data_from_rom((uint32_t*)vRam, (uint32_t*)vStart, vSize, "");
+	void* vRam_Start = vRam;
+	for (int id = 0; id < 24; id++)
+	{
+		vRam_Start += vSize;
+		vStart = table[mask_objects[id]].start;
+		vEnd = table[mask_objects[id]].end;
+		vSize = vEnd - vStart;
+		en->mask_ram_addresses[id] = (uint32_t)(vRam_Start);
+		r = load_data_from_rom(vRam_Start, (void*)vStart, vSize, "");
+		//printf("Wrote (0x%08X - 0x%08X) at 0x%08X.\n", vStart, vEnd, vRam_Start);
+	}
 }
 
 static rgb8_t bottle_handler(int32_t action_param)
