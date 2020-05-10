@@ -4,6 +4,10 @@
 #define FORM_DEKU                      3 // Deku Link
 #define FORM_HUMAN                     4 // Hylian Link
 
+// Animations
+#define ANIM_MASK_OFF                  0x0400D0A8
+#define ANIM_HOLDING_MASK              0x0400E2E0
+
 // Action Parameters
 #define ACTION_PUT_AWAY                0x00
 #define ACTION_PULL_OUT                0x01
@@ -80,7 +84,7 @@
 #define ACTION_MASK_CAPTAIN            0x48
 #define ACTION_MASK_STONE              0x49
 #define ACTION_ACTION_MASK_BREMEN      0x4A
-#define ACTION_MASK_BLAST                     0x4B
+#define ACTION_MASK_BLAST              0x4B
 #define ACTION_MASK_OF_SCENTS          0x4C
 #define ACTION_MASK_GIANT              0x4D
 #define ACTION_MASK_DEITY              0x4E
@@ -127,7 +131,7 @@
 #define DL_MASK_CIRCUS                 0x0A000700
 #define DL_MASK_POSTMAN                0x0A000290
 #define DL_MASK_COUPLES                0x0A0005A0
-#define DL_MASK_FAIRY                  0x0A0016FA
+#define DL_MASK_FAIRY                  0x0A0016F0
 #define DL_MASK_GIBDO                  0x0A000250
 #define DL_MASK_DON_GERO               0x0A000DC0
 #define DL_MASK_KAMARO                 0x0A000EF0
@@ -135,22 +139,26 @@
 #define DL_MASK_STONE                  0x0A000820
 #define DL_MASK_BREMEN                 0x0A0003C0
 #define DL_MASK_BLAST_1                0x0A000440
-#define DL_MASK_BLASE_2                0x0A0005C0
+#define DL_MASK_BLAST                  0x0A0005C0
 #define DL_MASK_OF_SCENTS              0x0A000710
 #define DL_MASK_GIANT                  0x0A000380
+#define DL_MASK_DEITY_GK               0x0400B260
+#define DL_MASK_GORON_GK               0x04005A10
+#define DL_MASK_ZORA_GK                0x04005360
+#define DL_MASK_DEKU_GK                0x040056C0
 #define DL_MASK_DEITY                  0x0A000900
 #define DL_MASK_GORON                  0x0A0014A0
 #define DL_MASK_ZORA                   0x0A000DB0
 #define DL_MASK_DEKU                   0x0A001D90
 
+#define DL_MASK_BLAST_SETTILE          0x0A0011F8
+#define DL_MASK_COUPLES_SETTILE        0x0A001CD8
+
 // gameplay_keep
 #define DL_BOTTLE_CONTENTS             0x04000320
 #define DL_EMPTY_BOTTLE                0x040003E0
 #define DL_DEKU_STICK                  0x040032B0
-#define DL_MASK_ZORA_GK                0x04005360
-#define DL_MASK_DEKU_GK                0x040056C0
-#define DL_MASK_GORON_GK               0x04005A10
-#define DL_MASK_DEITY_GK               0x0400B260
+#define DL_DT_BUBBLE                   0x040301B0
 
 // Human Form
 #define DL_HUMAN_HAND_L                0x0600D528    
