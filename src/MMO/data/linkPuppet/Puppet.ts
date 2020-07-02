@@ -3,16 +3,16 @@ import { PuppetData } from './PuppetData';
 import { INetworkPlayer } from 'modloader64_api/NetworkHandler';
 import { Command } from 'modloader64_api/OOT/ICommandBuffer';
 import { bus } from 'modloader64_api/EventHandler';
-import { OotOnlineEvents, IOotOnlineHelpers } from '../../OotoAPI/OotoAPI';
+import { MMOnlineEvents, IMMOnlineHelpers } from '../../MMOAPI/MMOAPI';
 import { IModLoaderAPI } from 'modloader64_api/IModLoaderAPI';
-import { IPuppet } from '../../OotoAPI/IPuppet';
+import { IPuppet } from '../../MMOAPI/IPuppet';
 import Vector3 from 'modloader64_api/math/Vector3';
 import { HorseData } from './HorseData';
 import fs from 'fs';
 import path from 'path';
 import { IActor } from 'modloader64_api/OOT/IActor';
-import { MMCore } from '@MMARO/MMAPI/Core';
-import { MMForms } from '@MMARO/MMAPI/mmForms';
+import { MMCore } from 'src/MMO/MMAPI/Core';
+import { MMForms } from 'src/MMO/MMAPI/mmForms';
 
 const DEADBEEF_OFFSET: number = 0x288;
 
@@ -29,14 +29,14 @@ export class Puppet implements IPuppet {
   void!: Vector3;
   ModLoader: IModLoaderAPI;
   horse!: HorseData;
-  parent: IOotOnlineHelpers;
+  parent: IMMOnlineHelpers;
 
   constructor(
     player: INetworkPlayer,
     core: MMCore,
     pointer: number,
     ModLoader: IModLoaderAPI,
-    parent: IOotOnlineHelpers
+    parent: IMMOnlineHelpers
   ) {
     this.player = player;
     this.data = new PuppetData(pointer, ModLoader, core);
@@ -67,7 +67,7 @@ export class Puppet implements IPuppet {
       return;
     }
     if (!this.isSpawned && !this.isSpawning) {
-      bus.emit(OotOnlineEvents.PLAYER_PUPPET_PRESPAWN, this);
+      bus.emit(MMOnlineEvents.PLAYER_PUPPET_PRESPAWN, this);
       this.isSpawning = true;
       this.data.pointer = 0x0;
       this.ModLoader.emulator.rdramWrite16(0x80000E, this.age);
@@ -85,7 +85,7 @@ export class Puppet implements IPuppet {
           this.void = this.ModLoader.math.rdramReadV3(this.data.pointer + 0x24);
           this.isSpawned = true;
           this.isSpawning = false;
-          bus.emit(OotOnlineEvents.PLAYER_PUPPET_SPAWNED, this);
+          bus.emit(MMOnlineEvents.PLAYER_PUPPET_SPAWNED, this);
         }
       });
     }
@@ -138,7 +138,7 @@ export class Puppet implements IPuppet {
       this.isSpawned = false;
       this.isShoveled = false;
       this.ModLoader.logger.debug('Puppet ' + this.id + ' despawned.');
-      bus.emit(OotOnlineEvents.PLAYER_PUPPET_DESPAWNED, this);
+      bus.emit(MMOnlineEvents.PLAYER_PUPPET_DESPAWNED, this);
     }
   }
 

@@ -14,7 +14,7 @@
     "baseUrl": "./",
     "paths": {
       "@MMARO/*": [
-        "./src/MMARO/*"
+        "src/MMO/*"
       ]
     }
   },

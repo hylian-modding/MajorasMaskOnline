@@ -3,15 +3,16 @@ import { EventHandler, bus, EventsServer, EventsClient, EventServerJoined, Event
 import { Link } from './MMAPI/Link';
 import { MMHelper } from './MMAPI/MMHelper';
 import { MMCore } from './MMAPI/Core';
-import { IOotOnlineHelpers, OotOnlineEvents, OotOnline_PlayerScene } from './OotoAPI/OotoAPI';
-import { OotOnlineStorageClient } from './OotOnlineStorageClient';
-import { IPacketHeader, ServerNetworkHandler, NetworkHandler, INetworkPlayer } from 'modloader64_api/NetworkHandler';
+import { IMMOnlineHelpers, MMOnlineEvents, MMOnline_PlayerScene } from './MMOAPI/MMOAPI';
+
+// @Drahsid TODO: Move to Z64lib?
 import { OotEvents } from 'modloader64_api/OOT/OOTAPI';
-import { Ooto_ScenePacket, Ooto_SceneRequestPacket } from './data/OotOPackets';
-import { OotOnlineStorage } from './OotOnlineStorage';
+import { MMO_ScenePacket, MMO_SceneRequestPacket } from './data/MMOPackets';
+import { MMOnlineStorage } from './MMOnlineStorage';
+
+import { MMOnlineStorageClient } from './MMOnlineStorageClient';
+import { IPacketHeader, ServerNetworkHandler, NetworkHandler, INetworkPlayer } from 'modloader64_api/NetworkHandler';
 import { PuppetOverlord } from './data/linkPuppet/PuppetOverlord';
-import path from 'path';
-import fs from 'fs';
 import { MMForms } from './MMAPI/mmForms';
 import { zzstatic } from './Z64Lib/API/zzstatic';
 import { Z64RomTools } from './Z64Lib/API/Z64RomTools';
@@ -20,15 +21,26 @@ import { FileSystemCompare } from './Z64Lib/API/FileSystemCompare';
 import { Z64LibSupportedGames } from './Z64Lib/API/Z64LibSupportedGames';
 import { ManifestMapper } from './data/models/ManifestMapper';
 import { ModelManager } from './data/models/ModelManager';
-import printf from './printf'
 
-class MMARO implements IPlugin, IOotOnlineHelpers, IPluginServerConfig {
+import printf from './printf'
+import path from 'path';
+import fs from 'fs';
+
+export const SCENE_ARR_SIZE = 0xb0c;
+export const EVENT_ARR_SIZE = 0x8;
+export const ITEM_FLAG_ARR_SIZE = 0x18;
+export const MASK_FLAG_ARR_SIZE = 0x18;
+export const WEEK_EVENT_ARR_SIZE = 0x64;
+
+
+
+class MMO implements IPlugin, IMMOnlineHelpers, IPluginServerConfig {
 
     ModLoader!: IModLoaderAPI;
     core: MMCore;
     puppets: PuppetOverlord;
     // Storage
-    clientStorage: OotOnlineStorageClient = new OotOnlineStorageClient;
+    clientStorage: MMOnlineStorageClient = new MMOnlineStorageClient;
     models: ModelManager;
 
     constructor() {
@@ -38,11 +50,11 @@ class MMARO implements IPlugin, IOotOnlineHelpers, IPluginServerConfig {
     }
 
     // This packet is basically 'where the hell are you?' if a player has a puppet on file but doesn't know what scene its suppose to be in.
-    @NetworkHandler('Ooto_SceneRequestPacket')
-    onSceneRequest_client(packet: Ooto_SceneRequestPacket) {
+    @NetworkHandler('MMO_SceneRequestPacket')
+    onSceneRequest_client(packet: MMO_SceneRequestPacket) {
         if (this.core.save !== undefined) {
             this.ModLoader.clientSide.sendPacketToSpecificPlayer(
-                new Ooto_ScenePacket(
+                new MMO_ScenePacket(
                     this.ModLoader.clientLobby,
                     this.core.global.scene_frame_count,
                     this.core.save.form
@@ -54,10 +66,10 @@ class MMARO implements IPlugin, IOotOnlineHelpers, IPluginServerConfig {
 
     @EventHandler(EventsServer.ON_LOBBY_JOIN)
     onPlayerJoin_server(evt: EventServerJoined) {
-        let storage: OotOnlineStorage = this.ModLoader.lobbyManager.getLobbyStorage(
+        let storage: MMOnlineStorage = this.ModLoader.lobbyManager.getLobbyStorage(
             evt.lobby,
             this
-        ) as OotOnlineStorage;
+        ) as MMOnlineStorage;
         if (storage === null) {
             return;
         }
@@ -67,10 +79,10 @@ class MMARO implements IPlugin, IOotOnlineHelpers, IPluginServerConfig {
 
     @EventHandler(EventsServer.ON_LOBBY_LEAVE)
     onPlayerLeft_server(evt: EventServerLeft) {
-        let storage: OotOnlineStorage = this.ModLoader.lobbyManager.getLobbyStorage(
+        let storage: MMOnlineStorage = this.ModLoader.lobbyManager.getLobbyStorage(
             evt.lobby,
             this
-        ) as OotOnlineStorage;
+        ) as MMOnlineStorage;
         if (storage === null) {
             return;
         }
@@ -80,10 +92,10 @@ class MMARO implements IPlugin, IOotOnlineHelpers, IPluginServerConfig {
 
     sendPacketToPlayersInScene(packet: IPacketHeader) {
         try {
-            let storage: OotOnlineStorage = this.ModLoader.lobbyManager.getLobbyStorage(
+            let storage: MMOnlineStorage = this.ModLoader.lobbyManager.getLobbyStorage(
                 packet.lobby,
                 this
-            ) as OotOnlineStorage;
+            ) as MMOnlineStorage;
             if (storage === null) {
                 return;
             }
@@ -129,7 +141,7 @@ class MMARO implements IPlugin, IOotOnlineHelpers, IPluginServerConfig {
             this.ModLoader.lobbyManager.createLobbyStorage(
                 lobby,
                 this,
-                new OotOnlineStorage()
+                new MMOnlineStorage()
             );
         } catch (err) {
             this.ModLoader.logger.error(err);
@@ -140,7 +152,7 @@ class MMARO implements IPlugin, IOotOnlineHelpers, IPluginServerConfig {
     onSceneChange(scene: number) {
         this.ModLoader.logger.debug(scene.toString(16));
         this.ModLoader.clientSide.sendPacket(
-            new Ooto_ScenePacket(
+            new MMO_ScenePacket(
                 this.ModLoader.clientLobby,
                 scene,
                 this.core.save.form
@@ -148,13 +160,13 @@ class MMARO implements IPlugin, IOotOnlineHelpers, IPluginServerConfig {
         );
     }
 
-    @ServerNetworkHandler('Ooto_ScenePacket')
-    onSceneChange_server(packet: Ooto_ScenePacket) {
+    @ServerNetworkHandler('MMO_ScenePacket')
+    onSceneChange_server(packet: MMO_ScenePacket) {
         try {
-            let storage: OotOnlineStorage = this.ModLoader.lobbyManager.getLobbyStorage(
+            let storage: MMOnlineStorage = this.ModLoader.lobbyManager.getLobbyStorage(
                 packet.lobby,
                 this
-            ) as OotOnlineStorage;
+            ) as MMOnlineStorage;
             if (storage === null) {
                 return;
             }
@@ -166,18 +178,18 @@ class MMARO implements IPlugin, IOotOnlineHelpers, IPluginServerConfig {
                 packet.scene +
                 '.'
             );
-            bus.emit(OotOnlineEvents.SERVER_PLAYER_CHANGED_SCENES, new OotOnline_PlayerScene(packet.player, packet.lobby, packet.scene));
+            bus.emit(MMOnlineEvents.SERVER_PLAYER_CHANGED_SCENES, new MMOnline_PlayerScene(packet.player, packet.lobby, packet.scene));
         } catch (err) {
             console.log(err);
         }
     }
 
-    @NetworkHandler('Ooto_ScenePacket')
-    onSceneChange_client(packet: Ooto_ScenePacket) {
+    @NetworkHandler('MMO_ScenePacket')
+    onSceneChange_client(packet: MMO_ScenePacket) {
         this.ModLoader.logger.info('client receive: Player ' + packet.player.nickname + ' moved to scene ' + packet.scene + '.');
         bus.emit(
-            OotOnlineEvents.CLIENT_REMOTE_PLAYER_CHANGED_SCENES,
-            new OotOnline_PlayerScene(packet.player, packet.lobby, packet.scene)
+            MMOnlineEvents.CLIENT_REMOTE_PLAYER_CHANGED_SCENES,
+            new MMOnline_PlayerScene(packet.player, packet.lobby, packet.scene)
         );
     }
 
@@ -189,7 +201,7 @@ class MMARO implements IPlugin, IOotOnlineHelpers, IPluginServerConfig {
     @EventHandler(OotEvents.ON_AGE_CHANGE)
     onAgeChange(age: MMForms) {
         this.ModLoader.clientSide.sendPacket(
-            new Ooto_ScenePacket(
+            new MMO_ScenePacket(
                 this.ModLoader.clientLobby,
                 this.core.global.current_scene,
                 age
@@ -213,4 +225,6 @@ class MMARO implements IPlugin, IOotOnlineHelpers, IPluginServerConfig {
     }
 }
 
-module.exports = MMARO;
+module.exports = MMO;
+
+export default MMO;

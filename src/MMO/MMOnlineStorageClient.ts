@@ -1,7 +1,7 @@
-import { OotOnlineStorageBase } from './OotOnlineStorageBase';
+import { MMOnlineStorageBase as MMOnlineStorageBase } from './MMOnlineStorageBase';
 import { InventoryItem } from 'modloader64_api/OOT/OOTAPI';
 
-export class OotOnlineStorageClient extends OotOnlineStorageBase {
+export class MMOnlineStorageClient extends MMOnlineStorageBase {
   autoSaveHash = '!';
   needs_update = false;
   lastKnownSkullCount = -1;

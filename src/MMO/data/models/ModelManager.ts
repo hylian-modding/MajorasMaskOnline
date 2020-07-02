@@ -1,11 +1,11 @@
 import { EventHandler } from "modloader64_api/EventHandler";
-import { zzstatic } from "@MMARO/Z64Lib/API/zzstatic";
+import { zzstatic } from "src/MMO/Z64Lib/API/zzstatic";
 import fs from 'fs';
-import { Z64LibSupportedGames } from "@MMARO/Z64Lib/API/Z64LibSupportedGames";
-import { Z64RomTools } from "@MMARO/Z64Lib/API/Z64RomTools";
+import { Z64LibSupportedGames } from "src/MMO/Z64Lib/API/Z64LibSupportedGames";
+import { Z64RomTools } from "src/MMO/Z64Lib/API/Z64RomTools";
 import { ModLoaderEvents, IModLoaderAPI } from "modloader64_api/IModLoaderAPI";
 import { ModLoaderAPIInject } from "modloader64_api/ModLoaderAPIInjector";
-import { MMARO_EVENTS, MMARO_CHILD_MODEL_EVENT } from "@MMARO/MMARO_API/MMARO_API";
+import { MMO_EVENTS, MMO_CHILD_MODEL_EVENT } from "src/MMO/MMOAPI/MMO_API";
 
 class ManifestBuffer {
     buf: Buffer;
@@ -59,8 +59,8 @@ export class ModelManager {
     ModLoader!: IModLoaderAPI;
     container: ModelManagerContainer = new ModelManagerContainer();
 
-    @EventHandler(MMARO_EVENTS.CUSTOM_MODEL_APPLIED_CHILD)
-    CUSTOM_MODEL_APPLIED_CHILD(data: MMARO_CHILD_MODEL_EVENT) {
+    @EventHandler(MMO_EVENTS.CUSTOM_MODEL_APPLIED_CHILD)
+    CUSTOM_MODEL_APPLIED_CHILD(data: MMO_CHILD_MODEL_EVENT) {
         this.container.childFile = data.file;
         this.container.isChildBig = data.isAdultHeight
     }

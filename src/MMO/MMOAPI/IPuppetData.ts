@@ -4,7 +4,7 @@
 */
 import { IOOTCore } from "modloader64_api/OOT/OOTAPI";
 import { IModLoaderAPI } from "modloader64_api/IModLoaderAPI";
-import { MMCore } from "@MMARO/MMAPI/Core";
+import { MMCore } from "src/MMO/MMAPI/Core";
 import Vector3 from "modloader64_api/math/Vector3";
 
 export interface IPuppetData {

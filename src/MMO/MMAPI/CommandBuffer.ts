@@ -1,5 +1,5 @@
 import IMemory from 'modloader64_api/IMemory';
-import { Command, ICommandBuffer } from 'modloader64_api/OOT/ICommandBuffer';
+import { Command, ICommandBuffer } from 'modloader64_api/OoT/ICommandBuffer';
 
 const instance: number = 0x00800000 + 0x100;
 const slotSize = 0x8;
