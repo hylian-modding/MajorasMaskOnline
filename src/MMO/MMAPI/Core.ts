@@ -1,10 +1,10 @@
 import { onTick, Preinit, Init, Postinit } from "modloader64_api/PluginLifecycle";
 import { Link } from "./Link";
-import { MMHelper } from "@MMARO/MMAPI/MMHelper";
+import { MMHelper } from "src/MMO/MMAPI/MMHelper";
 import { ModLoaderAPIInject } from "modloader64_api/ModLoaderAPIInjector";
 import { IModLoaderAPI } from "modloader64_api/IModLoaderAPI";
 import { bus } from "modloader64_api/EventHandler";
-import { OotEvents } from "modloader64_api/OOT/OOTAPI";
+import { OotEvents } from "modloader64_api/OoT/OoTAPI";
 import { GlobalContext } from "./GlobalContext";
 import { SaveContext } from "./SaveContext";
 import { OverlayPayload } from "./ovl/ovlinjector";

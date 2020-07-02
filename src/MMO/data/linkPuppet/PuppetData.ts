@@ -6,12 +6,12 @@ import {
   IOOTCore,
 } from 'modloader64_api/OOT/OOTAPI';
 import { IModLoaderAPI } from 'modloader64_api/IModLoaderAPI';
-import { IPuppetData } from '../../OotoAPI/IPuppetData';
+import { IPuppetData } from '../../MMOAPI/IPuppetData';
 import { bus } from 'modloader64_api/EventHandler';
-import { MMCore } from '@MMARO/MMAPI/Core';
+import { MMCore } from 'src/MMO/MMAPI/Core';
 import Vector3 from 'modloader64_api/math/Vector3';
-import { MMForms } from '@MMARO/MMAPI/mmForms';
-import { MMOffsets } from '@MMARO/MMAPI/MMOffsets';
+import { MMForms } from 'src/MMO/MMAPI/mmForms';
+import { MMOffsets } from 'src/MMO/MMAPI/MMOffsets';
 
 const actor =         0x0000
 const anim_data =     0x0144

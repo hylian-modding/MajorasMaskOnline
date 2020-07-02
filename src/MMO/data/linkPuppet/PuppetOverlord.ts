@@ -2,18 +2,18 @@ import { Puppet } from './Puppet';
 import { Age, OotEvents } from 'modloader64_api/OOT/OOTAPI';
 import { INetworkPlayer, NetworkHandler, ServerNetworkHandler } from 'modloader64_api/NetworkHandler';
 import { IModLoaderAPI, ModLoaderEvents } from 'modloader64_api/IModLoaderAPI';
-import { Ooto_PuppetPacket, Ooto_SceneRequestPacket, Ooto_ScenePacket, Ooto_PuppetWrapperPacket } from '../OotOPackets';
+import { MMO_PuppetPacket, MMO_SceneRequestPacket, MMO_ScenePacket, MMO_PuppetWrapperPacket } from '../MMOPackets';
 import fs from 'fs';
 import { ModLoaderAPIInject } from 'modloader64_api/ModLoaderAPIInjector';
 import { InjectCore } from 'modloader64_api/CoreInjection';
-import { IPuppetOverlord } from '../../OotoAPI/IPuppetOverlord';
+import { IPuppetOverlord } from '../../MMOAPI/IPuppetOverlord';
 import { Postinit, onTick } from 'modloader64_api/PluginLifecycle';
 import { EventHandler, EventsClient } from 'modloader64_api/EventHandler';
-import { IOotOnlineHelpers, OotOnlineEvents } from '../../OotoAPI/OotoAPI';
+import { IMMOnlineHelpers, MMOnlineEvents } from '../../MMOAPI/MMOAPI';
 import { IActor } from 'modloader64_api/OOT/IActor';
 import { HorseData } from './HorseData';
-import { MMCore } from '@MMARO/MMAPI/Core';
-import { MMForms } from '@MMARO/MMAPI/mmForms';
+import { MMCore } from 'src/MMO/MMAPI/Core';
+import { MMForms } from 'src/MMO/MMAPI/mmForms';
 
 export class PuppetOverlord implements IPuppetOverlord {
   private puppets: Map<string, Puppet> = new Map<string, Puppet>();
@@ -23,7 +23,7 @@ export class PuppetOverlord implements IPuppetOverlord {
   private playersAwaitingPuppets: INetworkPlayer[] = new Array<
     INetworkPlayer
   >();
-  private parent: IOotOnlineHelpers;
+  private parent: IMMOnlineHelpers;
   private Epona!: HorseData;
   private queuedSpawn: boolean = false;
 
@@ -31,7 +31,7 @@ export class PuppetOverlord implements IPuppetOverlord {
   private ModLoader!: IModLoaderAPI;
   private core!: MMCore;
 
-  constructor(parent: IOotOnlineHelpers, core: MMCore) {
+  constructor(parent: IMMOnlineHelpers, core: MMCore) {
     this.parent = parent;
     this.core = core;
   }
@@ -138,7 +138,7 @@ export class PuppetOverlord implements IPuppetOverlord {
         '.'
       );
       this.ModLoader.clientSide.sendPacket(
-        new Ooto_SceneRequestPacket(this.ModLoader.clientLobby)
+        new MMO_SceneRequestPacket(this.ModLoader.clientLobby)
       );
     }
   }
@@ -178,18 +178,18 @@ export class PuppetOverlord implements IPuppetOverlord {
 
   sendPuppetPacket() {
     if (!this.amIAlone) {
-      let packet = new Ooto_PuppetPacket(this.fakeClientPuppet.data, this.ModLoader.clientLobby);
+      let packet = new MMO_PuppetPacket(this.fakeClientPuppet.data, this.ModLoader.clientLobby);
       /*       if (this.Epona !== undefined) {
               packet.setHorseData(this.Epona);
             } */
-      this.ModLoader.clientSide.sendPacket(new Ooto_PuppetWrapperPacket(packet, this.ModLoader.clientLobby));
+      this.ModLoader.clientSide.sendPacket(new MMO_PuppetWrapperPacket(packet, this.ModLoader.clientLobby));
     }
   }
 
-  processPuppetPacket(packet: Ooto_PuppetWrapperPacket) {
+  processPuppetPacket(packet: MMO_PuppetWrapperPacket) {
     if (this.puppets.has(packet.player.uuid)) {
       let puppet: Puppet = this.puppets.get(packet.player.uuid)!;
-      let actualPacket = JSON.parse(packet.data) as Ooto_PuppetPacket;
+      let actualPacket = JSON.parse(packet.data) as MMO_PuppetPacket;
       puppet.processIncomingPuppetData(actualPacket.data);
       if (actualPacket.horse_data !== undefined) {
         /*         puppet.processIncomingHorseData(actualPacket.horse_data); */
@@ -263,18 +263,18 @@ export class PuppetOverlord implements IPuppetOverlord {
     this.localPlayerChangingScenes(scene, this.core.save.form);
   }
 
-  @NetworkHandler('Ooto_ScenePacket')
-  onSceneChange_client(packet: Ooto_ScenePacket) {
+  @NetworkHandler('MMO_ScenePacket')
+  onSceneChange_client(packet: MMO_ScenePacket) {
     this.changePuppetScene(packet.player, packet.scene, packet.age);
   }
 
-  @ServerNetworkHandler('Ooto_PuppetPacket')
-  onPuppetData_server(packet: Ooto_PuppetWrapperPacket) {
+  @ServerNetworkHandler('MMO_PuppetPacket')
+  onPuppetData_server(packet: MMO_PuppetWrapperPacket) {
     this.parent.sendPacketToPlayersInScene(packet);
   }
 
-  @NetworkHandler('Ooto_PuppetPacket')
-  onPuppetData_client(packet: Ooto_PuppetWrapperPacket) {
+  @NetworkHandler('MMO_PuppetPacket')
+  onPuppetData_client(packet: MMO_PuppetWrapperPacket) {
     if (
       this.core.helper.isTitleScreen() ||
       this.core.helper.isPaused() ||
@@ -314,7 +314,7 @@ export class PuppetOverlord implements IPuppetOverlord {
         } */
   }
 
-  @EventHandler("OotOnline:RoguePuppet")
+  @EventHandler("MMOnline:RoguePuppet")
   onRoguePuppet(puppet: Puppet) {
     if (this.puppets.has(puppet.player.uuid)) {
       this.puppets.delete(puppet.player.uuid);
@@ -326,13 +326,13 @@ export class PuppetOverlord implements IPuppetOverlord {
     this.localPlayerLoadingZone();
   }
 
-  @EventHandler(OotOnlineEvents.PLAYER_PUPPET_SPAWNED)
+  @EventHandler(MMOnlineEvents.PLAYER_PUPPET_SPAWNED)
   onSpawn(puppet: Puppet) {
     this.ModLoader.logger.debug("Unlocking puppet spawner.")
     this.queuedSpawn = false;
   }
 
-  @EventHandler(OotOnlineEvents.PLAYER_PUPPET_PRESPAWN)
+  @EventHandler(MMOnlineEvents.PLAYER_PUPPET_PRESPAWN)
   onPreSpawn(puppet: Puppet) {
     this.ModLoader.logger.debug("Locking puppet spawner.")
     this.queuedSpawn = true;

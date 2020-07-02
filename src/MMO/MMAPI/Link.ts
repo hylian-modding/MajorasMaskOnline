@@ -1,5 +1,5 @@
 import { IModLoaderAPI } from "modloader64_api/IModLoaderAPI";
-import { MMOffsets } from "@MMARO/MMAPI/MMOffsets";
+import { MMOffsets } from "src/MMO/MMAPI/MMOffsets";
 import { ActorBase } from "./Actor";
 
 export class Link extends ActorBase {

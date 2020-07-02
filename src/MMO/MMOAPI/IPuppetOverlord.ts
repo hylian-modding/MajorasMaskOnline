@@ -4,7 +4,7 @@
 */
 import { Age } from "modloader64_api/OOT/OOTAPI";
 import { INetworkPlayer, IPacketHeader } from "modloader64_api/NetworkHandler";
-import { MMForms } from "@MMARO/MMAPI/mmForms";
+import { MMForms } from "src/MMO/MMAPI/mmForms";
 
 export interface IPuppetOverlord {
     readonly current_scene: number;

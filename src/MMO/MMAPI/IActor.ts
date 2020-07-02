@@ -1,7 +1,7 @@
 import Vector3 from 'modloader64_api/math/Vector3';
 import IMemory from 'modloader64_api/IMemory';
 
-//TODO: Is this the same?
+//@Drahsid TODO: Is this the same?
 export const enum ActorCategory {
     SWITCH,
     BACKGROUNDS,
@@ -68,7 +68,7 @@ export interface IActor extends IMemory {
 
 
 
-//TODO: Is this the same?
+//@Drahsid TODO: Is this the same?
 export const enum LinkState {
     UNKNOWN,
     STANDING,
@@ -84,7 +84,7 @@ export const enum LinkState {
     CHARGING_SPIN_ATTACK,
     HOLDING_ACTOR,
     GETTING_ITEM,
-    SHOOTING_BOW_OR_HOOKSHOT,
+    SHOOING_BOW_OR_HOOKSHOT,
     RIDING_EPONA,
     DYING,
     TAKING_DAMAGE,
@@ -95,7 +95,7 @@ export const enum LinkState {
     Z_TARGETING
 }
   
-//TODO: Is this the same? (I don't think so)
+//@Drahsid TODO: Is this the same? (I don't think so)
 export const enum LinkState2 {
     UNKNOWN,
     IDLE,
