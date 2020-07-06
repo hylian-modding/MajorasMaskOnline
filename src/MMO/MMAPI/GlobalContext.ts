@@ -19,4 +19,18 @@ export class GlobalContext{
         return this.ModLoader.emulator.rdramRead32(offsets.scene_frame_count);
     }
 
+    getSaveDataForCurrentScene(): Buffer {
+        return this.ModLoader.emulator.rdramReadBuffer(
+            global.ModLoader.save_context + 0x00d4 + this.current_scene * 0x1c,
+            0x1c
+        );
+    }
+    writeSaveDataForCurrentScene(buf: Buffer): void {
+        if (buf.byteLength === 0x1c) {
+            this.ModLoader.emulator.rdramWriteBuffer(
+                global.ModLoader.save_context + 0x00d4 + this.current_scene * 0x1c,
+                buf
+            );
+        }
+    }
 }

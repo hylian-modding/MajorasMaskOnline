@@ -1,81 +1,54 @@
 import { InjectCore } from 'modloader64_api/CoreInjection';
 import { bus, EventHandler, EventsClient } from 'modloader64_api/EventHandler';
 import { INetworkPlayer, LobbyData, NetworkHandler } from 'modloader64_api/NetworkHandler';
-import { IOOTCore as IMMCore, OotEvents, InventoryItem, Sword, Shield, Boots, Tunic, Magic, MagicQuantities, Age, IInventory, IOvlPayloadResult, LinkState } from 'modloader64_api/OOT/OOTAPI';
+import { MMEvents, ISaveContext, InventoryItem, Sword, Shield, Magic, MagicQuantities, IInventory, IOvlPayloadResult, LinkState } from './MMAPI/MMAPI';
+import { MMCore } from './MMAPI/Core';
 import { MMOnlineEvents, MMOnline_PlayerScene } from './MMOAPI/MMOAPI';
-import { ActorHookingManagerClient } from './data/ActorHookingSystem';
 import { createEquipmentFromContext, createInventoryFromContext, createQuestSaveFromContext, mergeEquipmentData, mergeInventoryData, mergeQuestSaveData, createDungeonItemDataFromContext, mergeDungeonItemData, InventorySave, applyInventoryToContext, applyEquipmentToContext, applyQuestSaveToContext, applyDungeonItemDataToContext, EquipmentSave, QuestSave, MMODungeonItemContext, IDungeonItemSave, MMO_SceneStruct } from './data/MMOSaveData';
-import { MMO_ClientFlagUpdate, MMO_ClientSceneContextUpdate, MMO_DownloadRequestPacket, MMO_SubscreenSyncPacket, MMO_BottleUpdatePacket, MMO_SceneGUIPacket, MMO_BankSyncPacket, MMO_ScenePacket, MMO_SceneRequestPacket, MMO_DownloadResponsePacket, MMO_DownloadResponsePacket2, MMO_ServerFlagUpdate, MMO_isRandoPacket } from './data/MMOPackets';
+import { MMO_ClientFlagUpdate, MMO_ClientSceneContextUpdate, MMO_DownloadRequestPacket, MMO_BottleUpdatePacket, MMO_SceneGUIPacket, MMO_BankSyncPacket, MMO_ScenePacket, MMO_SceneRequestPacket, MMO_DownloadResponsePacket2, MMO_ServerFlagUpdate, MMO_SubscreenSyncPacket, MMO_DownloadResponsePacket } from './data/MMOPackets';
 import path from 'path';
 import { GUITunnelPacket } from 'modloader64_api/GUITunnel';
 import fs from 'fs';
 import { MMOnlineStorageClient } from './MMOnlineStorageClient';
 import { DiscordStatus } from 'modloader64_api/Discord';
-import { ModelManagerClient } from './data/models/ModelManager';
 import { ModLoaderAPIInject } from 'modloader64_api/ModLoaderAPIInjector';
 import { Init, Preinit, Postinit, onTick } from 'modloader64_api/PluginLifecycle';
-import { parseFlagChanges } from './parseFlagChanges';
-import { IMMOnlineLobbyConfig, MMOnlineConfigCategory } from './MMOnline';
 import { IModLoaderAPI, ModLoaderEvents } from 'modloader64_api/IModLoaderAPI';
-import { ModelPlayer } from './data/models/ModelPlayer';
 import { Command } from 'modloader64_api/OOT/ICommandBuffer';
-import { Z64RomTools } from 'Z64Lib/API/Z64RomTools';
+import { Z64RomTools } from './Z64Lib/API/Z64RomTools';
 import { IActor } from 'modloader64_api/OOT/IActor';
-import { KeyLogManagerClient } from './data/keys/KeyLogManager';
-import { PuppetOverlordClient } from './data/linkPuppet/PuppetOverlord';
 import { SidedProxy, ProxySide } from 'modloader64_api/SidedProxy/SidedProxy';
-import { RPCClient } from './data/RPCHandler';
+import { OotEvents, Boots, Tunic, Age } from 'modloader64_api/OOT/OOTAPI';
+import { parseFlagChanges } from './data/ParseFlagChanges';
 
 export let GHOST_MODE_TRIGGERED: boolean = false;
 
 export class MMOnlineClient {
     @InjectCore()
-    core!: IMMCore;
+    core!: MMCore;
 
     @ModLoaderAPIInject()
     ModLoader!: IModLoaderAPI;
 
-    LobbyConfig: IMMOnlineLobbyConfig = {} as IMMOnlineLobbyConfig;
-    clientStorage: MMOnlineStorageClient = new MMOnlineStorageClient();
-    config!: MMOnlineConfigCategory;
 
-    @SidedProxy(ProxySide.CLIENT, ModelManagerClient)
-    modelManager!: ModelManagerClient;
-    @SidedProxy(ProxySide.CLIENT, ActorHookingManagerClient)
-    actorHooks!: ActorHookingManagerClient;
-    @SidedProxy(ProxySide.CLIENT, KeyLogManagerClient)
-    keys!: KeyLogManagerClient;
-    @SidedProxy(ProxySide.CLIENT, PuppetOverlordClient)
-    puppets!: PuppetOverlordClient;
-    @SidedProxy(ProxySide.CLIENT, RPCClient)
-    rcp!: RPCClient;
+    clientStorage: MMOnlineStorageClient = new MMOnlineStorageClient();
 
     @EventHandler(MMOnlineEvents.GHOST_MODE)
     onGhostInstruction(evt: any) {
-        this.LobbyConfig.actor_syncing = false;
-        this.LobbyConfig.data_syncing = false;
         this.clientStorage.first_time_sync = true;
-        this.LobbyConfig.key_syncing = false;
         GHOST_MODE_TRIGGERED = true;
     }
 
     @Preinit()
     preinit() {
-        this.config = this.ModLoader.config.registerConfigCategory("MMOnline") as MMOnlineConfigCategory;
-        this.ModLoader.config.setData("MMOnline", "mapTracker", false);
-        this.ModLoader.config.setData("MMOnline", "keySync", true);
     }
 
     @Init()
     init(): void {
-        this.modelManager.clientStorage = this.clientStorage;
     }
 
     @Postinit()
     postinit() {
-        if (this.config.mapTracker) {
-            this.ModLoader.gui.openWindow(698, 795, path.resolve(path.join(__dirname, 'gui', 'map.html')));
-        }
         this.clientStorage.scene_keys = JSON.parse(fs.readFileSync(__dirname + '/data/scene_numbers.json').toString());
         this.clientStorage.localization = JSON.parse(fs.readFileSync(__dirname + '/data/en_US.json').toString());
         let status: DiscordStatus = new DiscordStatus('Playing MMOnline', 'On the title screen');
@@ -97,10 +70,7 @@ export class MMOnlineClient {
         mergeQuestSaveData(this.clientStorage.questStorage, quest);
         mergeDungeonItemData(this.clientStorage.dungeonItemStorage, di);
         this.ModLoader.clientSide.sendPacket(new MMO_SubscreenSyncPacket(this.clientStorage.inventoryStorage, this.clientStorage.equipmentStorage, this.clientStorage.questStorage, this.clientStorage.dungeonItemStorage, this.ModLoader.clientLobby));
-        if (this.utility.lastKnownBalance !== this.ModLoader.emulator.rdramRead16(0x8011B874)) {
-            this.utility.lastKnownBalance = this.ModLoader.emulator.rdramRead16(0x8011B874);
-            this.ModLoader.clientSide.sendPacket(new MMO_BankSyncPacket(this.utility.lastKnownBalance, this.ModLoader.clientLobby));
-        }
+        
         this.clientStorage.needs_update = false;
     }
 
@@ -114,37 +84,29 @@ export class MMOnlineClient {
         this.ModLoader.utils.clearBuffer(this.clientStorage.itemFlagStorage);
         this.ModLoader.utils.clearBuffer(this.clientStorage.infStorage);
         this.ModLoader.utils.clearBuffer(this.clientStorage.skulltulaStorage);
-        let scene_data = this.core.save.permSceneData;
-        let event_data = this.core.save.eventFlags;
-        let item_data = this.core.save.itemFlags;
-        let inf_data = this.core.save.infTable;
-        let skulltula_data = this.core.save.skulltulaFlags;
+        let scene_data = this.core.save.scene_flags;
+        let event_data = this.core.save.event_flags;
         let scenes: any = parseFlagChanges(scene_data, this.clientStorage.sceneStorage);
         let events: any = parseFlagChanges(event_data, this.clientStorage.eventStorage);
-        let items: any = parseFlagChanges(item_data, this.clientStorage.itemFlagStorage);
-        let inf: any = parseFlagChanges(inf_data, this.clientStorage.infStorage);
-        let skulltulas: any = parseFlagChanges(skulltula_data, this.clientStorage.skulltulaStorage);
         this.ModLoader.logger.info('updateFlags()');
         this.ModLoader.clientSide.sendPacket(new MMO_ClientFlagUpdate(this.clientStorage.sceneStorage, this.clientStorage.eventStorage, this.clientStorage.itemFlagStorage, this.clientStorage.infStorage, this.clientStorage.skulltulaStorage, this.ModLoader.clientLobby));
     }
 
     autosaveSceneData() {
         if (!this.core.helper.isLinkEnteringLoadingZone() &&
-            this.core.global.scene_framecount > 20) {
+            this.core.global.scene_frame_count > 20) {
             if (this.ModLoader.emulator.rdramRead8(0x80600144) === 0x1) {
                 return;
             }
-            let live_scene_chests: Buffer = this.core.global.liveSceneData_chests;
-            let live_scene_switches: Buffer = this.core.global.liveSceneData_switch;
-            let live_scene_collect: Buffer = this.core.global.liveSceneData_collectable;
-            let live_scene_clear: Buffer = this.core.global.liveSceneData_clear;
-            let live_scene_temp: Buffer = this.core.global.liveSceneData_temp;
+            let live_scene_chests: Buffer = this.core.save.liveSceneData_chests;
+            let live_scene_switches: Buffer = this.core.save.liveSceneData_switch;
+            let live_scene_clear: Buffer = this.core.save.liveSceneData_clear;
+            let live_scene_temp: Buffer = this.core.save.liveSceneData_temp;
             let save_scene_data: Buffer = this.core.global.getSaveDataForCurrentScene();
             let save: Buffer = Buffer.alloc(0x1c);
             live_scene_chests.copy(save, 0x0); // Chests
             live_scene_switches.copy(save, 0x4); // Switches
             live_scene_clear.copy(save, 0x8); // Room Clear
-            live_scene_collect.copy(save, 0xc); // Collectables
             live_scene_temp.copy(save, 0x10); // Unused space.
             save_scene_data.copy(save, 0x14, 0x14, 0x18); // Visited Rooms.
             save_scene_data.copy(save, 0x18, 0x18, 0x1c); // Visited Rooms.

@@ -4,7 +4,7 @@ import { MMHelper } from "src/MMO/MMAPI/MMHelper";
 import { ModLoaderAPIInject } from "modloader64_api/ModLoaderAPIInjector";
 import { IModLoaderAPI } from "modloader64_api/IModLoaderAPI";
 import { bus } from "modloader64_api/EventHandler";
-import { OotEvents } from "modloader64_api/OoT/OoTAPI";
+import { MMEvents } from "./MMAPI";
 import { GlobalContext } from "./GlobalContext";
 import { SaveContext } from "./SaveContext";
 import { OverlayPayload } from "./ovl/ovlinjector";
@@ -51,7 +51,7 @@ export class MMCore {
         if (this.helper.isTitleScreen() || !this.helper.isSceneNumberValid()) return;
         // Loading zone check
         if (this.helper.isLinkEnteringLoadingZone() && !this.isTouchingLoadingZone) {
-            bus.emit(OotEvents.ON_LOADING_ZONE, {});
+            bus.emit(MMEvents.ON_LOADING_ZONE, {});
             this.isTouchingLoadingZone = true;
         }
         // Scene change check
@@ -59,13 +59,13 @@ export class MMCore {
             this.global.scene_frame_count === 1
         ) {
             this.lastKnownSceneNumber = this.global.current_scene;
-            bus.emit(OotEvents.ON_SCENE_CHANGE, this.lastKnownSceneNumber);
+            bus.emit(MMEvents.ON_SCENE_CHANGE, this.lastKnownSceneNumber);
             this.isTouchingLoadingZone = false;
         }
         // Age check
         if (this.save.form !== this.lastKnownAge){
             this.lastKnownAge = this.save.form;
-            bus.emit(OotEvents.ON_AGE_CHANGE, this.lastKnownAge);
+            bus.emit(MMEvents.ON_AGE_CHANGE, this.lastKnownAge);
         }
         this.commandBuffer.onTick();
     }
