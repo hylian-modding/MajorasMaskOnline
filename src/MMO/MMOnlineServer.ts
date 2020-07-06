@@ -6,17 +6,15 @@ import MMO from './MMO';
 import { IModLoaderAPI, ModLoaderEvents } from 'modloader64_api/IModLoaderAPI';
 import { ServerNetworkHandler, IPacketHeader } from 'modloader64_api/NetworkHandler';
 import { MMO_PlayerScene, MMO_EVENTS } from './MMOAPI/MMO_API'; //Add MMO_PlayerScene
-import { MMO_ScenePacket, MMO_BottleUpdatePacket, MMO_DownloadRequestPacket, MMO_DownloadResponsePacket, MMO_SubscreenSyncPacket, MMO_ServerFlagUpdate, MMO_BankSyncPacket, MMO_DownloadResponsePacket2, MMO_ClientFlagUpdate, MMO_ClientSceneContextUpdate, MMO_isRandoPacket } from './data/MMOPackets';
+import { MMO_ScenePacket, MMO_BottleUpdatePacket, MMO_DownloadRequestPacket, MMO_DownloadResponsePacket, MMO_SubscreenSyncPacket, MMO_ServerFlagUpdate, MMO_BankSyncPacket, MMO_DownloadResponsePacket2, MMO_ClientFlagUpdate, MMO_ClientSceneContextUpdate } from './data/MMOPackets';
 import { mergeInventoryData, mergeEquipmentData, mergeQuestSaveData, mergeDungeonItemData, MMO_SceneStruct } from './data/MMOSaveData'; //Needs porting
-import { PuppetOverlordServer } from './data/linkPuppet/PuppetOverlord';
+
 
 export class MMOServer {
     @ModLoaderAPIInject()
     ModLoader!: IModLoaderAPI;
     @ParentReference()
     parent!: MMO;
-    @SidedProxy(ProxySide.SERVER, PuppetOverlordServer)
-    puppets!: PuppetOverlordServer;
 
     sendPacketToPlayersInScene(packet: IPacketHeader) {
         try {
@@ -104,7 +102,7 @@ export class MMOServer {
     //------------------------------
 
     @ServerNetworkHandler('MMO_BottleUpdatePacket')
-    onBottle_server(packet: MMO_BottleUpdatePacket) {
+    onFIELD_BOTTLEserver(packet: MMO_BottleUpdatePacket) {
         let storage: MMOnlineStorage = this.ModLoader.lobbyManager.getLobbyStorage(
             packet.lobby,
             this.parent
@@ -114,16 +112,16 @@ export class MMOServer {
         }
         switch (packet.slot) {
             case 0:
-                storage.inventoryStorage.bottle_1 = packet.contents;
+                storage.inventoryStorage.FIELD_BOTTLE1 = packet.contents;
                 break;
             case 1:
-                storage.inventoryStorage.bottle_2 = packet.contents;
+                storage.inventoryStorage.FIELD_BOTTLE2 = packet.contents;
                 break;
             case 2:
-                storage.inventoryStorage.bottle_3 = packet.contents;
+                storage.inventoryStorage.FIELD_BOTTLE3 = packet.contents;
                 break;
             case 3:
-                storage.inventoryStorage.bottle_4 = packet.contents;
+                storage.inventoryStorage.FIELD_BOTTLE4 = packet.contents;
                 break;
         }
     }
@@ -162,7 +160,7 @@ export class MMOServer {
                 ),
                 packet.player
             );
-            this.ModLoader.serverSide.sendPacketToSpecificPlayer(new MMO_KeyRebuildPacket(storage.changelog, packet.lobby), packet.player);
+            //this.ModLoader.serverSide.sendPacketToSpecificPlayer(new MMO_KeyRebuildPacket(storage.changelog, packet.lobby), packet.player);
         } else {
             // Game is not running, give me your data.
             this.ModLoader.serverSide.sendPacketToSpecificPlayer(
@@ -307,10 +305,6 @@ export class MMOServer {
         //let cp: CrashParserActorTable = new CrashParserActorTable();
         //let html: string = cp.parse(evt.dump);
         //fs.writeFileSync("./crashlogs/" + evt.name + ".html", html);
-    }
-
-    @ServerNetworkHandler("MMO_isRandoPacket")
-    onRandoPacket(packet: MMO_isRandoPacket) {
     }
 
 }

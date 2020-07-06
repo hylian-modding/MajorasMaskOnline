@@ -265,7 +265,7 @@ export class PuppetOverlord implements IPuppetOverlord {
 
   @NetworkHandler('MMO_ScenePacket')
   onSceneChange_client(packet: MMO_ScenePacket) {
-    this.changePuppetScene(packet.player, packet.scene, packet.age);
+    this.changePuppetScene(packet.player, packet.scene, packet.form);
   }
 
   @ServerNetworkHandler('MMO_PuppetPacket')

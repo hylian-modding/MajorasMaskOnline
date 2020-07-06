@@ -1,6 +1,6 @@
 import { IModLoaderAPI } from "modloader64_api/IModLoaderAPI";
-import { MMOffsets } from "@MMARO/MMAPI/MMOffsets";
-import { MMForms } from "./mmForms";
+import { MMOffsets } from "src/MMO/MMAPI/MMOffsets";
+import { MMForms } from "./MMForms";
 
 export class SaveContext {
 
@@ -180,12 +180,91 @@ export class SaveContext {
         this.ModLoader.emulator.rdramWriteBuffer(this.offsets.scene_flags, flag);
     }
 
+    get event_flags(): Buffer { 
+        return this.ModLoader.emulator.rdramReadBuffer(this.offsets.event_flg, 0x64);
+    }
+    set event_flags(flag: Buffer) {
+        this.ModLoader.emulator.rdramWriteBuffer(this.offsets.scene_flags, flag);
+    }
+
     get bank_rupees(): number {
         return this.ModLoader.emulator.rdramRead16(this.offsets.bank_rupees);
     }
 
     set bank_rupees(flag: number) {
         this.ModLoader.emulator.rdramWrite16(this.offsets.bank_rupees, flag);
+    }
+
+    get liveSceneData_chests(): Buffer {
+        return this.ModLoader.emulator.rdramReadPtrBuffer(
+            global.ModLoader.global_context_pointer,
+            this.offsets.chest_flags_addr,
+            0x4
+        );
+    }
+    set liveSceneData_chests(buf: Buffer) {
+        this.ModLoader.emulator.rdramWritePtrBuffer(
+            global.ModLoader.global_context_pointer,
+            this.offsets.chest_flags_addr,
+            buf
+        );
+    }
+    get liveSceneData_clear(): Buffer {
+        return this.ModLoader.emulator.rdramReadPtrBuffer(
+            global.ModLoader.global_context_pointer,
+            this.offsets.room_clear_flags_addr,
+            0x4
+        );
+    }
+    set liveSceneData_clear(buf: Buffer) {
+        this.ModLoader.emulator.rdramWritePtrBuffer(
+            global.ModLoader.global_context_pointer,
+            this.offsets.room_clear_flags_addr,
+            buf
+        );
+    }
+    get liveSceneData_switch(): Buffer {
+        return this.ModLoader.emulator.rdramReadPtrBuffer(
+            global.ModLoader.global_context_pointer,
+            this.offsets.switch_flags_addr,
+            0x4
+        );
+    }
+    set liveSceneData_switch(buf: Buffer) {
+        this.ModLoader.emulator.rdramWritePtrBuffer(
+            global.ModLoader.global_context_pointer,
+            this.offsets.switch_flags_addr,
+            buf
+        );
+    }
+    get liveSceneData_temp(): Buffer {
+        return this.ModLoader.emulator.rdramReadPtrBuffer(
+            global.ModLoader.global_context_pointer,
+            this.offsets.temp_switch_flags_addr,
+            0x4
+        );
+    }
+    set liveSceneData_temp(buf: Buffer) {
+        this.ModLoader.emulator.rdramWritePtrBuffer(
+            global.ModLoader.global_context_pointer,
+            this.offsets.temp_switch_flags_addr,
+            buf
+        );
+    }
+
+    getSaveDataForCurrentScene(): Buffer {
+        return this.ModLoader.emulator.rdramReadBuffer(
+            global.ModLoader.save_context + 0x00d4 + this.offsets.current_scene * 0x1c,
+            0x1c
+        );
+    }
+    writeSaveDataForCurrentScene(buf: Buffer): void {
+        if (buf.byteLength === 0x1c) {
+            this.ModLoader.emulator.rdramWriteBuffer(
+                global.ModLoader.save_context + 0x00d4 + this.offsets.current_scene * 0x1c,
+                buf
+            );
+        }
     }
 
 }

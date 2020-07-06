@@ -6,7 +6,7 @@ import { MMCore } from './MMAPI/Core';
 import { IMMOnlineHelpers, MMOnlineEvents, MMOnline_PlayerScene } from './MMOAPI/MMOAPI';
 
 // @Drahsid TODO: Move to Z64lib?
-import { OotEvents } from 'modloader64_api/OOT/OOTAPI';
+import { MMEvents } from "./MMAPI/MMAPI";
 import { MMO_ScenePacket, MMO_SceneRequestPacket } from './data/MMOPackets';
 import { MMOnlineStorage } from './MMOnlineStorage';
 
@@ -26,7 +26,7 @@ import printf from './printf'
 import path from 'path';
 import fs from 'fs';
 
-export const SCENE_ARR_SIZE = 0xb0c;
+export const SCENE_ARR_SIZE = 0xd20;
 export const EVENT_ARR_SIZE = 0x8;
 export const ITEM_FLAG_ARR_SIZE = 0x18;
 export const MASK_FLAG_ARR_SIZE = 0x18;
@@ -148,7 +148,7 @@ class MMO implements IPlugin, IMMOnlineHelpers, IPluginServerConfig {
         }
     }
 
-    @EventHandler(OotEvents.ON_SCENE_CHANGE)
+    @EventHandler(MMEvents.ON_SCENE_CHANGE)
     onSceneChange(scene: number) {
         this.ModLoader.logger.debug(scene.toString(16));
         this.ModLoader.clientSide.sendPacket(
@@ -193,12 +193,12 @@ class MMO implements IPlugin, IMMOnlineHelpers, IPluginServerConfig {
         );
     }
 
-    @EventHandler(OotEvents.ON_LOADING_ZONE)
+    @EventHandler(MMEvents.ON_LOADING_ZONE)
     onLoadingZone(evt: any) {
         this.ModLoader.logger.debug("I've touched a loading zone.");
     }
 
-    @EventHandler(OotEvents.ON_AGE_CHANGE)
+    @EventHandler(MMEvents.ON_AGE_CHANGE)
     onAgeChange(age: MMForms) {
         this.ModLoader.clientSide.sendPacket(
             new MMO_ScenePacket(

@@ -39,6 +39,13 @@ export class MMOffsets {
     scene_flags = 0x801EF768; //0xD20 dig chest flags out of here
     bank_rupees = 0x801F054E; //0x2
 
+    event_flg: number = 0x801F0568;
+
+    switch_flags_addr = 0x803E8978;
+    temp_switch_flags_addr = 0x803E8988;
+    chest_flags_addr = 0x803E898C;
+    room_clear_flags_addr = 0x803E8994;
+
     //misc
     mask_object_vram = 0x80402B50;
     mask_props = 0x801F58B0;
