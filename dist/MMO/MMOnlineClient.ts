@@ -162,23 +162,23 @@ export class MMOnlineClient {
         }
     }*/
 
-    /*@EventHandler(MMEvents.ON_SAVE_LOADED)
+    @EventHandler(MMEvents.ON_SAVE_LOADED)
     onSaveLoaded(evt: any) {
         setTimeout(() => {
             if (this.LobbyConfig.data_syncing) {
                 this.ModLoader.clientSide.sendPacket(new MMO_DownloadRequestPacket(this.ModLoader.clientLobby));
             }
             let gui_p: MMO_SceneGUIPacket = new MMO_SceneGUIPacket(this.core.global.current_scene, this.core.save.form, this.ModLoader.clientLobby);
-            if (this.modelManager.clientStorage.adultIcon.byteLength > 1) {
+            /*if (this.modelManager.clientStorage.adultIcon.byteLength > 1) {
                 gui_p.setAdultIcon(this.modelManager.clientStorage.adultIcon);
             }
             if (this.modelManager.clientStorage.childIcon.byteLength > 1) {
                 gui_p.setChildIcon(this.modelManager.clientStorage.childIcon);
-            }
+            }*/
             this.ModLoader.gui.tunnel.send('MMOnline:onAgeChange', new GUITunnelPacket('MMOnline', 'MMOnline:onAgeChange', gui_p));
         }, 1000);
     }
-    */
+    
    
     //------------------------------
     // Lobby Setup
@@ -332,7 +332,7 @@ export class MMOnlineClient {
     }
 
     @NetworkHandler('MMO_BottleUpdatePacket')
-    onFIELD_BOTTLEclient(packet: MMO_BottleUpdatePacket) {
+    onBottle_client(packet: MMO_BottleUpdatePacket) {
         if (
             this.core.helper.isTitleScreen() ||
             !this.core.helper.isSceneNumberValid()
@@ -356,6 +356,12 @@ export class MMOnlineClient {
             case 3:
                 inventory.FIELD_BOTTLE4 = packet.contents;
                 break;
+            case 4:
+                inventory.FIELD_BOTTLE5 = packet.contents;
+                break;
+            case 5:
+                inventory.FIELD_BOTTLE6 = packet.contents;
+                break;
         }
         mergeInventoryData(this.clientStorage.inventoryStorage, inventory);
         applyInventoryToContext(
@@ -371,9 +377,9 @@ export class MMOnlineClient {
     onDownloadPacket_client(packet: MMO_DownloadResponsePacket) {
         this.ModLoader.logger.info('Retrieving savegame from server...');
         // Clear inventory.
-        this.ModLoader.emulator.rdramWriteBuffer(global.ModLoader.save_context + 0x0074, Buffer.alloc(0x18, 0xFF)); //TODO: Fix for MM
+        this.ModLoader.emulator.rdramWriteBuffer(global.ModLoader.save_context + 0x0070, Buffer.alloc(0x18, 0xFF)); //TODO: Fix for MM
         // Clear c-button and b.
-        //this.ModLoader.emulator.rdramWriteBuffer(global.ModLoader.save_context + 0x0068, Buffer.alloc(0x4, 0xFF));
+        this.ModLoader.emulator.rdramWriteBuffer(global.ModLoader.save_context + 0x0064, Buffer.alloc(0x4, 0xFF));
         //this.core.link.sword = Sword.NONE;
         //this.core.link.shield = Shield.NONE;
         applyInventoryToContext(packet.subscreen.inventory, this.core.save, true);
@@ -614,8 +620,8 @@ export class MMOnlineClient {
             return;
         }
         this.ModLoader.emulator.rdramWrite16(
-            global.ModLoader.save_context + 0x1424,
-            0x65
+            global.ModLoader.save_context + 0x36, 
+            0x0140
         );
     }
 
@@ -679,13 +685,14 @@ export class MMOnlineClient {
             return;
         }
 
-        let addr: number = global.ModLoader.save_context + 0x0068;
-        let buf: Buffer = this.ModLoader.emulator.rdramReadBuffer(addr, 0x7);
-        let addr2: number = global.ModLoader.save_context + 0x0074;
+        let addr: number = global.ModLoader.save_context + 0x0064; //C-L, C-D, C-R
+        let buf: Buffer = this.ModLoader.emulator.rdramReadBuffer(addr, 0x3);
+        let addr2: number = global.ModLoader.save_context + 0x0070; //Inventory Items
         let raw_inventory: Buffer = this.ModLoader.emulator.rdramReadBuffer(
             addr2,
-            0x24
+            0x18
         );
+        //TODO: Uh.. This seems to work differently in MM. This will need updating.
         if (
             buf[0x4] !== InventoryItem.NONE &&
             raw_inventory[buf[0x4]] !== InventoryItem.NONE

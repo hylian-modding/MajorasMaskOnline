@@ -167,6 +167,7 @@ class MMO implements IPlugin, IMMOnlineHelpers, IPluginServerConfig {
                 this.core.save.form
             )
         );
+
     }
 
     @ServerNetworkHandler('MMO_ScenePacket')
@@ -187,6 +188,7 @@ class MMO implements IPlugin, IMMOnlineHelpers, IPluginServerConfig {
                 packet.scene +
                 '.'
             );
+            this.ModLoader.logger.debug(this.core.link.rawStateValue.toString(16));
             bus.emit(MMOnlineEvents.SERVER_PLAYER_CHANGED_SCENES, new MMOnline_PlayerScene(packet.player, packet.lobby, packet.scene));
         } catch (err) {
             console.log(err);

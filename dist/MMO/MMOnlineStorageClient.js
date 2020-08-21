@@ -14,6 +14,8 @@ class MMOnlineStorageClient extends MMOnlineStorageBase_1.MMOnlineStorageBase {
             MMAPI_1.InventoryItem.NONE,
             MMAPI_1.InventoryItem.NONE,
             MMAPI_1.InventoryItem.NONE,
+            MMAPI_1.InventoryItem.NONE,
+            MMAPI_1.InventoryItem.NONE,
         ];
         this.childModel = Buffer.alloc(1);
         this.adultModel = Buffer.alloc(1);

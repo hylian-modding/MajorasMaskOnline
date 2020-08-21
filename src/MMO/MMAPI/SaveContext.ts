@@ -298,14 +298,14 @@ export class SaveContext extends JSONTemplate implements ISaveContext {
 
     getSaveDataForCurrentScene(): Buffer {
         return this.emulator.rdramReadBuffer(
-            global.ModLoader.save_context + 0x00d4 + this.offsets.current_scene * 0x1c,
+            global.ModLoader.save_context + 0x00F8 + this.offsets.current_scene * 0xD20,
             0x1c
         );
     }
     writeSaveDataForCurrentScene(buf: Buffer): void {
         if (buf.byteLength === 0x1c) {
             this.emulator.rdramWriteBuffer(
-                global.ModLoader.save_context + 0x00d4 + this.offsets.current_scene * 0x1c,
+                global.ModLoader.save_context + 0x00F8 + this.offsets.current_scene * 0xD20,
                 buf
             );
         }

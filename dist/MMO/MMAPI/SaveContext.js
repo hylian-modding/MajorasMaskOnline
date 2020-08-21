@@ -184,11 +184,11 @@ class SaveContext extends JSONTemplate_1.JSONTemplate {
         this.emulator.rdramWritePtrBuffer(global.ModLoader.global_context_pointer, this.offsets.temp_switch_flags_addr, buf);
     }
     getSaveDataForCurrentScene() {
-        return this.emulator.rdramReadBuffer(global.ModLoader.save_context + 0x00d4 + this.offsets.current_scene * 0x1c, 0x1c);
+        return this.emulator.rdramReadBuffer(global.ModLoader.save_context + 0x00F8 + this.offsets.current_scene * 0xD20, 0x1c);
     }
     writeSaveDataForCurrentScene(buf) {
         if (buf.byteLength === 0x1c) {
-            this.emulator.rdramWriteBuffer(global.ModLoader.save_context + 0x00d4 + this.offsets.current_scene * 0x1c, buf);
+            this.emulator.rdramWriteBuffer(global.ModLoader.save_context + 0x00F8 + this.offsets.current_scene * 0xD20, buf);
         }
     }
 }

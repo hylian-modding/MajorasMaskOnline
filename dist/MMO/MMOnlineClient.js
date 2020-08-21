@@ -144,23 +144,21 @@ class MMOnlineClient {
             this.updateFlags();
         }
     }*/
-    /*@EventHandler(MMEvents.ON_SAVE_LOADED)
-    onSaveLoaded(evt: any) {
+    onSaveLoaded(evt) {
         setTimeout(() => {
             if (this.LobbyConfig.data_syncing) {
-                this.ModLoader.clientSide.sendPacket(new MMO_DownloadRequestPacket(this.ModLoader.clientLobby));
+                this.ModLoader.clientSide.sendPacket(new MMOPackets_1.MMO_DownloadRequestPacket(this.ModLoader.clientLobby));
             }
-            let gui_p: MMO_SceneGUIPacket = new MMO_SceneGUIPacket(this.core.global.current_scene, this.core.save.form, this.ModLoader.clientLobby);
-            if (this.modelManager.clientStorage.adultIcon.byteLength > 1) {
+            let gui_p = new MMOPackets_1.MMO_SceneGUIPacket(this.core.global.current_scene, this.core.save.form, this.ModLoader.clientLobby);
+            /*if (this.modelManager.clientStorage.adultIcon.byteLength > 1) {
                 gui_p.setAdultIcon(this.modelManager.clientStorage.adultIcon);
             }
             if (this.modelManager.clientStorage.childIcon.byteLength > 1) {
                 gui_p.setChildIcon(this.modelManager.clientStorage.childIcon);
-            }
-            this.ModLoader.gui.tunnel.send('MMOnline:onAgeChange', new GUITunnelPacket('MMOnline', 'MMOnline:onAgeChange', gui_p));
+            }*/
+            this.ModLoader.gui.tunnel.send('MMOnline:onAgeChange', new GUITunnel_1.GUITunnelPacket('MMOnline', 'MMOnline:onAgeChange', gui_p));
         }, 1000);
     }
-    */
     //------------------------------
     // Lobby Setup
     //------------------------------
@@ -249,7 +247,7 @@ class MMOnlineClient {
             this.ModLoader.clientSide.sendPacketToSpecificPlayer(new MMOPackets_1.MMO_ScenePacket(this.ModLoader.clientLobby, this.core.global.current_scene, this.core.save.form), packet.player);
         }
     }
-    onFIELD_BOTTLEclient(packet) {
+    onBottle_client(packet) {
         if (this.core.helper.isTitleScreen() ||
             !this.core.helper.isSceneNumberValid()) {
             return;
@@ -269,6 +267,12 @@ class MMOnlineClient {
             case 3:
                 inventory.FIELD_BOTTLE4 = packet.contents;
                 break;
+            case 4:
+                inventory.FIELD_BOTTLE5 = packet.contents;
+                break;
+            case 5:
+                inventory.FIELD_BOTTLE6 = packet.contents;
+                break;
         }
         MMOSaveData_1.mergeInventoryData(this.clientStorage.inventoryStorage, inventory);
         MMOSaveData_1.applyInventoryToContext(this.clientStorage.inventoryStorage, this.core.save, true);
@@ -278,9 +282,9 @@ class MMOnlineClient {
     onDownloadPacket_client(packet) {
         this.ModLoader.logger.info('Retrieving savegame from server...');
         // Clear inventory.
-        this.ModLoader.emulator.rdramWriteBuffer(global.ModLoader.save_context + 0x0074, Buffer.alloc(0x18, 0xFF)); //TODO: Fix for MM
+        this.ModLoader.emulator.rdramWriteBuffer(global.ModLoader.save_context + 0x0070, Buffer.alloc(0x18, 0xFF)); //TODO: Fix for MM
         // Clear c-button and b.
-        //this.ModLoader.emulator.rdramWriteBuffer(global.ModLoader.save_context + 0x0068, Buffer.alloc(0x4, 0xFF));
+        this.ModLoader.emulator.rdramWriteBuffer(global.ModLoader.save_context + 0x0064, Buffer.alloc(0x4, 0xFF));
         //this.core.link.sword = Sword.NONE;
         //this.core.link.shield = Shield.NONE;
         MMOSaveData_1.applyInventoryToContext(packet.subscreen.inventory, this.core.save, true);
@@ -451,7 +455,7 @@ class MMOnlineClient {
             !this.core.helper.isSceneNumberValid()) {
             return;
         }
-        this.ModLoader.emulator.rdramWrite16(global.ModLoader.save_context + 0x1424, 0x65);
+        this.ModLoader.emulator.rdramWrite16(global.ModLoader.save_context + 0x36, 0x0140);
     }
     onNeedsHeal1(evt) {
         this.healPlayer();
@@ -488,10 +492,11 @@ class MMOnlineClient {
             !this.core.helper.isSceneNumberValid()) {
             return;
         }
-        let addr = global.ModLoader.save_context + 0x0068;
-        let buf = this.ModLoader.emulator.rdramReadBuffer(addr, 0x7);
-        let addr2 = global.ModLoader.save_context + 0x0074;
-        let raw_inventory = this.ModLoader.emulator.rdramReadBuffer(addr2, 0x24);
+        let addr = global.ModLoader.save_context + 0x0064; //C-L, C-D, C-R
+        let buf = this.ModLoader.emulator.rdramReadBuffer(addr, 0x3);
+        let addr2 = global.ModLoader.save_context + 0x0070; //Inventory Items
+        let raw_inventory = this.ModLoader.emulator.rdramReadBuffer(addr2, 0x18);
+        //TODO: Uh.. This seems to work differently in MM. This will need updating.
         if (buf[0x4] !== MMAPI_1.InventoryItem.NONE &&
             raw_inventory[buf[0x4]] !== MMAPI_1.InventoryItem.NONE) {
             buf[0x1] = raw_inventory[buf[0x4]];
@@ -598,6 +603,9 @@ __decorate([
     PluginLifecycle_1.Postinit()
 ], MMOnlineClient.prototype, "postinit", null);
 __decorate([
+    EventHandler_1.EventHandler(MMAPI_1.MMEvents.ON_SAVE_LOADED)
+], MMOnlineClient.prototype, "onSaveLoaded", null);
+__decorate([
     EventHandler_1.EventHandler(EventHandler_1.EventsClient.CONFIGURE_LOBBY)
 ], MMOnlineClient.prototype, "onLobbySetup", null);
 __decorate([
@@ -620,7 +628,7 @@ __decorate([
 ], MMOnlineClient.prototype, "onSceneRequest_client", null);
 __decorate([
     NetworkHandler_1.NetworkHandler('MMO_BottleUpdatePacket')
-], MMOnlineClient.prototype, "onFIELD_BOTTLEclient", null);
+], MMOnlineClient.prototype, "onBottle_client", null);
 __decorate([
     NetworkHandler_1.NetworkHandler('MMO_DownloadResponsePacket')
 ], MMOnlineClient.prototype, "onDownloadPacket_client", null);

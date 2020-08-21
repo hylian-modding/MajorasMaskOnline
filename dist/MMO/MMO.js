@@ -129,6 +129,7 @@ class MMO {
                 ' moved to scene ' +
                 packet.scene +
                 '.');
+            this.ModLoader.logger.debug(this.core.link.rawStateValue.toString(16));
             EventHandler_1.bus.emit(MMOAPI_1.MMOnlineEvents.SERVER_PLAYER_CHANGED_SCENES, new MMOAPI_1.MMOnline_PlayerScene(packet.player, packet.lobby, packet.scene));
         }
         catch (err) {
