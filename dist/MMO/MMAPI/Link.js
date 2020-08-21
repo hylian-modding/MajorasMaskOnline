@@ -9,7 +9,7 @@ class Link extends Actor_1.ActorBase {
     }
     get rawStateValue() {
         let offsets = global.ModLoader.MMOffsets;
-        return this.ModLoader.emulator.rdramRead32(offsets.link_instance + offsets.link_state);
+        return this.ModLoader.emulator.rdramRead32(offsets.link_state);
     }
     get state() {
         let offsets = global.ModLoader.MMOffsets;
@@ -61,25 +61,25 @@ class Link extends Actor_1.ActorBase {
         }
         return 0 /* UNKNOWN */;
     }
-    get state2() {
-        let offsets = global.ModLoader.MMOffsets;
-        let s2 = this.ModLoader.emulator.rdramRead32(offsets.link_state);
+    /*get state2(): LinkState2 {
+        let offsets = (global.ModLoader.MMOffsets as MMOffsets);
+        let s2: number = this.ModLoader.emulator.rdramRead32(offsets.link_state);
         let digits = s2.toString().split('');
         let realDigits = digits.map(Number);
-        let idle = realDigits[0];
-        let crawlspace = realDigits[3];
-        let moving = realDigits[6];
+        let idle: number = realDigits[0];
+        let crawlspace: number = realDigits[3];
+        let moving: number = realDigits[6];
         if (idle === 0x1) {
-            return 1 /* IDLE */;
+            return LinkState2.IDLE;
         }
         if (crawlspace === 0x4) {
-            return 2 /* CRAWLSPACE */;
+            return LinkState2.CRAWLSPACE;
         }
         if (moving === 0x2) {
-            return 3 /* MOVING_FORWARD */;
+            return LinkState2.MOVING_FORWARD;
         }
-        return 0 /* UNKNOWN */;
-    }
+        return LinkState2.UNKNOWN;
+    }*/
     get anim_data() {
         let offsets = global.ModLoader.MMOffsets;
         return this.ModLoader.emulator.rdramReadBuffer(offsets.anim, 0x86);

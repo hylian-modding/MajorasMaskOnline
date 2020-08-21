@@ -21,14 +21,14 @@ export class GlobalContext{
 
     getSaveDataForCurrentScene(): Buffer {
         return this.ModLoader.emulator.rdramReadBuffer(
-            global.ModLoader.save_context + 0x00d4 + this.current_scene * 0x1c,
+            global.ModLoader.save_context + 0x00F8 + this.current_scene * 0xD20,
             0x1c
         );
     }
     writeSaveDataForCurrentScene(buf: Buffer): void {
-        if (buf.byteLength === 0x1c) {
+        if (buf.byteLength === 0xD20) {
             this.ModLoader.emulator.rdramWriteBuffer(
-                global.ModLoader.save_context + 0x00d4 + this.current_scene * 0x1c,
+                global.ModLoader.save_context + 0x00F8 + this.current_scene * 0xD20,
                 buf
             );
         }

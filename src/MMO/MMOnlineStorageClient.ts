@@ -10,6 +10,8 @@ export class MMOnlineStorageClient extends MMOnlineStorageBase {
     InventoryItem.NONE,
     InventoryItem.NONE,
     InventoryItem.NONE,
+    InventoryItem.NONE,
+    InventoryItem.NONE,
   ];
   childModel: Buffer = Buffer.alloc(1);
   adultModel: Buffer = Buffer.alloc(1);

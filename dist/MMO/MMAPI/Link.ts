@@ -14,7 +14,7 @@ export class Link extends ActorBase {
     
     get rawStateValue(): number {
         let offsets = (global.ModLoader.MMOffsets as MMOffsets);
-        return this.ModLoader.emulator.rdramRead32(offsets.link_instance + offsets.link_state);
+        return this.ModLoader.emulator.rdramRead32(offsets.link_state);
     }
 
     get state(): LinkState {
@@ -68,7 +68,7 @@ export class Link extends ActorBase {
         return LinkState.UNKNOWN;
     }
 
-    get state2(): LinkState2 {
+    /*get state2(): LinkState2 {
         let offsets = (global.ModLoader.MMOffsets as MMOffsets);
         let s2: number = this.ModLoader.emulator.rdramRead32(offsets.link_state);
         let digits = s2.toString().split('');
@@ -86,7 +86,7 @@ export class Link extends ActorBase {
             return LinkState2.MOVING_FORWARD;
         }
         return LinkState2.UNKNOWN;
-    }
+    }*/
     
     get anim_data(): Buffer{
         let offsets = (global.ModLoader.MMOffsets as MMOffsets);

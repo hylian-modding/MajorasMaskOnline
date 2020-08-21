@@ -3,14 +3,14 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.MMOffsets = void 0;
 class MMOffsets {
     constructor() {
-        this.link_instance = 0x3FFDB0;
-        this.link_state = 0xA6C;
-        this.current_scene = 0x3e6bc4;
-        this.scene_frame_count = 0x3FF360;
-        this.checksum = 0x1EF694;
-        this.paused = 0x1D1500;
-        this.interface_shown = 0x3FD77B;
-        this.save_context = 0x1EF670;
+        this.link_instance = 0x803FFDB0;
+        this.link_state = 0x8040081C;
+        this.current_scene = 0x803e6bc4;
+        this.scene_frame_count = 0x803FF360;
+        this.checksum = 0x801EF694;
+        this.paused = 0x801D1500;
+        this.interface_shown = 0x803FD77B;
+        this.save_context = 0x801EF670;
         this.mask_offset = 0x0020;
         this.anim = 0x400500;
         //Save Context

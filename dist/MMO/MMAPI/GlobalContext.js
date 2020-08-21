@@ -14,11 +14,11 @@ class GlobalContext {
         return this.ModLoader.emulator.rdramRead32(offsets.scene_frame_count);
     }
     getSaveDataForCurrentScene() {
-        return this.ModLoader.emulator.rdramReadBuffer(global.ModLoader.save_context + 0x00d4 + this.current_scene * 0x1c, 0x1c);
+        return this.ModLoader.emulator.rdramReadBuffer(global.ModLoader.save_context + 0x00F8 + this.current_scene * 0xD20, 0x1c);
     }
     writeSaveDataForCurrentScene(buf) {
-        if (buf.byteLength === 0x1c) {
-            this.ModLoader.emulator.rdramWriteBuffer(global.ModLoader.save_context + 0x00d4 + this.current_scene * 0x1c, buf);
+        if (buf.byteLength === 0xD20) {
+            this.ModLoader.emulator.rdramWriteBuffer(global.ModLoader.save_context + 0x00F8 + this.current_scene * 0xD20, buf);
         }
     }
 }
