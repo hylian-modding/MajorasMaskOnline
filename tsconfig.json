@@ -13,8 +13,11 @@
     "moduleResolution": "node",
     "baseUrl": "./",
     "paths": {
+      "@sound/*": [
+        "./build/emulator/*"
+      ],
       "@MMARO/*": [
-        "src/MMO/*"
+        "./src/MMARO/*"
       ]
     }
   },
