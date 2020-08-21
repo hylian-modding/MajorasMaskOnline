@@ -1,0 +1,36 @@
+import { IModLoaderAPI } from "modloader64_api/IModLoaderAPI";
+import { MMOffsets } from "src/MMO/MMAPI/MMOffsets";
+
+export class GlobalContext{
+
+    ModLoader: IModLoaderAPI;
+
+    constructor(ModLoader: IModLoaderAPI){
+        this.ModLoader = ModLoader;
+    }
+
+    get current_scene(): number{
+        let offsets = (global.ModLoader.MMOffsets as MMOffsets);
+        return this.ModLoader.emulator.rdramRead16(offsets.current_scene);
+    }
+
+    get scene_frame_count(): number{
+        let offsets = (global.ModLoader.MMOffsets as MMOffsets);
+        return this.ModLoader.emulator.rdramRead32(offsets.scene_frame_count);
+    }
+
+    getSaveDataForCurrentScene(): Buffer {
+        return this.ModLoader.emulator.rdramReadBuffer(
+            global.ModLoader.save_context + 0x00d4 + this.current_scene * 0x1c,
+            0x1c
+        );
+    }
+    writeSaveDataForCurrentScene(buf: Buffer): void {
+        if (buf.byteLength === 0x1c) {
+            this.ModLoader.emulator.rdramWriteBuffer(
+                global.ModLoader.save_context + 0x00d4 + this.current_scene * 0x1c,
+                buf
+            );
+        }
+    }
+}

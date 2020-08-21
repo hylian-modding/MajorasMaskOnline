@@ -1,62 +1,47 @@
-import { IActor } from "modloader64_api/OOT/IActor"
-import { Puppet } from "./Puppet";
-import { IOOTCore } from "modloader64_api/OOT/OOTAPI";
-
-export class HorseData{
-
-    actor: IActor;
-    parent: Puppet;
-    puppet!: IActor;
-    private readonly copyFields: string[] = ["pos", "rot", "anim_id", "speed"];
-
-    constructor(actor: IActor, parent: Puppet, core: IOOTCore){
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.HorseData = void 0;
+class HorseData {
+    constructor(actor, parent, core) {
+        this.copyFields = ["pos", "rot", "anim_id", "speed"];
         this.actor = actor;
         this.parent = parent;
-        if (this.parent.hasAttachedHorse()){
+        if (this.parent.hasAttachedHorse()) {
             this.puppet = core.actorManager.createIActorFromPointer(this.parent.getAttachedHorse());
         }
     }
-
-    get pos(): Buffer{
+    get pos() {
         return this.actor.position.getRawPos();
     }
-
-    set pos(buf: Buffer){
+    set pos(buf) {
         this.puppet.rdramWriteBuffer(0x24, buf);
     }
-
-    get rot(): Buffer{
+    get rot() {
         return this.actor.rotation.getRawRot();
     }
-
-    set rot(buf: Buffer){
+    set rot(buf) {
         this.puppet.rdramWriteBuffer(0xB4, buf);
     }
-
-    get anim_id(): number{
+    get anim_id() {
         return this.actor.rdramRead32(0x1a4);
     }
-
-    set anim_id(id: number){
+    set anim_id(id) {
         this.puppet.rdramWrite32(0x214, id);
     }
-
-    get speed(): number{
+    get speed() {
         return this.actor.rdramRead32(0x1b8);
     }
-
-    set speed(s: number){
+    set speed(s) {
         this.puppet.rdramWrite32(0x1a4, s);
     }
-
     toJSON() {
-        const jsonObj: any = {};
-    
+        const jsonObj = {};
         for (let i = 0; i < this.copyFields.length; i++) {
-          jsonObj[this.copyFields[i]] = (this as any)[this.copyFields[i]];
+            jsonObj[this.copyFields[i]] = this[this.copyFields[i]];
         }
         //console.log(JSON.stringify(jsonObj, null, 2));
         return jsonObj;
-      }
-
+    }
 }
+exports.HorseData = HorseData;
+//# sourceMappingURL=HorseData.js.map
