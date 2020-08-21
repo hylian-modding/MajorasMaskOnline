@@ -1,5 +1,5 @@
 import { Puppet } from './Puppet';
-import { MMEvents } from 'src/MMO/MMAPI/MMAPI'
+import { MMEvents } from '../../MMAPI/MMAPI';
 import { INetworkPlayer, NetworkHandler, ServerNetworkHandler } from 'modloader64_api/NetworkHandler';
 import { IModLoaderAPI, ModLoaderEvents } from 'modloader64_api/IModLoaderAPI';
 import { MMO_PuppetPacket, MMO_SceneRequestPacket, MMO_ScenePacket, MMO_PuppetWrapperPacket } from '../MMOPackets';
@@ -9,10 +9,11 @@ import { InjectCore } from 'modloader64_api/CoreInjection';
 import { IPuppetOverlord } from '../../MMOAPI/IPuppetOverlord';
 import { Postinit, onTick } from 'modloader64_api/PluginLifecycle';
 import { EventHandler, EventsClient } from 'modloader64_api/EventHandler';
-import { IMMOnlineHelpers, MMOnlineEvents } from '../../MMOAPI/MMOAPI';
-import { IActor } from 'src/MMO/MMAPI/IActor';
-import { MMCore } from 'src/MMO/MMAPI/Core';
-import { MMForms } from 'src/MMO/MMAPI/mmForms';
+import { IMMOnlineHelpers, MMOnlineEvents } from '../../MMOAPI/MMoAPI';
+import { IActor } from '../../MMAPI/IActor';
+import { HorseData } from './HorseData';
+import { MMCore } from '../../MMAPI/Core';
+import { MMForms } from '../../MMAPI/MMForms';
 
 export class PuppetOverlord implements IPuppetOverlord {
   private puppets: Map<string, Puppet> = new Map<string, Puppet>();
@@ -23,7 +24,7 @@ export class PuppetOverlord implements IPuppetOverlord {
     INetworkPlayer
   >();
   private parent: IMMOnlineHelpers;
-  //private Epona!: HorseData;
+  private Epona!: HorseData;
   private queuedSpawn: boolean = false;
 
   @ModLoaderAPIInject()
@@ -191,7 +192,7 @@ export class PuppetOverlord implements IPuppetOverlord {
       let actualPacket = JSON.parse(packet.data) as MMO_PuppetPacket;
       puppet.processIncomingPuppetData(actualPacket.data);
       //if (actualPacket.horse_data !== undefined) {
-        //puppet.processIncomingHorseData(actualPacket.horse_data);
+        /*         puppet.processIncomingHorseData(actualPacket.horse_data); */
       //}
     }
   }
@@ -281,11 +282,11 @@ export class PuppetOverlord implements IPuppetOverlord {
     ) {
       return;
     }
-    //this.processPuppetPacket(packet);
+    this.processPuppetPacket(packet);
   }
 
   @EventHandler(MMEvents.ON_AGE_CHANGE)
-  onAgeChange(form: MMForms) {
+  onformChange(form: MMForms) {
     //this.localPlayerLoadingZone();
   }
 

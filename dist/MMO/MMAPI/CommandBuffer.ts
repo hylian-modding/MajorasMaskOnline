@@ -1,5 +1,5 @@
 import IMemory from 'modloader64_api/IMemory';
-import { Command, ICommandBuffer } from 'modloader64_api/OoT/ICommandBuffer';
+import { Command, ICommandBuffer } from './ICommandBuffer';
 
 const instance: number = 0x00800000 + 0x100;
 const slotSize = 0x8;
@@ -50,7 +50,7 @@ export class CommandBuffer implements ICommandBuffer {
         }
     }
 
-    runWarp(entrance: number, cutscene: number, callback: Function | undefined = () => { }): void {
+    /*runWarp(entrance: number, cutscene: number, callback: Function | undefined = () => { }): void {
         for (let i = 0; i < slotCount; i++) {
             if (this.slots[i].cmd === 0) {
                 // Free slot.
@@ -62,7 +62,7 @@ export class CommandBuffer implements ICommandBuffer {
                 break;
             }
         }
-    }
+    }*/
 
     runCommand(
         command: Command,

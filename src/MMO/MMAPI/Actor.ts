@@ -2,7 +2,8 @@ import Vector3 from 'modloader64_api/math/Vector3';
 import IMemory from 'modloader64_api/IMemory';
 import { JSONTemplate } from 'modloader64_api/JSONTemplate';
 import { IMath } from 'modloader64_api/math/IMath';
-import { IActor, ActorCategory } from './IActor';
+import { IActor } from './IActor';
+import { ActorCategory } from '../MMAPI/ActorCategory';
 
 export class ActorBase extends JSONTemplate implements IActor, IMath {
     actorUUID = '';

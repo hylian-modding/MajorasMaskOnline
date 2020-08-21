@@ -1,6 +1,6 @@
 import { onTick, Preinit, Init, Postinit } from "modloader64_api/PluginLifecycle";
 import { Link } from "./Link";
-import { MMHelper } from "src/MMO/MMAPI/MMHelper";
+import { MMHelper } from "./MMHelper";
 import { ModLoaderAPIInject } from "modloader64_api/ModLoaderAPIInjector";
 import { IModLoaderAPI, ILogger } from "modloader64_api/IModLoaderAPI";
 import { bus } from "modloader64_api/EventHandler";
@@ -10,6 +10,7 @@ import { SaveContext } from "./SaveContext";
 import { OverlayPayload } from "./ovl/ovlinjector";
 import { CommandBuffer } from "./CommandBuffer";
 import { MMOffsets } from "./MMOffsets";
+import { ActorManager } from "./ActorManager";
 
 export class MMCore {
 
@@ -24,7 +25,8 @@ export class MMCore {
     private lastKnownSceneNumber: number = -1;
     private lastKnownAge: number = -1;
     log!: ILogger;
-
+    actorManager!: ActorManager;
+    
     constructor() {
     }
 

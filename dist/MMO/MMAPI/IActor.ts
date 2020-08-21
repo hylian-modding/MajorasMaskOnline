@@ -1,21 +1,6 @@
 import Vector3 from 'modloader64_api/math/Vector3';
 import IMemory from 'modloader64_api/IMemory';
-
-//@Drahsid TODO: Is this the same?
-export const enum ActorCategory {
-    SWITCH,
-    BACKGROUNDS,
-    PLAYER,
-    BOMB,
-    NPC,
-    ENEMY,
-    PROP_2,
-    ITEM_ACTION,
-    MISC,
-    BOSS,
-    DOOR,
-    CHEST,
-}
+import {ActorCategory} from '../MMAPI/ActorCategory';
 
 export interface IActor extends IMemory {
     actorUUID: string;

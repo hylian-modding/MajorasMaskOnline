@@ -9,7 +9,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.MMCore = void 0;
 const PluginLifecycle_1 = require("modloader64_api/PluginLifecycle");
 const Link_1 = require("./Link");
-const MMHelper_1 = require("src/MMO/MMAPI/MMHelper");
+const MMHelper_1 = require("./MMHelper");
 const ModLoaderAPIInjector_1 = require("modloader64_api/ModLoaderAPIInjector");
 const EventHandler_1 = require("modloader64_api/EventHandler");
 const MMAPI_1 = require("./MMAPI");

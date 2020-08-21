@@ -11,7 +11,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.PuppetOverlord = void 0;
 const Puppet_1 = require("./Puppet");
-const MMAPI_1 = require("src/MMO/MMAPI/MMAPI");
+const MMAPI_1 = require("../../MMAPI/MMAPI");
 const NetworkHandler_1 = require("modloader64_api/NetworkHandler");
 const IModLoaderAPI_1 = require("modloader64_api/IModLoaderAPI");
 const MMOPackets_1 = require("../MMOPackets");
@@ -19,14 +19,13 @@ const fs_1 = __importDefault(require("fs"));
 const ModLoaderAPIInjector_1 = require("modloader64_api/ModLoaderAPIInjector");
 const PluginLifecycle_1 = require("modloader64_api/PluginLifecycle");
 const EventHandler_1 = require("modloader64_api/EventHandler");
-const MMOAPI_1 = require("../../MMOAPI/MMOAPI");
+const MMoAPI_1 = require("../../MMOAPI/MMoAPI");
 class PuppetOverlord {
     constructor(parent, core) {
         this.puppets = new Map();
         this.awaiting_spawn = new Array();
         this.amIAlone = true;
         this.playersAwaitingPuppets = new Array();
-        //private Epona!: HorseData;
         this.queuedSpawn = false;
         this.parent = parent;
         this.core = core;
@@ -146,7 +145,7 @@ class PuppetOverlord {
             let actualPacket = JSON.parse(packet.data);
             puppet.processIncomingPuppetData(actualPacket.data);
             //if (actualPacket.horse_data !== undefined) {
-            //puppet.processIncomingHorseData(actualPacket.horse_data);
+            /*         puppet.processIncomingHorseData(actualPacket.horse_data); */
             //}
         }
     }
@@ -207,9 +206,9 @@ class PuppetOverlord {
             this.core.helper.isLinkEnteringLoadingZone()) {
             return;
         }
-        //this.processPuppetPacket(packet);
+        this.processPuppetPacket(packet);
     }
-    onAgeChange(form) {
+    onformChange(form) {
         //this.localPlayerLoadingZone();
     }
     onEmuCrash(evt) {
@@ -279,7 +278,7 @@ __decorate([
 ], PuppetOverlord.prototype, "onPuppetData_client", null);
 __decorate([
     EventHandler_1.EventHandler(MMAPI_1.MMEvents.ON_AGE_CHANGE)
-], PuppetOverlord.prototype, "onAgeChange", null);
+], PuppetOverlord.prototype, "onformChange", null);
 __decorate([
     EventHandler_1.EventHandler(IModLoaderAPI_1.ModLoaderEvents.ON_CRASH)
 ], PuppetOverlord.prototype, "onEmuCrash", null);
@@ -296,10 +295,10 @@ __decorate([
     EventHandler_1.EventHandler(IModLoaderAPI_1.ModLoaderEvents.ON_SOFT_RESET_PRE)
 ], PuppetOverlord.prototype, "onReset", null);
 __decorate([
-    EventHandler_1.EventHandler(MMOAPI_1.MMOnlineEvents.PLAYER_PUPPET_SPAWNED)
+    EventHandler_1.EventHandler(MMoAPI_1.MMOnlineEvents.PLAYER_PUPPET_SPAWNED)
 ], PuppetOverlord.prototype, "onSpawn", null);
 __decorate([
-    EventHandler_1.EventHandler(MMOAPI_1.MMOnlineEvents.PLAYER_PUPPET_PRESPAWN)
+    EventHandler_1.EventHandler(MMoAPI_1.MMOnlineEvents.PLAYER_PUPPET_PRESPAWN)
 ], PuppetOverlord.prototype, "onPreSpawn", null);
 exports.PuppetOverlord = PuppetOverlord;
 //# sourceMappingURL=PuppetOverlord.js.map

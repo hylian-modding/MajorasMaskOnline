@@ -1,5 +1,5 @@
 import { IModLoaderAPI } from "modloader64_api/IModLoaderAPI";
-import { MMOffsets } from "src/MMO/MMAPI/MMOffsets";
+import { MMOffsets } from "../MMAPI/MMOffsets";
 
 export class GlobalContext{
 

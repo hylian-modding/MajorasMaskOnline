@@ -1,16 +1,17 @@
 import { PuppetData } from './PuppetData';
 import { INetworkPlayer } from 'modloader64_api/NetworkHandler';
-import { Command } from 'modloader64_api/OOT/ICommandBuffer';
+import { Command } from '../../MMAPI/ICommandBuffer';
 import { bus } from 'modloader64_api/EventHandler';
 import { MMOnlineEvents, IMMOnlineHelpers } from '../../MMOAPI/MMOAPI';
 import { IModLoaderAPI } from 'modloader64_api/IModLoaderAPI';
 import { IPuppet } from '../../MMOAPI/IPuppet';
 import Vector3 from 'modloader64_api/math/Vector3';
+import { HorseData } from './HorseData';
 import fs from 'fs';
 import path from 'path';
-import { IActor } from 'src/MMO/MMAPI/IActor';
-import { MMCore } from 'src/MMO/MMAPI/Core';
-import { MMForms } from 'src/MMO/MMAPI/mmForms';
+
+import { MMCore } from '../../MMAPI/Core';
+import { MMForms } from '../../MMAPI/MMForms';
 
 const DEADBEEF_OFFSET: number = 0x288;
 
@@ -26,6 +27,7 @@ export class Puppet implements IPuppet {
   core: MMCore;
   void!: Vector3;
   ModLoader: IModLoaderAPI;
+  horse!: HorseData;
   parent: IMMOnlineHelpers;
 
   constructor(
@@ -96,13 +98,13 @@ export class Puppet implements IPuppet {
     }
   }
 
-  /*processIncomingHorseData(data: HorseData) {
+  processIncomingHorseData(data: HorseData) {
     if (this.isSpawned && !this.isShoveled && this.horse !== undefined) {
       Object.keys(data).forEach((key: string) => {
         (this.horse as any)[key] = (data as any)[key];
       });
     }
-  }*/
+  }
 
   shovel() {
     if (this.isSpawned) {
