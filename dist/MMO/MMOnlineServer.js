@@ -13,7 +13,7 @@ const SidedProxy_1 = require("modloader64_api/SidedProxy/SidedProxy"); //BRUH
 const ModLoaderAPIInjector_1 = require("modloader64_api/ModLoaderAPIInjector");
 const IModLoaderAPI_1 = require("modloader64_api/IModLoaderAPI");
 const NetworkHandler_1 = require("modloader64_api/NetworkHandler");
-const MMO_API_1 = require("./MMOAPI/MMO_API"); //Add MMO_PlayerScene
+const MMOAPI_1 = require("./MMOAPI/MMOAPI"); //Add MMOnline_PlayerScene
 const MMOPackets_1 = require("./data/MMOPackets");
 const MMOSaveData_1 = require("./data/MMOSaveData"); //Needs porting
 class MMOServer {
@@ -69,7 +69,7 @@ class MMOServer {
                 ' moved to scene ' +
                 packet.scene +
                 '.');
-            EventHandler_1.bus.emit("MMOnline:onServerPlayerChangedScenes" /* SERVER_PLAYER_CHANGED_SCENES */, new MMO_API_1.MMO_PlayerScene(packet.player, packet.lobby, packet.scene));
+            EventHandler_1.bus.emit(MMOAPI_1.MMOnlineEvents.SERVER_PLAYER_CHANGED_SCENES, new MMOAPI_1.MMOnline_PlayerScene(packet.player, packet.lobby, packet.scene));
         }
         catch (err) {
         }

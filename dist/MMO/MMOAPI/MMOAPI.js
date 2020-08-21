@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.MMOnlineAPI_EnableGhostMode = exports.MMOnline_PlayerScene = exports.MMOnlineEvents = void 0;
+exports.MMO_CHILD_MODEL_EVENT = exports.MMOnlineAPI_EnableGhostMode = exports.MMOnline_PlayerScene = exports.MMOnlineEvents = void 0;
 const EventHandler_1 = require("modloader64_api/EventHandler");
 var MMOnlineEvents;
 (function (MMOnlineEvents) {
@@ -40,4 +40,11 @@ function MMOnlineAPI_EnableGhostMode() {
     EventHandler_1.bus.emit(MMOnlineEvents.GHOST_MODE, {});
 }
 exports.MMOnlineAPI_EnableGhostMode = MMOnlineAPI_EnableGhostMode;
+class MMO_CHILD_MODEL_EVENT {
+    constructor(file, isAdultHeight = false) {
+        this.file = file;
+        this.isAdultHeight = isAdultHeight;
+    }
+}
+exports.MMO_CHILD_MODEL_EVENT = MMO_CHILD_MODEL_EVENT;
 //# sourceMappingURL=MMOAPI.js.map

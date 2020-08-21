@@ -32,7 +32,7 @@ export const ITEM_FLAG_ARR_SIZE = 0x18;
 export const MASK_FLAG_ARR_SIZE = 0x18;
 export const WEEK_EVENT_ARR_SIZE = 0x64;
 
-export interface INNOnlineLobbyConfig {
+export interface IMMOnlineLobbyConfig {
     data_syncing: boolean;
     actor_syncing: boolean;
     key_syncing: boolean;
@@ -49,7 +49,8 @@ class MMO implements IPlugin, IMMOnlineHelpers, IPluginServerConfig {
     core: MMCore;
     puppets: PuppetOverlord;
     // Storage
-    clientStorage: MMOnlineStorageClient = new MMOnlineStorageClient;
+    LobbyConfig: IMMOnlineLobbyConfig = {} as IMMOnlineLobbyConfig;
+    clientStorage: MMOnlineStorageClient = new MMOnlineStorageClient();
     models: ModelManager;
 
     constructor() {
@@ -122,6 +123,7 @@ class MMO implements IPlugin, IMMOnlineHelpers, IPluginServerConfig {
     }
 
     preinit(): void {
+        
     }
     init(): void { }
     postinit(): void {

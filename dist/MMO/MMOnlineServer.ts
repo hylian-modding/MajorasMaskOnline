@@ -5,7 +5,7 @@ import { ModLoaderAPIInject } from 'modloader64_api/ModLoaderAPIInjector';
 import MMO from './MMO';
 import { IModLoaderAPI, ModLoaderEvents } from 'modloader64_api/IModLoaderAPI';
 import { ServerNetworkHandler, IPacketHeader } from 'modloader64_api/NetworkHandler';
-import { MMO_PlayerScene, MMO_EVENTS } from './MMOAPI/MMO_API'; //Add MMO_PlayerScene
+import { MMOnline_PlayerScene, MMOnlineEvents } from './MMOAPI/MMOAPI'; //Add MMOnline_PlayerScene
 import { MMO_ScenePacket, MMO_BottleUpdatePacket, MMO_DownloadRequestPacket, MMO_DownloadResponsePacket, MMO_SubscreenSyncPacket, MMO_ServerFlagUpdate, MMO_BankSyncPacket, MMO_DownloadResponsePacket2, MMO_ClientFlagUpdate, MMO_ClientSceneContextUpdate } from './data/MMOPackets';
 import { mergeInventoryData, mergeEquipmentData, mergeQuestSaveData, mergeDungeonItemData, MMO_SceneStruct } from './data/MMOSaveData'; //Needs porting
 
@@ -92,7 +92,7 @@ export class MMOServer {
                 packet.scene +
                 '.'
             );
-            bus.emit(MMO_EVENTS.SERVER_PLAYER_CHANGED_SCENES, new MMO_PlayerScene(packet.player, packet.lobby, packet.scene));
+            bus.emit(MMOnlineEvents.SERVER_PLAYER_CHANGED_SCENES, new MMOnline_PlayerScene(packet.player, packet.lobby, packet.scene));
         } catch (err) {
         }
     }

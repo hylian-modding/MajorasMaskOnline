@@ -5,7 +5,7 @@ import { Z64LibSupportedGames } from "../../Z64Lib/API/Z64LibSupportedGames";
 import { Z64RomTools } from "../../Z64Lib/API/Z64RomTools";
 import { ModLoaderEvents, IModLoaderAPI } from "modloader64_api/IModLoaderAPI";
 import { ModLoaderAPIInject } from "modloader64_api/ModLoaderAPIInjector";
-import { MMO_EVENTS, MMO_CHILD_MODEL_EVENT } from "../../MMOAPI/MMO_API";
+import { MMOnlineEvents, MMO_CHILD_MODEL_EVENT } from "../../MMOAPI/MMOAPI";
 
 class ManifestBuffer {
     buf: Buffer;
@@ -59,7 +59,7 @@ export class ModelManager {
     ModLoader!: IModLoaderAPI;
     container: ModelManagerContainer = new ModelManagerContainer();
 
-    @EventHandler(MMO_EVENTS.CUSTOM_MODEL_APPLIED_CHILD)
+    @EventHandler(MMOnlineEvents.CUSTOM_MODEL_APPLIED_CHILD)
     CUSTOM_MODEL_APPLIED_CHILD(data: MMO_CHILD_MODEL_EVENT) {
         this.container.childFile = data.file;
         this.container.isChildBig = data.isAdultHeight
