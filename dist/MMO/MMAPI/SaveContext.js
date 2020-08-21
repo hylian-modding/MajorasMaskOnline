@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.SaveContext = void 0;
-const MMOffsets_1 = require("src/MMO/MMAPI/MMOffsets");
+const MMOffsets_1 = require("../MMAPI/MMOffsets");
 const JSONTemplate_1 = require("modloader64_api/JSONTemplate");
 const Inventory_1 = require("./Inventory");
 const ShieldsEquipment_1 = require("./ShieldsEquipment");

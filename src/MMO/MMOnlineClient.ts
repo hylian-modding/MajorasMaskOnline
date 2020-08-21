@@ -14,7 +14,7 @@ import { DiscordStatus } from 'modloader64_api/Discord';
 import { ModLoaderAPIInject } from 'modloader64_api/ModLoaderAPIInjector';
 import { Init, Preinit, Postinit, onTick } from 'modloader64_api/PluginLifecycle';
 import { IModLoaderAPI, ModLoaderEvents } from 'modloader64_api/IModLoaderAPI';
-import { Command } from 'modloader64_api/OOT/ICommandBuffer';
+import { Command } from '../MMO/MMAPI/ICommandBuffer';
 import { Z64RomTools } from './Z64Lib/API/Z64RomTools';
 import { IActor } from './MMAPI/IActor';
 import { SidedProxy, ProxySide } from 'modloader64_api/SidedProxy/SidedProxy';

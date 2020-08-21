@@ -70,13 +70,13 @@ class Puppet {
             });
         }
     }
-    /*processIncomingHorseData(data: HorseData) {
-      if (this.isSpawned && !this.isShoveled && this.horse !== undefined) {
-        Object.keys(data).forEach((key: string) => {
-          (this.horse as any)[key] = (data as any)[key];
-        });
-      }
-    }*/
+    processIncomingHorseData(data) {
+        if (this.isSpawned && !this.isShoveled && this.horse !== undefined) {
+            Object.keys(data).forEach((key) => {
+                this.horse[key] = data[key];
+            });
+        }
+    }
     shovel() {
         if (this.isSpawned) {
             if (this.data.pointer > 0) {

@@ -1,6 +1,6 @@
 import { IPacketHeader, INetworkPlayer } from 'modloader64_api/NetworkHandler';
 import { bus } from 'modloader64_api/EventHandler';
-import { MMOnlineStorageClient as MMOnlineStorageClient } from 'src/MMO/MMOnlineStorageClient';
+import { MMOnlineStorageClient as MMOnlineStorageClient } from '../MMOnlineStorageClient';
 
 export enum MMOnlineEvents {
   PLAYER_PUPPET_PRESPAWN = 'MMOnline:onPlayerPuppetPreSpawned',

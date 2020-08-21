@@ -11,9 +11,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ModelManager = void 0;
 const EventHandler_1 = require("modloader64_api/EventHandler");
-const zzstatic_1 = require("src/MMO/Z64Lib/API/zzstatic");
+const zzstatic_1 = require("../../Z64Lib/API/zzstatic");
 const fs_1 = __importDefault(require("fs"));
-const Z64RomTools_1 = require("src/MMO/Z64Lib/API/Z64RomTools");
+const Z64RomTools_1 = require("../../Z64Lib/API/Z64RomTools");
 const IModLoaderAPI_1 = require("modloader64_api/IModLoaderAPI");
 const ModLoaderAPIInjector_1 = require("modloader64_api/ModLoaderAPIInjector");
 class ManifestBuffer {

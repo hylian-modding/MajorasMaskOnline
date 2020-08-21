@@ -1,5 +1,5 @@
 import { IModLoaderAPI, ILogger } from "modloader64_api/IModLoaderAPI";
-import { MMOffsets } from "src/MMO/MMAPI/MMOffsets";
+import { MMOffsets } from "../MMAPI/MMOffsets";
 import { MMForms } from "./MMForms";
 import { JSONTemplate } from "modloader64_api/JSONTemplate";
 import { ISaveContext, ISwords, IShields, IQuestStatus, Magic, IKeyManager } from "./MMAPI";

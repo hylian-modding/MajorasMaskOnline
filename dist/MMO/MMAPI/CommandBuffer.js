@@ -36,19 +36,19 @@ class CommandBuffer {
             this.slots[i] = new CommandBufferSlot(instance + i * slotSize, emulator);
         }
     }
-    runWarp(entrance, cutscene, callback = () => { }) {
+    /*runWarp(entrance: number, cutscene: number, callback: Function | undefined = () => { }): void {
         for (let i = 0; i < slotCount; i++) {
             if (this.slots[i].cmd === 0) {
                 // Free slot.
                 this.slots[i].halfParam(0, entrance);
                 this.slots[i].halfParam(1, cutscene);
-                this.slots[i].cmd = 5 /* WARP */;
+                this.slots[i].cmd = Command.WARP;
                 this.slots[i].callback = callback;
                 this.tickingSlots.push(i);
                 break;
             }
         }
-    }
+    }*/
     runCommand(command, param, callback = () => { }) {
         let success = false;
         for (let i = 0; i < slotCount; i++) {

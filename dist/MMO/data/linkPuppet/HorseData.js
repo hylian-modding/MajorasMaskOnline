@@ -10,18 +10,21 @@ class HorseData {
             this.puppet = core.actorManager.createIActorFromPointer(this.parent.getAttachedHorse());
         }
     }
-    get pos() {
-        return this.actor.position.getRawPos();
+    /*get pos(): Buffer{
+        return this.actor.pos.getRawPos();
     }
-    set pos(buf) {
+
+    set pos(buf: Buffer){
         this.puppet.rdramWriteBuffer(0x24, buf);
     }
-    get rot() {
-        return this.actor.rotation.getRawRot();
+
+    get rot(): Buffer{
+        return this.actor.rot.getRawRot();
     }
-    set rot(buf) {
+
+    set rot(buf: Buffer){
         this.puppet.rdramWriteBuffer(0xB4, buf);
-    }
+    }*/
     get anim_id() {
         return this.actor.rdramRead32(0x1a4);
     }

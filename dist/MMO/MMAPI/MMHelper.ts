@@ -2,7 +2,7 @@ import { IModLoaderAPI } from "modloader64_api/IModLoaderAPI";
 import { Link } from "./Link";
 import { GlobalContext } from "./GlobalContext";
 import { SaveContext } from "./SaveContext";
-import { MMOffsets } from "src/MMO/MMAPI/MMOffsets";
+import { MMOffsets } from "../MMAPI/MMOffsets";
 
 export class MMHelper{
 

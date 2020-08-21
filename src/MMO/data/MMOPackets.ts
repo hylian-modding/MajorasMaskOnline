@@ -5,8 +5,8 @@ import {
 } from 'modloader64_api/ModLoaderDefaultImpls';
 import { PuppetData } from './linkPuppet/PuppetData';
 //import { HorseData } from './linkPuppet/HorseData';
-import { MMForms } from 'src/MMO/MMAPI/mmForms';
-import { InventoryItem } from 'src/MMO/MMAPI/MMAPI';
+import { MMForms } from '../MMAPI/mmForms';
+import { InventoryItem } from '../MMAPI/MMAPI';
 import { InventorySave, IEquipmentSave, IQuestSave, IDungeonItemSave } from './MMOSaveData';
 
 export class MMO_PuppetPacket{

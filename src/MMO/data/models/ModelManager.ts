@@ -1,11 +1,11 @@
 import { EventHandler } from "modloader64_api/EventHandler";
-import { zzstatic } from "src/MMO/Z64Lib/API/zzstatic";
+import { zzstatic } from "../../Z64Lib/API/zzstatic";
 import fs from 'fs';
-import { Z64LibSupportedGames } from "src/MMO/Z64Lib/API/Z64LibSupportedGames";
-import { Z64RomTools } from "src/MMO/Z64Lib/API/Z64RomTools";
+import { Z64LibSupportedGames } from "../../Z64Lib/API/Z64LibSupportedGames";
+import { Z64RomTools } from "../../Z64Lib/API/Z64RomTools";
 import { ModLoaderEvents, IModLoaderAPI } from "modloader64_api/IModLoaderAPI";
 import { ModLoaderAPIInject } from "modloader64_api/ModLoaderAPIInjector";
-import { MMO_EVENTS, MMO_CHILD_MODEL_EVENT } from "src/MMO/MMOAPI/MMO_API";
+import { MMO_EVENTS, MMO_CHILD_MODEL_EVENT } from "../../MMOAPI/MMO_API";
 
 class ManifestBuffer {
     buf: Buffer;
