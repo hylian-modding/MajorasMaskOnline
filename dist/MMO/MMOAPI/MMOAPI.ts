@@ -49,6 +49,16 @@ export function MMOnlineAPI_EnableGhostMode() {
   bus.emit(MMOnlineEvents.GHOST_MODE, {});
 }
 
+export class MMO_CHILD_MODEL_EVENT{
+  file: string;
+  isAdultHeight: boolean;
+
+  constructor(file: string, isAdultHeight = false){
+      this.file = file;
+      this.isAdultHeight = isAdultHeight;
+  }
+}
+
 export interface ICustomEquipment {
   zobj: string;
   txt: string;

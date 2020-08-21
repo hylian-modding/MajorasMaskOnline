@@ -19,7 +19,7 @@ import { Z64RomTools } from './Z64Lib/API/Z64RomTools';
 import { IActor } from './MMAPI/IActor';
 import { SidedProxy, ProxySide } from 'modloader64_api/SidedProxy/SidedProxy';
 import { parseFlagChanges } from './data/ParseFlagChanges';
-import { INNOnlineLobbyConfig, MMOnlineConfigCategory } from './MMO';
+import { IMMOnlineLobbyConfig, MMOnlineConfigCategory } from './MMO';
 import { MMForms } from './MMAPI/MMForms';
 
 export let GHOST_MODE_TRIGGERED: boolean = false;
@@ -31,7 +31,7 @@ export class MMOnlineClient {
     @ModLoaderAPIInject()
     ModLoader!: IModLoaderAPI;
 
-    LobbyConfig: INNOnlineLobbyConfig = {} as INNOnlineLobbyConfig;
+    LobbyConfig: IMMOnlineLobbyConfig = {} as IMMOnlineLobbyConfig;
     clientStorage: MMOnlineStorageClient = new MMOnlineStorageClient();
     config!: MMOnlineConfigCategory;
 

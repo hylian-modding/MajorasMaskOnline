@@ -41,7 +41,8 @@ exports.MMOnlineConfigCategory = MMOnlineConfigCategory;
 class MMO {
     constructor() {
         // Storage
-        this.clientStorage = new MMOnlineStorageClient_1.MMOnlineStorageClient;
+        this.LobbyConfig = {};
+        this.clientStorage = new MMOnlineStorageClient_1.MMOnlineStorageClient();
         this.core = new Core_1.MMCore();
         this.puppets = new PuppetOverlord_1.PuppetOverlord(this, this.core);
         this.models = new ModelManager_1.ModelManager();
@@ -129,7 +130,6 @@ class MMO {
                 ' moved to scene ' +
                 packet.scene +
                 '.');
-            this.ModLoader.logger.debug(this.core.link.rawStateValue.toString(16));
             EventHandler_1.bus.emit(MMOAPI_1.MMOnlineEvents.SERVER_PLAYER_CHANGED_SCENES, new MMOAPI_1.MMOnline_PlayerScene(packet.player, packet.lobby, packet.scene));
         }
         catch (err) {

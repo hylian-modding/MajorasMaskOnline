@@ -16,6 +16,7 @@ const fs_1 = __importDefault(require("fs"));
 const Z64RomTools_1 = require("../../Z64Lib/API/Z64RomTools");
 const IModLoaderAPI_1 = require("modloader64_api/IModLoaderAPI");
 const ModLoaderAPIInjector_1 = require("modloader64_api/ModLoaderAPIInjector");
+const MMOAPI_1 = require("../../MMOAPI/MMOAPI");
 class ManifestBuffer {
     constructor(buf, start) {
         this.cur = 0;
@@ -190,7 +191,7 @@ __decorate([
     ModLoaderAPIInjector_1.ModLoaderAPIInject()
 ], ModelManager.prototype, "ModLoader", void 0);
 __decorate([
-    EventHandler_1.EventHandler("MMOnline:ApplyCustomModelChild" /* CUSTOM_MODEL_APPLIED_CHILD */)
+    EventHandler_1.EventHandler(MMOAPI_1.MMOnlineEvents.CUSTOM_MODEL_APPLIED_CHILD)
 ], ModelManager.prototype, "CUSTOM_MODEL_APPLIED_CHILD", null);
 __decorate([
     EventHandler_1.EventHandler(IModLoaderAPI_1.ModLoaderEvents.ON_ROM_PATCHED_POST)
