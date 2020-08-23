@@ -1,0 +1,14 @@
+{
+  "name": "MMOnline",
+  "version": "2.0.108",
+  "description": "",
+  "main": "MMO.js",
+  "author": "denoflions, Drahsid, Psi-Hate",
+  "credits": "",
+  "license": "GPL-3.0",
+  "core": "MajorasMask",
+  "updateUrl": "",
+  "devUrl": "",
+  "modloader64_deps": "",
+  "modloader64_aliases": ""
+}
