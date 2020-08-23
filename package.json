@@ -1,5 +1,5 @@
 {
-  "name": "MMOnline",
+  "name": "MajorasMaskOnline",
   "version": "1.0.2",
   "description": "",
   "main": "index.js",
@@ -17,8 +17,6 @@
     "url": "https://github.com/hylian-modding/MMARO/issues"
   },
   "homepage": "https://github.com/hylian-modding/MMARO#readme",
-  "dependencies": {
-    "modloader64_api": "^1.0.0"
-  },
+  "dependencies": {},
   "devDependencies": {}
 }

@@ -13,12 +13,15 @@
     "moduleResolution": "node",
     "baseUrl": "./",
     "paths": {
-      "@MajorasMaskOnline/*": [
-        "./src/MajorasMaskOnline/*"
+      "@sound/*": [
+        "./build/emulator/*"
       ],
-      "MajorasMask/*": [
-        "libs/MajorasMask/*"
-      ]
+      "@MMOnline/*": [
+        "./src/MMOnline/*"
+      ],
+	  "MajorasMask/*": [
+		"./libs/MajorasMask/*"
+	  ]
     }
   },
   "include": [
@@ -26,7 +29,8 @@
     "test/**/*.ts",
     "mods/**/*.ts",
     "cores/**/*.ts",
-    "bin/paker.ts"
+    "bin/paker.ts",
+    "tools/**/*.ts"
   ],
   "exclude": [
     "node_modules",
