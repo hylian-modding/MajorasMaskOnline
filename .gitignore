@@ -7,3 +7,4 @@ modloader64-config.json
 *.map
 *.js
 libs/
+dist/

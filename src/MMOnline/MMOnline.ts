@@ -43,14 +43,13 @@ export class MMOnlineConfigCategory {
     keySync: boolean = true;
 }
 
-class MMO implements IPlugin, IMMOnlineHelpers, IPluginServerConfig {
+class MMOnline implements IPlugin, IMMOnlineHelpers, IPluginServerConfig {
+    
     ModLoader!: IModLoaderAPI;
-    @InjectCore() 
+    @InjectCore()
     core!: API.IMMCore;
-
     @SidedProxy(ProxySide.CLIENT, MMOnlineClient)
     client!: MMOnlineClient;
-
     @SidedProxy(ProxySide.SERVER, MMOnlineServer)
     server!: MMOnlineServer;
 
@@ -86,6 +85,7 @@ class MMO implements IPlugin, IMMOnlineHelpers, IPluginServerConfig {
     }
 
     onTick(frame?: number): void {
+        this.ModLoader.logger.debug('isTitleScreen: ' + this.core.helper.isTitleScreen() + 'isSceneNumberValid: ' + this.core.helper.isSceneNumberValid() );
         if (this.core.helper.isTitleScreen() || !this.core.helper.isSceneNumberValid()) return;
         printf(this.ModLoader)
     }
@@ -107,6 +107,6 @@ class MMO implements IPlugin, IMMOnlineHelpers, IPluginServerConfig {
     }
 }
 
-module.exports = MMO;
+module.exports = MMOnline;
 
-export default MMO;
+export default MMOnline;

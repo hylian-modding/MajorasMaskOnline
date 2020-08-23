@@ -1,0 +1,2 @@
+xcopy "D:\ML64\MajorasMaskOnline\dist\MajorasMask.pak" "D:\ML64\Modloader64GUI\ModLoader\mods" /y 
+xcopy "D:\ML64\MajorasMaskOnline\dist\MajorasMaskOnline.pak" "D:\ML64\Modloader64GUI_P2\ModLoader\cores" /y
