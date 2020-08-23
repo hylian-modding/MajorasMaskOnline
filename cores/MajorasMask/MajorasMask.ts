@@ -15,7 +15,7 @@ import { ActorManager } from "./src/Imports";
 
 
 export class MajorasMask implements ICore, API.IMMCore {
-    header = "ZELDA MAJORA'S MASK";
+    header = "NZS";
     @ModLoaderAPIInject()
     ModLoader: IModLoaderAPI = {} as IModLoaderAPI;
     eventTicks: Map<string, Function> = new Map<string, Function>();

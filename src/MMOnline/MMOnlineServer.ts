@@ -2,7 +2,7 @@ import { EventHandler, EventsServer, EventServerJoined, EventServerLeft, bus } f
 import { MMOnlineStorage } from './MMOnlineStorage';
 import { ParentReference, SidedProxy, ProxySide } from 'modloader64_api/SidedProxy/SidedProxy'; //BRUH
 import { ModLoaderAPIInject } from 'modloader64_api/ModLoaderAPIInjector';
-import MMO from './MMO';
+import MMOnline from './MMOnline';
 import { IModLoaderAPI, ModLoaderEvents } from 'modloader64_api/IModLoaderAPI';
 import { ServerNetworkHandler, IPacketHeader } from 'modloader64_api/NetworkHandler';
 import { MMOnline_PlayerScene, MMOnlineEvents } from './MMOAPI/MMOAPI'; //Add MMOnline_PlayerScene
@@ -16,7 +16,7 @@ export class MMOnlineServer {
     @ModLoaderAPIInject()
     ModLoader!: IModLoaderAPI;
     @ParentReference()
-    parent!: MMO;
+    parent!: MMOnline;
     core!: API.IMMCore;
     clientStorage: MMOnlineStorageClient = new MMOnlineStorageClient;
 

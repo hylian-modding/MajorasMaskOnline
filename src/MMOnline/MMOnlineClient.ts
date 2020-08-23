@@ -14,7 +14,7 @@ import { Init, Preinit, Postinit, onTick } from 'modloader64_api/PluginLifecycle
 import { IModLoaderAPI, ModLoaderEvents } from 'modloader64_api/IModLoaderAPI';
 import { SidedProxy, ProxySide } from 'modloader64_api/SidedProxy/SidedProxy';
 import { parseFlagChanges } from './data/ParseFlagChanges';
-import MMO, { IMMOnlineLobbyConfig, MMOnlineConfigCategory } from './MMO';
+import MMOnline, { IMMOnlineLobbyConfig, MMOnlineConfigCategory } from './MMOnline';
 import { PuppetOverlordClient } from './data/linkPuppet/PuppetOverlord';
 import { MMOnlineStorage } from './MMOnlineStorage';
 import Vector3 from 'modloader64_api/math/Vector3';
@@ -31,7 +31,7 @@ export class MMOnlineClient {
     @ModLoaderAPIInject()
     ModLoader!: IModLoaderAPI;
 
-    parent!: MMO;
+    parent!: MMOnline;
     LobbyConfig: IMMOnlineLobbyConfig = {} as IMMOnlineLobbyConfig;
     clientStorage: MMOnlineStorageClient = new MMOnlineStorageClient();
     config!: MMOnlineConfigCategory;
@@ -657,7 +657,7 @@ export class MMOnlineClient {
         if (f.ext === ".ovl") {
             if (f.name === "link") {
                 this.ModLoader.logger.info("Puppet assigned.");
-                this.ModLoader.emulator.rdramWrite16(0x800000, 0x0);
+                this.ModLoader.emulator.rdramWrite16(0x800000, evt.result);
                 this.ModLoader.logger.debug('evt.result: ' + evt.result);
             }
         }

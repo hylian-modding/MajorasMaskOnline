@@ -1,11 +1,10 @@
-  
 import {
   SCENE_ARR_SIZE,
   EVENT_ARR_SIZE,
   ITEM_FLAG_ARR_SIZE,
   MASK_FLAG_ARR_SIZE,
   WEEK_EVENT_ARR_SIZE,
-} from './MMO';
+} from './MMOnline';
 import {
   IDungeonItemSave,
   MMODungeonItemContext,

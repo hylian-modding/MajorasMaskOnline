@@ -1,4 +1,4 @@
-import { MMOnlineStorageBase as MMOnlineStorageBase } from './MMOnlineStorageBase';
+import { MMOnlineStorageBase } from './MMOnlineStorageBase';
 import * as API from 'MajorasMask/API/MMAPI';
 
 export class MMOnlineStorageClient extends MMOnlineStorageBase {
