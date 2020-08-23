@@ -57,6 +57,7 @@ export class ModelManager {
 
     @ModLoaderAPIInject()
     ModLoader!: IModLoaderAPI;
+
     container: ModelManagerContainer = new ModelManagerContainer();
 
     @EventHandler(MMOnlineEvents.CUSTOM_MODEL_APPLIED_CHILD)

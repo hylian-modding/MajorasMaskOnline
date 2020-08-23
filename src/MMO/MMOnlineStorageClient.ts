@@ -1,5 +1,5 @@
 import { MMOnlineStorageBase as MMOnlineStorageBase } from './MMOnlineStorageBase';
-import { InventoryItem } from './MMAPI/MMAPI';
+import { InventoryItem } from './Core/MajorasMask/API/MMAPI';
 
 export class MMOnlineStorageClient extends MMOnlineStorageBase {
   autoSaveHash = '!';

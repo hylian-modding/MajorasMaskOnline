@@ -1,5 +1,5 @@
 import { Puppet } from './Puppet';
-import { MMEvents } from '../../MMAPI/MMAPI';
+import { MMEvents, IMMCore } from '../../Core/MajorasMask/API/MMAPI';
 import { INetworkPlayer, NetworkHandler, ServerNetworkHandler } from 'modloader64_api/NetworkHandler';
 import { IModLoaderAPI, ModLoaderEvents } from 'modloader64_api/IModLoaderAPI';
 import { MMO_PuppetPacket, MMO_SceneRequestPacket, MMO_ScenePacket, MMO_PuppetWrapperPacket } from '../MMOPackets';
@@ -9,13 +9,25 @@ import { InjectCore } from 'modloader64_api/CoreInjection';
 import { IPuppetOverlord } from '../../MMOAPI/IPuppetOverlord';
 import { Postinit, onTick } from 'modloader64_api/PluginLifecycle';
 import { EventHandler, EventsClient } from 'modloader64_api/EventHandler';
-import { IMMOnlineHelpers, MMOnlineEvents } from '../../MMOAPI/MMoAPI';
-import { IActor } from '../../MMAPI/IActor';
+import { IMMOnlineHelpers, MMOnlineEvents } from '../../MMOAPI/MMOAPI';
+import { IActor } from 'modloader64_api/OOT/IActor';
 import { HorseData } from './HorseData';
-import { MMCore } from '../../MMAPI/Core';
-import { MMForms } from '../../MMAPI/MMForms';
+import { MMForms } from '../../Core/MajorasMask/API/MMAPI';
+import { ParentReference } from 'modloader64_api/SidedProxy/SidedProxy';
+import { MajorasMask } from 'src/MMO/Core/MajorasMask/MajorasMask';
 
-export class PuppetOverlord implements IPuppetOverlord {
+export class PuppetOverlordServer {
+
+  @ParentReference()
+  parent!: IMMOnlineHelpers;
+
+  @ServerNetworkHandler('MMO_PuppetPacket')
+  onPuppetData_server(packet: MMO_PuppetWrapperPacket) {
+    this.parent.sendPacketToPlayersInScene(packet);
+  }
+}
+
+export class PuppetOverlordClient {
   private puppets: Map<string, Puppet> = new Map<string, Puppet>();
   private awaiting_spawn: Puppet[] = new Array<Puppet>();
   fakeClientPuppet!: Puppet;
@@ -23,19 +35,17 @@ export class PuppetOverlord implements IPuppetOverlord {
   private playersAwaitingPuppets: INetworkPlayer[] = new Array<
     INetworkPlayer
   >();
-  private parent: IMMOnlineHelpers;
+  @ParentReference()
+  parent!: IMMOnlineHelpers;
   private Epona!: HorseData;
   private queuedSpawn: boolean = false;
 
   @ModLoaderAPIInject()
   private ModLoader!: IModLoaderAPI;
-  private core!: MMCore;
+  @InjectCore()
+  private core!:  MajorasMask;
 
-  constructor(parent: IMMOnlineHelpers, core: MMCore) {
-    this.parent = parent;
-    this.core = core;
-  }
-
+  
   @Postinit()
   postinit(
   ) {
@@ -124,7 +134,7 @@ export class PuppetOverlord implements IPuppetOverlord {
         player.uuid,
         new Puppet(
           player,
-          this.core,
+          this.core = global.ModLoader["MMCore"],
           0x0,
           this.ModLoader,
           this.parent
@@ -179,9 +189,9 @@ export class PuppetOverlord implements IPuppetOverlord {
   sendPuppetPacket() {
     if (!this.amIAlone) {
       let packet = new MMO_PuppetPacket(this.fakeClientPuppet.data, this.ModLoader.clientLobby);
-      /*       if (this.Epona !== undefined) {
-              packet.setHorseData(this.Epona);
-            } */
+      //if (this.Epona !== undefined) {
+       // packet.setHorseData(this.Epona);
+      //}
       this.ModLoader.clientSide.sendPacket(new MMO_PuppetWrapperPacket(packet, this.ModLoader.clientLobby));
     }
   }
@@ -192,7 +202,7 @@ export class PuppetOverlord implements IPuppetOverlord {
       let actualPacket = JSON.parse(packet.data) as MMO_PuppetPacket;
       puppet.processIncomingPuppetData(actualPacket.data);
       //if (actualPacket.horse_data !== undefined) {
-        /*         puppet.processIncomingHorseData(actualPacket.horse_data); */
+        //puppet.processIncomingHorseData(actualPacket.horse_data);
       //}
     }
   }
@@ -216,9 +226,8 @@ export class PuppetOverlord implements IPuppetOverlord {
     );
   }
 
-  // TODO
   isCurrentlyWarping() {
-    return false;
+    return this.core.link.rdramRead32(0x69C) === 0x00030000;
   }
 
   @onTick()
@@ -242,6 +251,7 @@ export class PuppetOverlord implements IPuppetOverlord {
     this.sendPuppetPacket();
   }
 
+  // Actual Handlers
   @EventHandler(EventsClient.ON_PLAYER_JOIN)
   onPlayerJoin(player: INetworkPlayer) {
     this.registerPuppet(player);
@@ -268,10 +278,7 @@ export class PuppetOverlord implements IPuppetOverlord {
     this.changePuppetScene(packet.player, packet.scene, packet.form);
   }
 
-  @ServerNetworkHandler('MMO_PuppetPacket')
-  onPuppetData_server(packet: MMO_PuppetWrapperPacket) {
-    this.parent.sendPacketToPlayersInScene(packet);
-  }
+
 
   @NetworkHandler('MMO_PuppetPacket')
   onPuppetData_client(packet: MMO_PuppetWrapperPacket) {
@@ -286,8 +293,8 @@ export class PuppetOverlord implements IPuppetOverlord {
   }
 
   @EventHandler(MMEvents.ON_AGE_CHANGE)
-  onformChange(form: MMForms) {
-    //this.localPlayerLoadingZone();
+  onAgeChange(form: MMForms) {
+    this.localPlayerLoadingZone();
   }
 
   @EventHandler(ModLoaderEvents.ON_CRASH)
@@ -297,21 +304,21 @@ export class PuppetOverlord implements IPuppetOverlord {
 
   @EventHandler(MMEvents.ON_ACTOR_SPAWN)
   onEponaSpawned(actor: IActor) {
-    /*     if (actor.actorID === 0x0014) {
-          // Epona spawned.
-          this.ModLoader.logger.debug("Epona spawned");
-          this.Epona = new HorseData(actor, this.fakeClientPuppet, this.core);
-        } */
+    if (actor.actorID === 0x0014) {
+      // Epona spawned.
+      //this.ModLoader.logger.debug("Epona spawned");
+      //this.Epona = new HorseData(actor, this.fakeClientPuppet, this.core);
+    }
   }
 
   @EventHandler(MMEvents.ON_ACTOR_DESPAWN)
   onEponaDespawned(actor: IActor) {
-    /*     if (actor.actorID === 0x0014) {
-          // Epona despawned.
-          //@ts-ignore
-          this.Epona = undefined;
-          this.ModLoader.logger.debug("Epona despawned");
-        } */
+    if (actor.actorID === 0x0014) {
+      // Epona despawned.
+      //@ts-ignore
+      //this.Epona = undefined;
+      //this.ModLoader.logger.debug("Epona despawned");
+    }
   }
 
   @EventHandler("MMOnline:RoguePuppet")
