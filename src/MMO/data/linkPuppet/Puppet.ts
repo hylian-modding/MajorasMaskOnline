@@ -1,6 +1,6 @@
 import { PuppetData } from './PuppetData';
 import { INetworkPlayer } from 'modloader64_api/NetworkHandler';
-import { Command } from '../../MMAPI/ICommandBuffer';
+import { Command } from '../../Core/MajorasMask/API/ICommandBuffer';
 import { bus } from 'modloader64_api/EventHandler';
 import { MMOnlineEvents, IMMOnlineHelpers } from '../../MMOAPI/MMOAPI';
 import { IModLoaderAPI } from 'modloader64_api/IModLoaderAPI';
@@ -9,9 +9,8 @@ import Vector3 from 'modloader64_api/math/Vector3';
 import { HorseData } from './HorseData';
 import fs from 'fs';
 import path from 'path';
-
-import { MMCore } from '../../MMAPI/Core';
-import { MMForms } from '../../MMAPI/MMForms';
+import { IOvlPayloadResult, MMForms } from '../../Core/MajorasMask/API/MMAPI';
+import { MajorasMask } from '../../Core/MajorasMask/MajorasMask';
 
 const DEADBEEF_OFFSET: number = 0x288;
 
@@ -24,7 +23,7 @@ export class Puppet implements IPuppet {
   isShoveled = false;
   scene: number;
   form: MMForms;
-  core: MMCore;
+  core: MajorasMask;
   void!: Vector3;
   ModLoader: IModLoaderAPI;
   horse!: HorseData;
@@ -32,7 +31,7 @@ export class Puppet implements IPuppet {
 
   constructor(
     player: INetworkPlayer,
-    core: MMCore,
+    core: MajorasMask,
     pointer: number,
     ModLoader: IModLoaderAPI,
     parent: IMMOnlineHelpers

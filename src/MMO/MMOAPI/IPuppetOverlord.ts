@@ -3,7 +3,7 @@
  * Date: 2020-03-02 22:45:43 
 */
 import { INetworkPlayer, IPacketHeader } from "modloader64_api/NetworkHandler";
-import { MMForms } from "../MMAPI/mmForms";
+import { MMForms } from "../Core/MajorasMask/API/MMAPI";
 
 export interface IPuppetOverlord {
     readonly current_scene: number;

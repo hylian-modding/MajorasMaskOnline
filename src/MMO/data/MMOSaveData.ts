@@ -10,11 +10,11 @@ import {
     IInventoryFields,
     UpgradeCountLookup,
     Magic,
-  } from '../MMAPI/MMAPI';
+  } from '../Core/MajorasMask/API/MMAPI';
   import { bus } from 'modloader64_api/EventHandler';
   import { MMOnlineEvents } from '../MMOAPI/MMOAPI';
-  import { IDungeonItemContainer } from '../MMAPI/IDungeonItemContainer';
-  import { IDungeonItemManager } from '../MMAPI/IDungeonItemManager';
+  import { IDungeonItemContainer } from '../Core/MajorasMask/API/IDungeonItemContainer';
+  import { IDungeonItemManager } from '../Core/MajorasMask/API/IDungeonItemManager';
   
   
   export interface IDungeonItemSave extends IDungeonItemManager { }

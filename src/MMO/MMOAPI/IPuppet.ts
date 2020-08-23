@@ -6,7 +6,7 @@
 import { INetworkPlayer } from "modloader64_api/NetworkHandler";
 import { IModLoaderAPI } from "modloader64_api/IModLoaderAPI";
 import { IPuppetData } from "./IPuppetData";
-import { MMForms } from "../MMAPI/MMForms";
+import { MMForms } from '../Core/MajorasMask/API/MMAPI';
 
 export interface IPuppet {
     player: INetworkPlayer;

@@ -8,13 +8,21 @@ import { ServerNetworkHandler, IPacketHeader } from 'modloader64_api/NetworkHand
 import { MMOnline_PlayerScene, MMOnlineEvents } from './MMOAPI/MMOAPI'; //Add MMOnline_PlayerScene
 import { MMO_ScenePacket, MMO_BottleUpdatePacket, MMO_DownloadRequestPacket, MMO_DownloadResponsePacket, MMO_SubscreenSyncPacket, MMO_ServerFlagUpdate, MMO_BankSyncPacket, MMO_DownloadResponsePacket2, MMO_ClientFlagUpdate, MMO_ClientSceneContextUpdate } from './data/MMOPackets';
 import { mergeInventoryData, mergeEquipmentData, mergeQuestSaveData, mergeDungeonItemData, MMO_SceneStruct } from './data/MMOSaveData'; //Needs porting
+import { PuppetOverlordServer } from './data/linkPuppet/PuppetOverlord';
+import { MMOnlineStorageClient } from './MMOnlineStorageClient';
+import { IMMCore } from './Core/MajorasMask/API/MMAPI';
 
 
-export class MMOServer {
+export class MMOnlineServer {
     @ModLoaderAPIInject()
     ModLoader!: IModLoaderAPI;
     @ParentReference()
     parent!: MMO;
+    core!: IMMCore;
+    clientStorage: MMOnlineStorageClient = new MMOnlineStorageClient;
+
+    @SidedProxy(ProxySide.SERVER, PuppetOverlordServer)
+    puppets!: PuppetOverlordServer;
 
     sendPacketToPlayersInScene(packet: IPacketHeader) {
         try {
@@ -37,7 +45,7 @@ export class MMOServer {
             });
         } catch (err) { }
     }
-
+    
     @EventHandler(EventsServer.ON_LOBBY_CREATE)
     onLobbyCreated(lobby: string) {
         try {

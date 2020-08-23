@@ -1,7 +1,6 @@
-import { IActor } from '../../MMAPI/IActor'
+import { IActor } from '../../Core/MajorasMask/API/IActor'
 import { Puppet } from "./Puppet";
-import { MMCore } from '../../MMAPI/Core';
-
+import { MajorasMask } from '../../Core/MajorasMask/MajorasMask'
 export class HorseData{
 
     actor: IActor;
@@ -9,7 +8,7 @@ export class HorseData{
     puppet!: IActor;
     private readonly copyFields: string[] = ["pos", "rot", "anim_id", "speed"];
 
-    constructor(actor: IActor, parent: Puppet, core: MMCore){
+    constructor(actor: IActor, parent: Puppet, core: MajorasMask){
         this.actor = actor;
         this.parent = parent;
         if (this.parent.hasAttachedHorse()){
