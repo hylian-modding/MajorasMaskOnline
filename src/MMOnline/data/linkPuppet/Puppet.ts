@@ -26,6 +26,7 @@ export class Puppet implements IPuppet {
   ModLoader: IModLoaderAPI;
   horse!: HorseData;
   parent: IMMOnlineHelpers;
+  offsets = new API.MMOffsets;
 
   constructor(
     player: INetworkPlayer,

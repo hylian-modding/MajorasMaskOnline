@@ -8,3 +8,5 @@ modloader64-config.json
 *.js
 libs/
 dist/
+*.bat
+external_cores/

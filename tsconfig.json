@@ -19,9 +19,9 @@
       "@MMOnline/*": [
         "./src/MMOnline/*"
       ],
-	  "MajorasMask/*": [
-		"./libs/MajorasMask/*"
-	  ]
+      "MajorasMask/*": [
+        "libs\\MajorasMask/*"
+      ]
     }
   },
   "include": [
