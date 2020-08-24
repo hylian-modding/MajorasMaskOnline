@@ -1,8 +1,14 @@
+import {
+  Age,
+  Shield,
+  Sword,
+  Strength,
+  IOOTCore,
+} from 'modloader64_api/OOT/OOTAPI';
 import { IModLoaderAPI } from 'modloader64_api/IModLoaderAPI';
-import { IPuppetData } from "../../MMOAPI/IPuppetData";
-import { bus } from 'modloader64_api/EventHandler';
-import Vector3 from 'modloader64_api/math/Vector3';
-import * as API from 'MajorasMask/API/Imports';
+import { IPuppetData } from '../../MMOAPI/IPuppetData';
+import * as MMOffsets from 'MajorasMask/API/MMOffsets';
+import * as API from 'MajorasMask/API/MMAPI';
 
 const actor =         0x0000
 const anim_data =     0x0144
@@ -11,7 +17,7 @@ export class PuppetData implements IPuppetData {
   pointer: number;
   ModLoader: IModLoaderAPI;
   core: API.IMMCore;
-  offsets = new API.MMOffsets;
+
   private readonly copyFields: string[] = new Array<string>();
 
   constructor(
@@ -41,7 +47,7 @@ export class PuppetData implements IPuppetData {
   }
 
   get pos(): Buffer {
-    return this.core.link.position.getRawPos();
+    return this.core.link.rawPos;
   }
 
   set pos(pos: Buffer) {
@@ -49,7 +55,8 @@ export class PuppetData implements IPuppetData {
   }
 
   get rot(): Buffer {
-    return this.ModLoader.emulator.rdramReadBuffer(this.offsets.link_instance + 0xBC, 0x6);
+    let offsets = new MMOffsets.MMOffsets;
+    return this.ModLoader.emulator.rdramReadBuffer(offsets.link_instance + 0xBC, 0x6);
   }
 
   set rot(rot: Buffer) {
@@ -57,7 +64,8 @@ export class PuppetData implements IPuppetData {
   }
 
   get maskProps(): Buffer {
-    return this.ModLoader.emulator.rdramReadBuffer(this.offsets.mask_props, 0x12C);
+    let offsets = new MMOffsets.MMOffsets;
+    return this.ModLoader.emulator.rdramReadBuffer(offsets.mask_props, 0x12C);
   }
 
   set maskProps(maskProps: Buffer) {
@@ -65,8 +73,8 @@ export class PuppetData implements IPuppetData {
   }
 
   get shieldRot(): Buffer {
-
-    return this.ModLoader.emulator.rdramReadBuffer(this.offsets.link_instance + 0xAB2, 0x6);
+    let offsets = new MMOffsets.MMOffsets;
+    return this.ModLoader.emulator.rdramReadBuffer(offsets.link_instance + 0xAB2, 0x6);
   }
 
   set shieldRot(shieldRot: Buffer) {
@@ -82,8 +90,8 @@ export class PuppetData implements IPuppetData {
   }
 
   get xzSpeed(): number {
-
-    return this.ModLoader.emulator.rdramRead32(this.offsets.link_instance + 0x70);
+    let offsets = new MMOffsets.MMOffsets;
+    return this.ModLoader.emulator.rdramRead32(offsets.link_instance + 0x70);
   }
 
   set xzSpeed(xzSpeed: number) {
@@ -91,8 +99,8 @@ export class PuppetData implements IPuppetData {
   }
 
   get nowShield(): number {
-
-    return this.ModLoader.emulator.rdramRead8(this.offsets.link_instance + 0x144);
+    let offsets = new MMOffsets.MMOffsets;
+    return this.ModLoader.emulator.rdramRead8(offsets.link_instance + 0x144);
   }
 
   set nowShield(nowShield: number) {
@@ -100,8 +108,8 @@ export class PuppetData implements IPuppetData {
   }
 
   get nowMask(): number {
-
-    return this.ModLoader.emulator.rdramRead8(this.offsets.link_instance + (0x144 + 0xF));
+    let offsets = new MMOffsets.MMOffsets;
+    return this.ModLoader.emulator.rdramRead8(offsets.link_instance + (0x144 + 0xF));
   }
 
   set nowMask(nowMask: number) {
@@ -109,8 +117,8 @@ export class PuppetData implements IPuppetData {
   }
 
   get lastMask(): number {
-
-    return this.ModLoader.emulator.rdramRead8(this.offsets.link_instance + (0x144 + 0x11));
+    let offsets = new MMOffsets.MMOffsets;
+    return this.ModLoader.emulator.rdramRead8(offsets.link_instance + (0x144 + 0x11));
   }
 
   set lastMask(lastMask: number) {
@@ -118,8 +126,8 @@ export class PuppetData implements IPuppetData {
   }
 
   get blastMaskTimer(): number {
-
-    return this.ModLoader.emulator.rdramRead16(this.offsets.link_instance + 0xB60);
+    let offsets = new MMOffsets.MMOffsets;
+    return this.ModLoader.emulator.rdramRead16(offsets.link_instance + 0xB60);
   }
 
   set blastMaskTimer(blastMaskTimer: number) {
@@ -127,8 +135,8 @@ export class PuppetData implements IPuppetData {
   }
 
   get actionParam1(): number {
-
-    return this.ModLoader.emulator.rdramRead8(this.offsets.link_instance + 0x147);
+    let offsets = new MMOffsets.MMOffsets;
+    return this.ModLoader.emulator.rdramRead8(offsets.link_instance + 0x147);
   }
 
   set actionParam1(actionParam1: number) {
@@ -136,8 +144,8 @@ export class PuppetData implements IPuppetData {
   }
 
   get actionParam2(): number {
-
-    return this.ModLoader.emulator.rdramRead8(this.offsets.link_instance + 0x14A);
+    let offsets = new MMOffsets.MMOffsets;
+    return this.ModLoader.emulator.rdramRead8(offsets.link_instance + 0x14A);
   }
 
   set actionParam2(actionParam2: number) {
@@ -145,8 +153,8 @@ export class PuppetData implements IPuppetData {
   }
 
   get equipSword(): number {
-
-    return this.ModLoader.emulator.rdramRead8(this.offsets.sword_equip);
+    let offsets = new MMOffsets.MMOffsets;
+    return this.ModLoader.emulator.rdramRead8(offsets.sword_equip);
   }
 
   set equipSword(equipSword: number) {
@@ -154,8 +162,8 @@ export class PuppetData implements IPuppetData {
   }
 
   get razorDurability(): number {
-
-    return this.ModLoader.emulator.rdramRead16(this.offsets.razor_hits);
+    let offsets = new MMOffsets.MMOffsets;
+    return this.ModLoader.emulator.rdramRead16(offsets.razor_hits);
   }
 
   set razorDurability(razorDurability: number) {
@@ -163,8 +171,8 @@ export class PuppetData implements IPuppetData {
   }
 
   get dekuStickLength(): number {
-
-    return this.ModLoader.emulator.rdramReadF32(this.offsets.link_instance + 0xB0C);
+    let offsets = new MMOffsets.MMOffsets;
+    return this.ModLoader.emulator.rdramReadF32(offsets.link_instance + 0xB0C);
   }
 
   set dekuStickLength(dekuStickLength: number) {
@@ -172,8 +180,8 @@ export class PuppetData implements IPuppetData {
   }
   
   get nowAnim(): number {
-
-    return this.ModLoader.emulator.rdramReadF32(this.offsets.link_instance + 0x248);
+    let offsets = new MMOffsets.MMOffsets;
+    return this.ModLoader.emulator.rdramReadF32(offsets.link_instance + 0x248);
   }
 
   set nowAnim(nowAnim: number) {

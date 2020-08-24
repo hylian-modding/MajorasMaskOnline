@@ -1,18 +1,19 @@
 import { PuppetData } from './PuppetData';
 import { INetworkPlayer } from 'modloader64_api/NetworkHandler';
+import { Command } from 'modloader64_api/OOT/ICommandBuffer';
 import { bus } from 'modloader64_api/EventHandler';
 import { MMOnlineEvents, IMMOnlineHelpers } from '../../MMOAPI/MMOAPI';
 import { IModLoaderAPI } from 'modloader64_api/IModLoaderAPI';
-import { IPuppet } from '../../MMOAPI/IPuppet';
 import Vector3 from 'modloader64_api/math/Vector3';
 import { HorseData } from './HorseData';
 import fs from 'fs';
 import path from 'path';
-import * as API from 'MajorasMask/API/Imports';
+import { IActor } from 'modloader64_api/OOT/IActor';
+import * as API from 'MajorasMask/API/MMAPI';
 
 const DEADBEEF_OFFSET: number = 0x288;
 
-export class Puppet implements IPuppet {
+export class Puppet {
   player: INetworkPlayer;
   id: string;
   data: PuppetData;
@@ -26,7 +27,6 @@ export class Puppet implements IPuppet {
   ModLoader: IModLoaderAPI;
   horse!: HorseData;
   parent: IMMOnlineHelpers;
-  offsets = new API.MMOffsets;
 
   constructor(
     player: INetworkPlayer,
@@ -67,32 +67,35 @@ export class Puppet implements IPuppet {
       bus.emit(MMOnlineEvents.PLAYER_PUPPET_PRESPAWN, this);
       this.isSpawning = true;
       this.data.pointer = 0x0;
-      this.ModLoader.emulator.rdramWrite16(0x80000E, this.form);
-      (this.parent as any)["writeModel"]();
-      fs.writeFileSync(global.ModLoader.startdir + "/ram.bin", this.ModLoader.emulator.rdramReadBuffer(0x0, (16 * 1024 * 1024)));
-      this.core.commandBuffer.runCommand(API.Command.SPAWN_ACTOR, 0x80800000, (success: boolean, result: number) => {
+      (this.parent.getClientStorage()!.overlayCache["link.ovl"] as API.IOvlPayloadResult).spawn((this.parent.getClientStorage()!.overlayCache["link.ovl"] as API.IOvlPayloadResult), (success: boolean, result: number)=>{
         if (success) {
           this.data.pointer = result & 0x00ffffff;
           this.doNotDespawnMe(this.data.pointer);
           if (this.hasAttachedHorse()) {
             let horse: number = this.getAttachedHorse();
             this.doNotDespawnMe(horse);
-            //this.horse = new HorseData(this.core.link, this, this.core);
+            this.horse = new HorseData(this.core.link, this, this.core);
           }
           this.void = this.ModLoader.math.rdramReadV3(this.data.pointer + 0x24);
           this.isSpawned = true;
           this.isSpawning = false;
           bus.emit(MMOnlineEvents.PLAYER_PUPPET_SPAWNED, this);
         }
+        return {};
       });
     }
   }
 
   processIncomingPuppetData(data: PuppetData) {
     if (this.isSpawned && !this.isShoveled) {
-      Object.keys(data).forEach((key: string) => {
-        (this.data as any)[key] = (data as any)[key];
-      });
+      if (this.ModLoader.emulator.rdramRead32(this.data.pointer + DEADBEEF_OFFSET) === 0xDEADBEEF) {
+        Object.keys(data).forEach((key: string) => {
+          (this.data as any)[key] = (data as any)[key];
+        });
+      } else {
+        this.ModLoader.logger.error("Rogue puppet detected. Destroying...");
+        bus.emit("OotOnline:RoguePuppet", this);
+      }
     }
   }
 
@@ -123,14 +126,16 @@ export class Puppet implements IPuppet {
   despawn() {
     if (this.isSpawned) {
       if (this.data.pointer > 0) {
-        if (this.getAttachedHorse() > 0) {
-          let horse: number = this.getAttachedHorse();
-          this.ModLoader.emulator.rdramWrite32(horse + 0x138, 0x0);
-          this.ModLoader.emulator.rdramWrite32(horse + 0x13C, 0x0);
+        if (this.ModLoader.emulator.rdramRead32(this.data.pointer + DEADBEEF_OFFSET) === 0xDEADBEEF) {
+          if (this.getAttachedHorse() > 0) {
+            let horse: number = this.getAttachedHorse();
+            this.ModLoader.emulator.rdramWrite32(horse + 0x130, 0x0);
+            this.ModLoader.emulator.rdramWrite32(horse + 0x134, 0x0);
+          }
+          this.ModLoader.emulator.rdramWrite32(this.data.pointer + 0x130, 0x0);
+          this.ModLoader.emulator.rdramWrite32(this.data.pointer + 0x134, 0x0);
+          this.data.pointer = 0;
         }
-        this.ModLoader.emulator.rdramWrite32(this.data.pointer + 0x138, 0x0);
-        this.ModLoader.emulator.rdramWrite32(this.data.pointer + 0x13C, 0x0);
-        this.data.pointer = 0;
       }
       this.isSpawned = false;
       this.isShoveled = false;
@@ -140,11 +145,10 @@ export class Puppet implements IPuppet {
   }
 
   getAttachedHorse(): number {
-    //return this.ModLoader.emulator.dereferencePointer(this.data.pointer + 0x011C);
-    return 0;
+    return this.ModLoader.emulator.dereferencePointer(this.data.pointer + 0x011C);
   }
 
   hasAttachedHorse(): boolean {
-    return false;
+    return this.ModLoader.emulator.rdramRead32(this.data.pointer + 0x011C) > 0;
   }
 }
