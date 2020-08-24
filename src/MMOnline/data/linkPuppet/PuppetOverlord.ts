@@ -132,7 +132,7 @@ export class PuppetOverlordClient {
         player.uuid,
         new Puppet(
           player,
-          this.core = global.ModLoader["MMCore"],
+          this.core,
           0x0,
           this.ModLoader,
           this.parent

@@ -11,7 +11,7 @@ export class PuppetData implements IPuppetData {
   pointer: number;
   ModLoader: IModLoaderAPI;
   core: API.IMMCore;
-
+  offsets = new API.MMOffsets;
   private readonly copyFields: string[] = new Array<string>();
 
   constructor(
@@ -22,7 +22,6 @@ export class PuppetData implements IPuppetData {
     this.pointer = pointer;
     this.ModLoader = ModLoader;
     this.core = core;
-    this.core = global.ModLoader["MMCore"];
     this.copyFields.push('pos');
     this.copyFields.push('rot');
     this.copyFields.push('anim');
@@ -50,8 +49,7 @@ export class PuppetData implements IPuppetData {
   }
 
   get rot(): Buffer {
-    let offsets = (global.ModLoader.offsets.link as API.MMOffsets);
-    return this.ModLoader.emulator.rdramReadBuffer(offsets.link_instance + 0xBC, 0x6);
+    return this.ModLoader.emulator.rdramReadBuffer(this.offsets.link_instance + 0xBC, 0x6);
   }
 
   set rot(rot: Buffer) {
@@ -59,8 +57,7 @@ export class PuppetData implements IPuppetData {
   }
 
   get maskProps(): Buffer {
-    let offsets = (global.ModLoader.offsets.link as API.MMOffsets);
-    return this.ModLoader.emulator.rdramReadBuffer(offsets.mask_props, 0x12C);
+    return this.ModLoader.emulator.rdramReadBuffer(this.offsets.mask_props, 0x12C);
   }
 
   set maskProps(maskProps: Buffer) {
@@ -68,8 +65,8 @@ export class PuppetData implements IPuppetData {
   }
 
   get shieldRot(): Buffer {
-    let offsets = (global.ModLoader.offsets.link as API.MMOffsets);
-    return this.ModLoader.emulator.rdramReadBuffer(offsets.link_instance + 0xAB2, 0x6);
+
+    return this.ModLoader.emulator.rdramReadBuffer(this.offsets.link_instance + 0xAB2, 0x6);
   }
 
   set shieldRot(shieldRot: Buffer) {
@@ -85,8 +82,8 @@ export class PuppetData implements IPuppetData {
   }
 
   get xzSpeed(): number {
-    let offsets = (global.ModLoader.offsets.link as API.MMOffsets);
-    return this.ModLoader.emulator.rdramRead32(offsets.link_instance + 0x70);
+
+    return this.ModLoader.emulator.rdramRead32(this.offsets.link_instance + 0x70);
   }
 
   set xzSpeed(xzSpeed: number) {
@@ -94,8 +91,8 @@ export class PuppetData implements IPuppetData {
   }
 
   get nowShield(): number {
-    let offsets = (global.ModLoader.offsets.link as API.MMOffsets);
-    return this.ModLoader.emulator.rdramRead8(offsets.link_instance + 0x144);
+
+    return this.ModLoader.emulator.rdramRead8(this.offsets.link_instance + 0x144);
   }
 
   set nowShield(nowShield: number) {
@@ -103,8 +100,8 @@ export class PuppetData implements IPuppetData {
   }
 
   get nowMask(): number {
-    let offsets = (global.ModLoader.offsets.link as API.MMOffsets);
-    return this.ModLoader.emulator.rdramRead8(offsets.link_instance + (0x144 + 0xF));
+
+    return this.ModLoader.emulator.rdramRead8(this.offsets.link_instance + (0x144 + 0xF));
   }
 
   set nowMask(nowMask: number) {
@@ -112,8 +109,8 @@ export class PuppetData implements IPuppetData {
   }
 
   get lastMask(): number {
-    let offsets = (global.ModLoader.offsets.link as API.MMOffsets);
-    return this.ModLoader.emulator.rdramRead8(offsets.link_instance + (0x144 + 0x11));
+
+    return this.ModLoader.emulator.rdramRead8(this.offsets.link_instance + (0x144 + 0x11));
   }
 
   set lastMask(lastMask: number) {
@@ -121,8 +118,8 @@ export class PuppetData implements IPuppetData {
   }
 
   get blastMaskTimer(): number {
-    let offsets = (global.ModLoader.offsets.link as API.MMOffsets);
-    return this.ModLoader.emulator.rdramRead16(offsets.link_instance + 0xB60);
+
+    return this.ModLoader.emulator.rdramRead16(this.offsets.link_instance + 0xB60);
   }
 
   set blastMaskTimer(blastMaskTimer: number) {
@@ -130,8 +127,8 @@ export class PuppetData implements IPuppetData {
   }
 
   get actionParam1(): number {
-    let offsets = (global.ModLoader.offsets.link as API.MMOffsets);
-    return this.ModLoader.emulator.rdramRead8(offsets.link_instance + 0x147);
+
+    return this.ModLoader.emulator.rdramRead8(this.offsets.link_instance + 0x147);
   }
 
   set actionParam1(actionParam1: number) {
@@ -139,8 +136,8 @@ export class PuppetData implements IPuppetData {
   }
 
   get actionParam2(): number {
-    let offsets = (global.ModLoader.offsets.link as API.MMOffsets);
-    return this.ModLoader.emulator.rdramRead8(offsets.link_instance + 0x14A);
+
+    return this.ModLoader.emulator.rdramRead8(this.offsets.link_instance + 0x14A);
   }
 
   set actionParam2(actionParam2: number) {
@@ -148,8 +145,8 @@ export class PuppetData implements IPuppetData {
   }
 
   get equipSword(): number {
-    let offsets = (global.ModLoader.offsets.link as API.MMOffsets);
-    return this.ModLoader.emulator.rdramRead8(offsets.sword_equip);
+
+    return this.ModLoader.emulator.rdramRead8(this.offsets.sword_equip);
   }
 
   set equipSword(equipSword: number) {
@@ -157,8 +154,8 @@ export class PuppetData implements IPuppetData {
   }
 
   get razorDurability(): number {
-    let offsets = (global.ModLoader.offsets.link as API.MMOffsets);
-    return this.ModLoader.emulator.rdramRead16(offsets.razor_hits);
+
+    return this.ModLoader.emulator.rdramRead16(this.offsets.razor_hits);
   }
 
   set razorDurability(razorDurability: number) {
@@ -166,8 +163,8 @@ export class PuppetData implements IPuppetData {
   }
 
   get dekuStickLength(): number {
-    let offsets = (global.ModLoader.offsets.link as API.MMOffsets);
-    return this.ModLoader.emulator.rdramReadF32(offsets.link_instance + 0xB0C);
+
+    return this.ModLoader.emulator.rdramReadF32(this.offsets.link_instance + 0xB0C);
   }
 
   set dekuStickLength(dekuStickLength: number) {
@@ -175,8 +172,8 @@ export class PuppetData implements IPuppetData {
   }
   
   get nowAnim(): number {
-    let offsets = (global.ModLoader.offsets.link as API.MMOffsets);
-    return this.ModLoader.emulator.rdramReadF32(offsets.link_instance + 0x248);
+
+    return this.ModLoader.emulator.rdramReadF32(this.offsets.link_instance + 0x248);
   }
 
   set nowAnim(nowAnim: number) {

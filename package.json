@@ -18,5 +18,8 @@
   },
   "homepage": "https://github.com/hylian-modding/MMARO#readme",
   "dependencies": {},
-  "devDependencies": {}
+  "devDependencies": {},
+  "modloader64_deps": {
+    "MajorasMask": "https://github.com/hylian-modding/Core-MajorasMask.git"
+  }
 }

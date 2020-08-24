@@ -38,6 +38,7 @@ export class MMOnlineClient {
 
     @SidedProxy(ProxySide.CLIENT, PuppetOverlordClient)
     puppets!: PuppetOverlordClient;
+    offsets = new API.MMOffsets;
     
     //@SidedProxy(ProxySide.CLIENT, ModelManagerClient)
     //modelManager!: ModelManagerClient;
@@ -395,10 +396,10 @@ export class MMOnlineClient {
         this.ModLoader.logger.info('Retrieving savegame from server...');
 
         // Clear inventory.
-        this.ModLoader.emulator.rdramWriteBuffer(global.ModLoader.save_context + 0x0070, Buffer.alloc(0x18, 0xFF)); //TODO: Fix for MM
+        this.ModLoader.emulator.rdramWriteBuffer(this.offsets.save_context + 0x0070, Buffer.alloc(0x18, 0xFF)); //TODO: Fix for MM
 
         // Clear c-button and b.
-        this.ModLoader.emulator.rdramWriteBuffer(global.ModLoader.save_context + 0x0064, Buffer.alloc(0x4, 0xFF));
+        this.ModLoader.emulator.rdramWriteBuffer(this.offsets.save_context + 0x0064, Buffer.alloc(0x4, 0xFF));
 
         //this.core.link.sword = Sword.NONE;
         //this.core.link.shield = Shield.NONE;
@@ -573,7 +574,7 @@ export class MMOnlineClient {
     healPlayer() {
         if (this.core.helper.isTitleScreen() || !this.core.helper.isSceneNumberValid()) return;
 
-        this.ModLoader.emulator.rdramWrite16(global.ModLoader.save_context + 0x36, 0x0140);
+        this.ModLoader.emulator.rdramWrite16(this.offsets.save_context + 0x36, 0x0140);
     }
 
     @EventHandler(MMOnlineEvents.GAINED_PIECE_OF_HEART)
@@ -605,9 +606,9 @@ export class MMOnlineClient {
     onInventoryUpdate(inventory: API.IInventory) {
         if (this.core.helper.isTitleScreen() || !this.core.helper.isSceneNumberValid()) return;
 
-        let addr: number = global.ModLoader.save_context + 0x0064; //C-L, C-D, C-R
+        let addr: number = this.offsets.save_context + 0x0064; //C-L, C-D, C-R
         let buf: Buffer = this.ModLoader.emulator.rdramReadBuffer(addr, 0x3);
-        let addr2: number = global.ModLoader.save_context + 0x0070; //Inventory Items
+        let addr2: number = this.offsets.save_context + 0x0070; //Inventory Items
         let raw_inventory: Buffer = this.ModLoader.emulator.rdramReadBuffer(addr2, 0x18);
 
         //TODO: Uh.. This seems to work differently in MM. This will need updating.
@@ -653,15 +654,33 @@ export class MMOnlineClient {
 
     @EventHandler(EventsClient.ON_PAYLOAD_INJECTED)
     onPayload(evt: any) {
+        if (path.parse(evt.file).ext === ".ovl") {
+            let result: API.IOvlPayloadResult = evt.result;
+            this.clientStorage.overlayCache[evt.file] = result;
+        }
+        if (evt.file === "link_no_pvp.ovl") {
+            let result: API.IOvlPayloadResult = evt.result;
+            this.ModLoader.emulator.rdramWrite32(0x80600140, result.params);
+        } 
+    }
+
+    /*
+    @EventHandler(EventsClient.ON_PAYLOAD_INJECTED)
+    onPayload(evt: any) {
         let f = path.parse(evt.file);
-        if (f.ext === ".ovl") {
-            if (f.name === "link") {
-                this.ModLoader.logger.info("Puppet assigned.");
-                this.ModLoader.emulator.rdramWrite16(0x800000, evt.result);
-                this.ModLoader.logger.debug('evt.result: ' + evt.result);
+        try{ 
+            if (f.ext === ".ovl") {
+                if (f.name === "link") {
+                    this.ModLoader.logger.info("Puppet assigned.");
+                    this.ModLoader.emulator.rdramWrite16(0x800000, evt.result);
+                    this.ModLoader.logger.debug('evt.result: ' + evt.result);
+                }
             }
         }
-    }
+        catch (err) {
+            this.ModLoader.logger.error(err);
+        }
+    }*/
 
     @EventHandler(EventsClient.ON_INJECT_FINISHED)
     onStartupFinished(evt: any) {

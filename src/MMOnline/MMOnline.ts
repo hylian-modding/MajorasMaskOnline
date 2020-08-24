@@ -68,6 +68,7 @@ class MMOnline implements IPlugin, IMMOnlineHelpers, IPluginServerConfig {
     }
 
     preinit(): void { }
+
     init(): void { }
 
     postinit(): void {
@@ -85,7 +86,6 @@ class MMOnline implements IPlugin, IMMOnlineHelpers, IPluginServerConfig {
     }
 
     onTick(frame?: number): void {
-        this.ModLoader.logger.debug('isTitleScreen: ' + this.core.helper.isTitleScreen() + 'isSceneNumberValid: ' + this.core.helper.isSceneNumberValid() );
         if (this.core.helper.isTitleScreen() || !this.core.helper.isSceneNumberValid()) return;
         printf(this.ModLoader)
     }
