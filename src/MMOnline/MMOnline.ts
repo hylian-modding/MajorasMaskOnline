@@ -43,7 +43,7 @@ export class MMOnlineConfigCategory {
     keySync: boolean = true;
 }
 
-class MMOnline implements IPlugin, IMMOnlineHelpers, IPluginServerConfig {
+export class MMOnline implements IPlugin, IMMOnlineHelpers, IPluginServerConfig {
     
     ModLoader!: IModLoaderAPI;
     @InjectCore()

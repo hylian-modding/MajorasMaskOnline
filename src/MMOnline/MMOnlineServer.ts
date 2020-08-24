@@ -1,25 +1,26 @@
 import { EventHandler, EventsServer, EventServerJoined, EventServerLeft, bus } from 'modloader64_api/EventHandler';
+//import { ActorHookingManagerServer } from './data/ActorHookingSystem';
 import { MMOnlineStorage } from './MMOnlineStorage';
-import { ParentReference, SidedProxy, ProxySide } from 'modloader64_api/SidedProxy/SidedProxy'; //BRUH
+import { ParentReference, SidedProxy, ProxySide } from 'modloader64_api/SidedProxy/SidedProxy';
 import { ModLoaderAPIInject } from 'modloader64_api/ModLoaderAPIInjector';
-import MMOnline from './MMOnline';
+import { MMOnline } from './MMOnline';
 import { IModLoaderAPI, ModLoaderEvents } from 'modloader64_api/IModLoaderAPI';
 import { ServerNetworkHandler, IPacketHeader } from 'modloader64_api/NetworkHandler';
-import { MMOnline_PlayerScene, MMOnlineEvents } from './MMOAPI/MMOAPI'; //Add MMOnline_PlayerScene
+import { MMOnline_PlayerScene, MMOnlineEvents } from './MMOAPI/MMOAPI';
 import { MMO_ScenePacket, MMO_BottleUpdatePacket, MMO_DownloadRequestPacket, MMO_DownloadResponsePacket, MMO_SubscreenSyncPacket, MMO_ServerFlagUpdate, MMO_BankSyncPacket, MMO_DownloadResponsePacket2, MMO_ClientFlagUpdate, MMO_ClientSceneContextUpdate } from './data/MMOPackets';
-import { mergeInventoryData, mergeEquipmentData, mergeQuestSaveData, mergeDungeonItemData, MMO_SceneStruct } from './data/MMOSaveData'; //Needs porting
+//import { MMO_KeyRebuildPacket, KeyLogManagerServer } from './data/keys/KeyLogManager';
+import { mergeInventoryData, mergeEquipmentData, mergeQuestSaveData, mergeDungeonItemData, MMO_SceneStruct } from './data/MMOSaveData';
 import { PuppetOverlordServer } from './data/linkPuppet/PuppetOverlord';
-import { MMOnlineStorageClient } from './MMOnlineStorageClient';
-import * as API from 'MajorasMask/API/MMAPI';
 
 export class MMOnlineServer {
     @ModLoaderAPIInject()
     ModLoader!: IModLoaderAPI;
     @ParentReference()
     parent!: MMOnline;
-    core!: API.IMMCore;
-    clientStorage: MMOnlineStorageClient = new MMOnlineStorageClient;
-
+    /*@SidedProxy(ProxySide.SERVER, ActorHookingManagerServer)
+    actorHooks!: ActorHookingManagerServer;
+    @SidedProxy(ProxySide.SERVER, KeyLogManagerServer)
+    keys!: KeyLogManagerServer;*/
     @SidedProxy(ProxySide.SERVER, PuppetOverlordServer)
     puppets!: PuppetOverlordServer;
 
@@ -44,7 +45,7 @@ export class MMOnlineServer {
             });
         } catch (err) { }
     }
-    
+
     @EventHandler(EventsServer.ON_LOBBY_CREATE)
     onLobbyCreated(lobby: string) {
         try {
@@ -313,5 +314,9 @@ export class MMOnlineServer {
         //let html: string = cp.parse(evt.dump);
         //fs.writeFileSync("./crashlogs/" + evt.name + ".html", html);
     }
+
+    /*@ServerNetworkHandler("MMO_isRandoPacket")
+    onRandoPacket(packet: MMO_isRandoPacket) {
+    }*/
 
 }
