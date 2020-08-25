@@ -22,7 +22,7 @@ import { IModLoaderAPI, ModLoaderEvents } from 'modloader64_api/IModLoaderAPI';
 import { Z64RomTools } from './Z64Lib/API/Z64RomTools';
 import { IActor } from 'modloader64_api/OOT/IActor';
 //import { KeyLogManagerClient } from './data/keys/KeyLogManager';
-import { PuppetOverlordClient, PuppetOverlordServer } from './data/linkPuppet/PuppetOverlord';
+import { PuppetOverlord } from './data/linkPuppet/PuppetOverlord';
 import { SidedProxy, ProxySide } from 'modloader64_api/SidedProxy/SidedProxy';
 import { Command } from 'MajorasMask/API/Imports';
 import { MMOnlineStorage } from './MMOnlineStorage';
@@ -49,8 +49,7 @@ export class MMOnlineClient {
     actorHooks!: ActorHookingManagerClient;
     @SidedProxy(ProxySide.CLIENT, KeyLogManagerClient)
     keys!: KeyLogManagerClient;*/
-    @SidedProxy(ProxySide.CLIENT, PuppetOverlordClient)
-    puppets!: PuppetOverlordClient;
+    puppets!: PuppetOverlord;
     //@SidedProxy(ProxySide.CLIENT, RPCClient)
     //rcp!: RPCClient;
 

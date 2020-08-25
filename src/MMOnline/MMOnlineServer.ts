@@ -10,7 +10,7 @@ import { MMOnline_PlayerScene, MMOnlineEvents } from './MMOAPI/MMOAPI';
 import { MMO_ScenePacket, MMO_BottleUpdatePacket, MMO_DownloadRequestPacket, MMO_DownloadResponsePacket, MMO_SubscreenSyncPacket, MMO_ServerFlagUpdate, MMO_BankSyncPacket, MMO_DownloadResponsePacket2, MMO_ClientFlagUpdate, MMO_ClientSceneContextUpdate } from './data/MMOPackets';
 //import { MMO_KeyRebuildPacket, KeyLogManagerServer } from './data/keys/KeyLogManager';
 import { mergeInventoryData, mergeEquipmentData, mergeQuestSaveData, mergeDungeonItemData, MMO_SceneStruct } from './data/MMOSaveData';
-import { PuppetOverlordServer } from './data/linkPuppet/PuppetOverlord';
+import { PuppetOverlord } from './data/linkPuppet/PuppetOverlord';
 import { InjectCore } from 'modloader64_api/CoreInjection';
 import * as API from 'MajorasMask/API/MMAPI';
 import { MMOnlineStorageClient } from './MMOnlineStorageClient';
@@ -27,8 +27,7 @@ export class MMOnlineServer {
     @SidedProxy(ProxySide.SERVER, KeyLogManagerServer)
     keys!: KeyLogManagerServer;*/
     clientStorage: MMOnlineStorageClient = new MMOnlineStorageClient();
-    @SidedProxy(ProxySide.SERVER, PuppetOverlordServer)
-    puppets!: PuppetOverlordServer;
+    puppets!: PuppetOverlord;
 
     sendPacketToPlayersInScene(packet: IPacketHeader) {
         try {

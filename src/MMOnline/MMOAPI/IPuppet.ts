@@ -12,7 +12,7 @@ export interface IPuppet {
     isSpawning: boolean;
     isShoveled: boolean;
     scene: number;
-    age: MMForms;
+    form: MMForms;
     ModLoader: IModLoaderAPI;
     spawn(): void;
     shovel(): void;

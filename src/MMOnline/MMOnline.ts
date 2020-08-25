@@ -22,8 +22,6 @@ import { MMOnlineClient } from './MMOnlineClient';
 import { MMOnlineServer } from './MMOnlineServer';
 import { InjectCore } from 'modloader64_api/CoreInjection';
 import * as API from 'MajorasMask/API/MMAPI';
-import { IOvlPayloadResult } from 'MajorasMask/API/MMAPI';
-
 export const SCENE_ARR_SIZE = 0xD20;
 export const EVENT_ARR_SIZE = 0x8;
 export const ITEM_FLAG_ARR_SIZE = 0x18;
@@ -65,16 +63,23 @@ class MMOnline implements IPlugin, IMMOnlineHelpers, IPluginServerConfig {
         return this.client !== undefined ? this.client.clientStorage : null;
     }
     
-
-
     preinit(): void { }
 
     init(): void { }
 
     postinit(): void {
-
+        this.writeModel();
     }
 
+    writeModel() {
+        // These use the OOT adult format.
+        let zz: zzstatic = new zzstatic(Z64LibSupportedGames.MAJORAS_MASK);
+        this.ModLoader.emulator.rdramWriteBuffer(0x80900000, zz.doRepoint(fs.readFileSync(path.resolve(__dirname, "data", "models", "zobjs", "Deity.zobj")), 0, true, 0x80900000));
+        this.ModLoader.emulator.rdramWriteBuffer(0x80910000, zz.doRepoint(fs.readFileSync(path.resolve(__dirname, "data", "models", "zobjs", "Goron.zobj")), 0, true, 0x80910000));
+        this.ModLoader.emulator.rdramWriteBuffer(0x80920000, zz.doRepoint(fs.readFileSync(path.resolve(__dirname, "data", "models", "zobjs", "Zora.zobj")), 0, true, 0x80920000));
+        this.ModLoader.emulator.rdramWriteBuffer(0x80930000, zz.doRepoint(fs.readFileSync(path.resolve(__dirname, "data", "models", "zobjs", "Deku.zobj")), 0, true, 0x80930000));
+        this.ModLoader.emulator.rdramWriteBuffer(0x80940000, zz.doRepoint(fs.readFileSync(path.resolve(__dirname, "data", "models", "zobjs", "Human.zobj")), 0, true, 0x80940000));
+    }
 
 
     onTick(frame?: number): void {
@@ -84,13 +89,12 @@ class MMOnline implements IPlugin, IMMOnlineHelpers, IPluginServerConfig {
 
     @EventHandler(EventsClient.ON_PAYLOAD_INJECTED)
     onPayload(evt: any) {
-        if (path.parse(evt.file).ext === ".ovl") {
-            let result: IOvlPayloadResult = evt.result;
-            this.clientStorage.overlayCache[evt.file] = result;
-        }
-        if (evt.file === "link.ovl") {
-            let result: IOvlPayloadResult = evt.result;
-            this.ModLoader.emulator.rdramWrite32(0x80800000, result.params);
+        let f = path.parse(evt.file);
+        if (f.ext === ".ovl") {
+            if (f.name === "link") {
+                this.ModLoader.logger.info("Puppet assigned.");
+                this.ModLoader.emulator.rdramWrite16(0x800000, evt.result);
+            }
         }
     }
 

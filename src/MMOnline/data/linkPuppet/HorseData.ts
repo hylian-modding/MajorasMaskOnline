@@ -1,13 +1,15 @@
+import { IActor } from "modloader64_api/OOT/IActor"
 import { Puppet } from "./Puppet";
-import * as API from 'MajorasMask/API/Imports';
+import { IOOTCore } from "modloader64_api/OOT/OOTAPI";
+
 export class HorseData{
 
-    actor: API.IActor;
+    actor: IActor;
     parent: Puppet;
-    puppet!: API.IActor;
+    puppet!: IActor;
     private readonly copyFields: string[] = ["pos", "rot", "anim_id", "speed"];
 
-    constructor(actor: API.IActor, parent: Puppet, core: API.IMMCore){
+    constructor(actor: IActor, parent: Puppet, core: IOOTCore){
         this.actor = actor;
         this.parent = parent;
         if (this.parent.hasAttachedHorse()){
@@ -15,8 +17,8 @@ export class HorseData{
         }
     }
 
-    /*get pos(): Buffer{
-        return this.actor.pos.getRawPos();
+    get pos(): Buffer{
+        return this.actor.position.getRawPos();
     }
 
     set pos(buf: Buffer){
@@ -24,12 +26,12 @@ export class HorseData{
     }
 
     get rot(): Buffer{
-        return this.actor.rot.getRawRot();
+        return this.actor.rotation.getRawRot();
     }
 
     set rot(buf: Buffer){
         this.puppet.rdramWriteBuffer(0xB4, buf);
-    }*/
+    }
 
     get anim_id(): number{
         return this.actor.rdramRead32(0x1a4);
