@@ -42,7 +42,7 @@ export class MMOnline_PlayerScene {
 
 export interface IMMOnlineHelpers {
   sendPacketToPlayersInScene(packet: IPacketHeader): void;
-  clientStorage: MMOnlineStorageClient;
+  getClientStorage(): MMOnlineStorageClient | null;
 }
 
 export function MMOnlineAPI_EnableGhostMode() {

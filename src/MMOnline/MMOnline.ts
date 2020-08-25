@@ -2,6 +2,7 @@ import { IPlugin, IModLoaderAPI, IPluginServerConfig, ModLoaderEvents } from 'mo
 import { EventHandler, bus, EventsServer, EventsClient, EventServerJoined, EventServerLeft } from 'modloader64_api/EventHandler';
 import { IMMOnlineHelpers, MMOnlineEvents, MMOnline_PlayerScene } from './MMOAPI/MMOAPI';
 
+
 // @Drahsid TODO: Move to Z64lib?
 import { MMO_ScenePacket, MMO_SceneRequestPacket } from './data/MMOPackets';
 import { MMOnlineStorage } from './MMOnlineStorage';
@@ -21,7 +22,7 @@ import { MMOnlineClient } from './MMOnlineClient';
 import { MMOnlineServer } from './MMOnlineServer';
 import { InjectCore } from 'modloader64_api/CoreInjection';
 import * as API from 'MajorasMask/API/MMAPI';
-
+import { IOvlPayloadResult } from 'MajorasMask/API/MMAPI';
 
 export const SCENE_ARR_SIZE = 0xD20;
 export const EVENT_ARR_SIZE = 0x8;
@@ -63,6 +64,8 @@ class MMOnline implements IPlugin, IMMOnlineHelpers, IPluginServerConfig {
     getClientStorage(): MMOnlineStorageClient | null {
         return this.client !== undefined ? this.client.clientStorage : null;
     }
+    
+
 
     preinit(): void { }
 
@@ -79,17 +82,17 @@ class MMOnline implements IPlugin, IMMOnlineHelpers, IPluginServerConfig {
         printf(this.ModLoader)
     }
 
-
-    /*@EventHandler(EventsClient.ON_PAYLOAD_INJECTED)
+    @EventHandler(EventsClient.ON_PAYLOAD_INJECTED)
     onPayload(evt: any) {
-        let f = path.parse(evt.file);
-        if (f.ext === ".ovl") {
-            if (f.name === "link") {
-                this.ModLoader.logger.info("Puppet assigned.");
-                this.ModLoader.emulator.rdramWrite16(0x800000, evt.result);
-            }
+        if (path.parse(evt.file).ext === ".ovl") {
+            let result: IOvlPayloadResult = evt.result;
+            this.clientStorage.overlayCache[evt.file] = result;
         }
-    }*/
+        if (evt.file === "link.ovl") {
+            let result: IOvlPayloadResult = evt.result;
+            this.ModLoader.emulator.rdramWrite32(0x80800000, result.params);
+        }
+    }
 
     getServerURL(): string {
         return "192.99.70.23:8035";

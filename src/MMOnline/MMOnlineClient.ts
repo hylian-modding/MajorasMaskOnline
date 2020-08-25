@@ -22,7 +22,7 @@ import { IModLoaderAPI, ModLoaderEvents } from 'modloader64_api/IModLoaderAPI';
 import { Z64RomTools } from './Z64Lib/API/Z64RomTools';
 import { IActor } from 'modloader64_api/OOT/IActor';
 //import { KeyLogManagerClient } from './data/keys/KeyLogManager';
-import { PuppetOverlord } from './data/linkPuppet/PuppetOverlord';
+import { PuppetOverlordClient, PuppetOverlordServer } from './data/linkPuppet/PuppetOverlord';
 import { SidedProxy, ProxySide } from 'modloader64_api/SidedProxy/SidedProxy';
 import { Command } from 'MajorasMask/API/Imports';
 import { MMOnlineStorage } from './MMOnlineStorage';
@@ -49,7 +49,8 @@ export class MMOnlineClient {
     actorHooks!: ActorHookingManagerClient;
     @SidedProxy(ProxySide.CLIENT, KeyLogManagerClient)
     keys!: KeyLogManagerClient;*/
-    puppets = new PuppetOverlord(this, this.core);
+    @SidedProxy(ProxySide.CLIENT, PuppetOverlordClient)
+    puppets!: PuppetOverlordClient;
     //@SidedProxy(ProxySide.CLIENT, RPCClient)
     //rcp!: RPCClient;
 
@@ -263,6 +264,11 @@ export class MMOnlineClient {
         if (GHOST_MODE_TRIGGERED) {
             bus.emit(MMOnlineEvents.GHOST_MODE, true);
         }
+    }
+
+    @EventHandler(API.MMEvents.ON_LOADING_ZONE)
+    onLoadingZone(evt: any) {
+        this.ModLoader.logger.debug("I've touched a loading zone.");
     }
 
     @EventHandler(EventsClient.ON_PLAYER_LEAVE)
@@ -703,9 +709,11 @@ export class MMOnlineClient {
                 break;
             case API.Magic.NORMAL:
                 this.core.save.magic_current = API.MagicQuantities.NORMAL;
+                if(this.core.save.form != API.MMForms.DEKU )  this.core.save.deku_b_state = 0x091EF6C8;
                 break;
             case API.Magic.EXTENDED:
                 this.core.save.magic_current = API.MagicQuantities.EXTENDED;
+                if(this.core.save.form != API.MMForms.DEKU )  this.core.save.deku_b_state = 0x091EF6C8;
                 break;
         }
     }
@@ -758,11 +766,11 @@ export class MMOnlineClient {
         ) {
             buf[0x1] = raw_inventory[buf[0x4]];
             this.ModLoader.emulator.rdramWriteBuffer(addr, buf);
-            this.core.commandBuffer.runCommand(
+            /*this.core.commandBuffer.runCommand(
                 Command.UPDATE_C_BUTTON_ICON,
                 0x00000001,
                 (success: boolean, result: number) => { }
-            );
+            );*/
         }
         if (
             buf[0x5] !== API.InventoryItem.NONE &&
@@ -770,11 +778,11 @@ export class MMOnlineClient {
         ) {
             buf[0x2] = raw_inventory[buf[0x5]];
             this.ModLoader.emulator.rdramWriteBuffer(addr, buf);
-            this.core.commandBuffer.runCommand(
+            /*this.core.commandBuffer.runCommand(
                 Command.UPDATE_C_BUTTON_ICON,
                 0x00000002,
                 (success: boolean, result: number) => { }
-            );
+            );*/
         }
         if (
             buf[0x6] !== API.InventoryItem.NONE &&
@@ -782,11 +790,11 @@ export class MMOnlineClient {
         ) {
             buf[0x3] = raw_inventory[buf[0x6]];
             this.ModLoader.emulator.rdramWriteBuffer(addr, buf);
-            this.core.commandBuffer.runCommand(
+            /*this.core.commandBuffer.runCommand(
                 Command.UPDATE_C_BUTTON_ICON,
                 0x00000003,
                 (success: boolean, result: number) => { }
-            );
+            );*/
         }
     }
 
@@ -799,17 +807,6 @@ export class MMOnlineClient {
         this.utility.makeRamDump();
     }*/
 
-    @EventHandler(EventsClient.ON_PAYLOAD_INJECTED)
-    onPayload(evt: any) {
-        if (path.parse(evt.file).ext === ".ovl") {
-            let result: API.IOvlPayloadResult = evt.result;
-            this.clientStorage.overlayCache[evt.file] = result;
-        }
-        if (evt.file === "link.ovl") {
-            let result: API.IOvlPayloadResult = evt.result;
-            this.ModLoader.emulator.rdramWrite32(0x80600140, result.params);
-        } 
-    }
 
     @EventHandler(EventsClient.ON_INJECT_FINISHED)
     onStartupFinished(evt: any) {
