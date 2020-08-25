@@ -115,48 +115,48 @@ export class MMO_DownloadRequestPacket extends Packet {
 export class MMO_ClientFlagUpdate extends Packet {
   scenes: any;
   events: any;
-  items: any;
-  inf: any;
-  skulltulas: any;
+  //items: any;
+  //inf: any;
+  //skulltulas: any;
 
   constructor(
     scenes: any,
     events: any,
-    items: any,
-    inf: any,
-    skulltulas: any,
+    //items: any,
+    //inf: any,
+    //skulltulas: any,
     lobby: string
   ) {
     super('MMO_ClientFlagUpdate', 'MMOnline', lobby, false);
     this.scenes = scenes;
     this.events = events;
-    this.items = items;
-    this.inf = inf;
-    this.skulltulas = skulltulas;
+    //this.items = items;
+    //this.inf = inf;
+    //this.skulltulas = skulltulas;
   }
 }
 
 export class MMO_ServerFlagUpdate extends Packet {
   scenes: Buffer;
   events: Buffer;
-  items: Buffer;
-  inf: Buffer;
-  skulltulas: Buffer;
+  //items: Buffer;
+  //inf: Buffer;
+  //skulltulas: Buffer;
 
   constructor(
     scenes: Buffer,
     events: Buffer,
-    items: Buffer,
-    inf: Buffer,
-    skulltulas: Buffer,
+    //items: Buffer,
+    //inf: Buffer,
+    //skulltulas: Buffer,
     lobby: string
   ) {
     super('MMO_ServerFlagUpdate', 'MMOnline', lobby, false);
     this.scenes = scenes;
     this.events = events;
-    this.items = items;
-    this.inf = inf;
-    this.skulltulas = skulltulas;
+    //this.items = items;
+    //this.inf = inf;
+    //this.skulltulas = skulltulas;
   }
 }
 

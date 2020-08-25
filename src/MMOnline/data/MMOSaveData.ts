@@ -580,7 +580,7 @@
 
     data.heartPieces = save.questStatus.heartPieces;
     data.heart_containers = save.heart_containers;
-    data.magic_meter_size = save.magic_meter_size;
+    data.magic_meter_size = save.magic_level;
     data.double_defense = save.double_defense;
     return data;
   }
@@ -612,8 +612,8 @@
     if (lastKnownHC < data.heart_containers) {
       bus.emit(MMOnlineEvents.GAINED_HEART_CONTAINER, data.heart_containers);
     }
-    let lastKnownMagic: API.Magic = save.magic_meter_size;
-    save.magic_meter_size = data.magic_meter_size;
+    let lastKnownMagic: API.Magic = save.magic_level;
+    save.magic_level = data.magic_meter_size;
     if (lastKnownMagic < data.magic_meter_size) {
       bus.emit(MMOnlineEvents.MAGIC_METER_INCREASED, data.magic_meter_size);
     }

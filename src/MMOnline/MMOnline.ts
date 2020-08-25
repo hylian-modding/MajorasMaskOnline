@@ -9,9 +9,6 @@ import { MMOnlineStorage } from './MMOnlineStorage';
 import { MMOnlineStorageClient } from './MMOnlineStorageClient';
 import { IPacketHeader, ServerNetworkHandler, NetworkHandler, INetworkPlayer } from 'modloader64_api/NetworkHandler';
 import { zzstatic } from './Z64Lib/API/zzstatic';
-import { Z64RomTools } from './Z64Lib/API/Z64RomTools';
-import { DiscordStatus } from 'modloader64_api/Discord';
-import { FileSystemCompare } from './Z64Lib/API/FileSystemCompare';
 import { Z64LibSupportedGames } from './Z64Lib/API/Z64LibSupportedGames';
 import { ManifestMapper } from './data/models/ManifestMapper';
 import { ModelManager } from './data/models/ModelManager';
@@ -43,7 +40,7 @@ export class MMOnlineConfigCategory {
     keySync: boolean = true;
 }
 
-export class MMOnline implements IPlugin, IMMOnlineHelpers, IPluginServerConfig {
+class MMOnline implements IPlugin, IMMOnlineHelpers, IPluginServerConfig {
     
     ModLoader!: IModLoaderAPI;
     @InjectCore()
@@ -72,18 +69,10 @@ export class MMOnline implements IPlugin, IMMOnlineHelpers, IPluginServerConfig 
     init(): void { }
 
     postinit(): void {
-        this.writeModel();
+
     }
 
-    writeModel() {
-        // These use the MM adult format.
-        let zz: zzstatic = new zzstatic(Z64LibSupportedGames.MAJORAS_MASK);
-        this.ModLoader.emulator.rdramWriteBuffer(0x80900000, zz.doRepoint(fs.readFileSync(path.resolve(__dirname, "data", "models", "zobjs", "Deity.zobj")), 0, true, 0x80900000));
-        this.ModLoader.emulator.rdramWriteBuffer(0x80910000, zz.doRepoint(fs.readFileSync(path.resolve(__dirname, "data", "models", "zobjs", "Goron.zobj")), 0, true, 0x80910000));
-        this.ModLoader.emulator.rdramWriteBuffer(0x80920000, zz.doRepoint(fs.readFileSync(path.resolve(__dirname, "data", "models", "zobjs", "Zora.zobj")), 0, true, 0x80920000));
-        this.ModLoader.emulator.rdramWriteBuffer(0x80930000, zz.doRepoint(fs.readFileSync(path.resolve(__dirname, "data", "models", "zobjs", "Deku.zobj")), 0, true, 0x80930000));
-        this.ModLoader.emulator.rdramWriteBuffer(0x80940000, zz.doRepoint(fs.readFileSync(path.resolve(__dirname, "data", "models", "zobjs", "Human.zobj")), 0, true, 0x80940000));
-    }
+
 
     onTick(frame?: number): void {
         if (this.core.helper.isTitleScreen() || !this.core.helper.isSceneNumberValid()) return;
