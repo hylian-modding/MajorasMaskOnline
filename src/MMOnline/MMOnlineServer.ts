@@ -3,26 +3,31 @@ import { EventHandler, EventsServer, EventServerJoined, EventServerLeft, bus } f
 import { MMOnlineStorage } from './MMOnlineStorage';
 import { ParentReference, SidedProxy, ProxySide } from 'modloader64_api/SidedProxy/SidedProxy';
 import { ModLoaderAPIInject } from 'modloader64_api/ModLoaderAPIInjector';
-import { MMOnline } from './MMOnline';
+import MMOnline from './MMOnline';
 import { IModLoaderAPI, ModLoaderEvents } from 'modloader64_api/IModLoaderAPI';
 import { ServerNetworkHandler, IPacketHeader } from 'modloader64_api/NetworkHandler';
 import { MMOnline_PlayerScene, MMOnlineEvents } from './MMOAPI/MMOAPI';
 import { MMO_ScenePacket, MMO_BottleUpdatePacket, MMO_DownloadRequestPacket, MMO_DownloadResponsePacket, MMO_SubscreenSyncPacket, MMO_ServerFlagUpdate, MMO_BankSyncPacket, MMO_DownloadResponsePacket2, MMO_ClientFlagUpdate, MMO_ClientSceneContextUpdate } from './data/MMOPackets';
 //import { MMO_KeyRebuildPacket, KeyLogManagerServer } from './data/keys/KeyLogManager';
 import { mergeInventoryData, mergeEquipmentData, mergeQuestSaveData, mergeDungeonItemData, MMO_SceneStruct } from './data/MMOSaveData';
-import { PuppetOverlordServer } from './data/linkPuppet/PuppetOverlord';
+import { PuppetOverlord } from './data/linkPuppet/PuppetOverlord';
+import { InjectCore } from 'modloader64_api/CoreInjection';
+import * as API from 'MajorasMask/API/MMAPI';
+import { MMOnlineStorageClient } from './MMOnlineStorageClient';
 
 export class MMOnlineServer {
     @ModLoaderAPIInject()
     ModLoader!: IModLoaderAPI;
+    @InjectCore()
+    core!: API.IMMCore;
     @ParentReference()
     parent!: MMOnline;
     /*@SidedProxy(ProxySide.SERVER, ActorHookingManagerServer)
     actorHooks!: ActorHookingManagerServer;
     @SidedProxy(ProxySide.SERVER, KeyLogManagerServer)
     keys!: KeyLogManagerServer;*/
-    @SidedProxy(ProxySide.SERVER, PuppetOverlordServer)
-    puppets!: PuppetOverlordServer;
+    clientStorage: MMOnlineStorageClient = new MMOnlineStorageClient();
+    puppets = new PuppetOverlord(this, this.core);
 
     sendPacketToPlayersInScene(packet: IPacketHeader) {
         try {
@@ -137,6 +142,7 @@ export class MMOnlineServer {
     // Client is logging in and wants to know how to proceed.
     @ServerNetworkHandler('MMO_DownloadRequestPacket')
     onDownloadPacket_server(packet: MMO_DownloadRequestPacket) {
+        this.ModLoader.logger.debug("MMO_DownloadRequestPacket Recieved");
         let storage: MMOnlineStorage = this.ModLoader.lobbyManager.getLobbyStorage(
             packet.lobby,
             this.parent
@@ -158,9 +164,9 @@ export class MMOnlineServer {
                     new MMO_ServerFlagUpdate(
                         storage.sceneStorage,
                         storage.eventStorage,
-                        storage.itemFlagStorage,
-                        storage.infStorage,
-                        storage.skulltulaStorage,
+                        //storage.itemFlagStorage,
+                        //storage.infStorage,
+                        //storage.skulltulaStorage,
                         packet.lobby
                     ),
                     new MMO_BankSyncPacket(storage.bank, packet.lobby),
@@ -261,7 +267,7 @@ export class MMOnlineServer {
                 storage.eventStorage[i] |= value;
             }
         }
-        for (let i = 0; i < packet.items.byteLength; i++) {
+        /*for (let i = 0; i < packet.items.byteLength; i++) {
             let value = packet.items[i];
             if (storage.itemFlagStorage[i] !== value) {
                 storage.itemFlagStorage[i] |= value;
@@ -278,14 +284,14 @@ export class MMOnlineServer {
             if (storage.skulltulaStorage[i] !== value) {
                 storage.skulltulaStorage[i] |= value;
             }
-        }
+        }*/
         this.ModLoader.serverSide.sendPacket(
             new MMO_ServerFlagUpdate(
                 storage.sceneStorage,
                 storage.eventStorage,
-                storage.itemFlagStorage,
-                storage.infStorage,
-                storage.skulltulaStorage,
+                //storage.itemFlagStorage,
+                //storage.infStorage,
+                //storage.skulltulaStorage,
                 packet.lobby
             )
         );

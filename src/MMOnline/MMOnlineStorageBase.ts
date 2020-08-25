@@ -18,9 +18,9 @@ export class MMOnlineStorageBase {
   
   sceneStorage: Buffer = Buffer.alloc(SCENE_ARR_SIZE);
   eventStorage: Buffer = Buffer.alloc(EVENT_ARR_SIZE);
-  itemFlagStorage: Buffer = Buffer.alloc(ITEM_FLAG_ARR_SIZE);
-  infStorage: Buffer = Buffer.alloc(MASK_FLAG_ARR_SIZE);
-  skulltulaStorage: Buffer = Buffer.alloc(WEEK_EVENT_ARR_SIZE);
+  //itemFlagStorage: Buffer = Buffer.alloc(ITEM_FLAG_ARR_SIZE);
+  //infStorage: Buffer = Buffer.alloc(MASK_FLAG_ARR_SIZE);
+  //skulltulaStorage: Buffer = Buffer.alloc(WEEK_EVENT_ARR_SIZE);
   playerModelCache: any = {};
   dungeonItemStorage: IDungeonItemSave = new MMODungeonItemContext();
   inventoryStorage: InventorySave = new InventorySave();

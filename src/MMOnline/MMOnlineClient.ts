@@ -1,6 +1,6 @@
 import { InjectCore } from 'modloader64_api/CoreInjection';
 import { bus, EventHandler, EventsClient } from 'modloader64_api/EventHandler';
-import { INetworkPlayer, LobbyData, NetworkHandler } from 'modloader64_api/NetworkHandler';
+import { INetworkPlayer, LobbyData, NetworkHandler, IPacketHeader } from 'modloader64_api/NetworkHandler';
 import * as API from 'MajorasMask/API/MMAPI'
 import { MMOnlineEvents, MMOnline_PlayerScene } from './MMOAPI/MMOAPI';
 //import { ActorHookingManagerClient } from './data/ActorHookingSystem';
@@ -22,9 +22,10 @@ import { IModLoaderAPI, ModLoaderEvents } from 'modloader64_api/IModLoaderAPI';
 import { Z64RomTools } from './Z64Lib/API/Z64RomTools';
 import { IActor } from 'modloader64_api/OOT/IActor';
 //import { KeyLogManagerClient } from './data/keys/KeyLogManager';
-import { PuppetOverlordClient } from './data/linkPuppet/PuppetOverlord';
+import { PuppetOverlord } from './data/linkPuppet/PuppetOverlord';
 import { SidedProxy, ProxySide } from 'modloader64_api/SidedProxy/SidedProxy';
 import { Command } from 'MajorasMask/API/Imports';
+import { MMOnlineStorage } from './MMOnlineStorage';
 //import { RPCClient } from './data/RPCHandler';
 
 export let GHOST_MODE_TRIGGERED: boolean = false;
@@ -48,8 +49,7 @@ export class MMOnlineClient {
     actorHooks!: ActorHookingManagerClient;
     @SidedProxy(ProxySide.CLIENT, KeyLogManagerClient)
     keys!: KeyLogManagerClient;*/
-    @SidedProxy(ProxySide.CLIENT, PuppetOverlordClient)
-    puppets!: PuppetOverlordClient;
+    puppets = new PuppetOverlord(this, this.core);
     //@SidedProxy(ProxySide.CLIENT, RPCClient)
     //rcp!: RPCClient;
 
@@ -62,6 +62,28 @@ export class MMOnlineClient {
         GHOST_MODE_TRIGGERED = true;
     }
 
+    sendPacketToPlayersInScene(packet: IPacketHeader) {
+        try {
+            let storage: MMOnlineStorage = this.ModLoader.lobbyManager.getLobbyStorage(
+                packet.lobby,
+                this
+            ) as MMOnlineStorage;
+            if (storage === null) {
+                return;
+            }
+            Object.keys(storage.players).forEach((key: string) => {
+                if (storage.players[key] === storage.players[packet.player.uuid]) {
+                    if (storage.networkPlayerInstances[key].uuid !== packet.player.uuid) {
+                        this.ModLoader.serverSide.sendPacketToSpecificPlayer(
+                            packet,
+                            storage.networkPlayerInstances[key]
+                        );
+                    }
+                }
+            });
+        } catch (err) { }
+    }
+    
     @Preinit()
     preinit() {
         this.config = this.ModLoader.config.registerConfigCategory("MMOnline") as MMOnlineConfigCategory;
@@ -79,8 +101,8 @@ export class MMOnlineClient {
         if (this.config.mapTracker) {
             this.ModLoader.gui.openWindow(698, 795, path.resolve(path.join(__dirname, 'gui', 'map.html')));
         }
-        this.clientStorage.scene_keys = JSON.parse(fs.readFileSync(__dirname + '/data/scene_numbers.json').toString());
-        this.clientStorage.localization = JSON.parse(fs.readFileSync(__dirname + '/data/en_US.json').toString());
+        //this.clientStorage.scene_keys = JSON.parse(fs.readFileSync(__dirname + '/data/scene_numbers.json').toString());
+        //this.clientStorage.localization = JSON.parse(fs.readFileSync(__dirname + '/data/en_US.json').toString());
         let status: DiscordStatus = new DiscordStatus('Playing MMOnline', 'On the title screen');
         status.smallImageKey = 'MMO';
         status.partyId = this.ModLoader.clientLobby;
@@ -105,6 +127,8 @@ export class MMOnlineClient {
             this.ModLoader.clientSide.sendPacket(new MMO_BankSyncPacket(this.utility.lastKnownBalance, this.ModLoader.clientLobby));
         }*/
         this.clientStorage.needs_update = false;
+        this.ModLoader.logger.info('updateInventory() Ended');
+
     }
 
     updateFlags() {
@@ -114,21 +138,25 @@ export class MMOnlineClient {
         }
         this.ModLoader.utils.clearBuffer(this.clientStorage.sceneStorage);
         this.ModLoader.utils.clearBuffer(this.clientStorage.eventStorage);
-        this.ModLoader.utils.clearBuffer(this.clientStorage.itemFlagStorage);
-        this.ModLoader.utils.clearBuffer(this.clientStorage.infStorage);
-        this.ModLoader.utils.clearBuffer(this.clientStorage.skulltulaStorage);
-        let scene_data = this.core.save.permSceneData;
-        let event_data = this.core.save.eventFlags;
-        let item_data = this.core.save.itemFlags;
-        let inf_data = this.core.save.infTable;
-        let skulltula_data = this.core.save.skulltulaFlags;
+        //this.ModLoader.utils.clearBuffer(this.clientStorage.itemFlagStorage);
+        //this.ModLoader.utils.clearBuffer(this.clientStorage.infStorage);
+        //this.ModLoader.utils.clearBuffer(this.clientStorage.skulltulaStorage);
+        let scene_data = this.core.save.scene_flags;
+        let event_data = this.core.save.event_flags;
+        //let item_data = this.core.save.item_Flags;
+        //let inf_data = this.core.save.infTable;
+        //let skulltula_data = this.core.save.skulltulaFlags;
+        this.ModLoader.logger.info('updateFlags() scenes');
         let scenes: any = parseFlagChanges(scene_data, this.clientStorage.sceneStorage);
+        this.ModLoader.logger.info('updateFlags() events');
         let events: any = parseFlagChanges(event_data, this.clientStorage.eventStorage);
-        let items: any = parseFlagChanges(item_data, this.clientStorage.itemFlagStorage);
-        let inf: any = parseFlagChanges(inf_data, this.clientStorage.infStorage);
-        let skulltulas: any = parseFlagChanges(skulltula_data, this.clientStorage.skulltulaStorage);
+        //this.ModLoader.logger.info('updateFlags() items');
+        //let items: any = parseFlagChanges(item_data, this.clientStorage.itemFlagStorage);
+        //this.ModLoader.logger.info('updateFlags() inf');
+        //let inf: any = parseFlagChanges(inf_data, this.clientStorage.infStorage);
+        //let skulltulas: any = parseFlagChanges(skulltula_data, this.clientStorage.skulltulaStorage);
         this.ModLoader.logger.info('updateFlags()');
-        this.ModLoader.clientSide.sendPacket(new MMO_ClientFlagUpdate(this.clientStorage.sceneStorage, this.clientStorage.eventStorage, this.clientStorage.itemFlagStorage, this.clientStorage.infStorage, this.clientStorage.skulltulaStorage, this.ModLoader.clientLobby));
+        this.ModLoader.clientSide.sendPacket(new MMO_ClientFlagUpdate(this.clientStorage.sceneStorage, this.clientStorage.eventStorage, this.ModLoader.clientLobby));
     }
 
     autosaveSceneData() {
@@ -200,6 +228,7 @@ export class MMOnlineClient {
 
     @EventHandler(API.MMEvents.ON_SAVE_LOADED)
     onSaveLoaded(evt: any) {
+        this.ModLoader.logger.debug("On_Save_Loaded");
         setTimeout(() => {
             if (this.LobbyConfig.data_syncing) {
                 this.ModLoader.clientSide.sendPacket(new MMO_DownloadRequestPacket(this.ModLoader.clientLobby));
@@ -298,9 +327,11 @@ export class MMOnlineClient {
             'client receive: Player ' +
             packet.player.nickname +
             ' moved to scene ' +
-            this.clientStorage.localization[
-            this.clientStorage.scene_keys[packet.scene]
-            ] +
+            //this.clientStorage.localization[
+            //this.clientStorage.scene_keys[packet.scene]
+            //] 
+            packet.scene
+            +
             '.'
         );
         bus.emit(
@@ -419,13 +450,13 @@ export class MMOnlineClient {
             packet.subscreen.dungeonItems,
             this.core.save.dungeonItemManager
         );
-        this.core.save.permSceneData = packet.flags.scenes;
-        this.core.save.eventFlags = packet.flags.events;
-        this.core.save.itemFlags = packet.flags.items;
-        this.core.save.infTable = packet.flags.inf;
-        this.core.save.skulltulaFlags = packet.flags.skulltulas;
-        this.clientStorage.bank = packet.bank.savings;
-        this.ModLoader.emulator.rdramWrite16(0x8011B874, this.clientStorage.bank);
+        this.core.save.scene_flags = packet.flags.scenes;
+        this.core.save.event_flags = packet.flags.events;
+        //this.core.save.itemFlags = packet.flags.items;
+        //this.core.save.infTable = packet.flags.inf;
+        //this.core.save.skulltulaFlags = packet.flags.skulltulas;
+        //this.clientStorage.bank = packet.bank.savings;
+        //this.ModLoader.emulator.rdramWrite16(0x8011B874, this.clientStorage.bank);
         this.clientStorage.first_time_sync = true;
     }
 
@@ -495,15 +526,15 @@ export class MMOnlineClient {
 
         this.ModLoader.utils.clearBuffer(this.clientStorage.sceneStorage);
         this.ModLoader.utils.clearBuffer(this.clientStorage.eventStorage);
-        this.ModLoader.utils.clearBuffer(this.clientStorage.itemFlagStorage);
-        this.ModLoader.utils.clearBuffer(this.clientStorage.infStorage);
-        this.ModLoader.utils.clearBuffer(this.clientStorage.skulltulaStorage);
+        //this.ModLoader.utils.clearBuffer(this.clientStorage.itemFlagStorage);
+        //this.ModLoader.utils.clearBuffer(this.clientStorage.infStorage);
+        //this.ModLoader.utils.clearBuffer(this.clientStorage.skulltulaStorage);
 
-        let scene_data = this.core.save.permSceneData;
-        let event_data = this.core.save.eventFlags;
-        let item_data = this.core.save.itemFlags;
-        let inf_data = this.core.save.infTable;
-        let skulltula_data = this.core.save.skulltulaFlags;
+        let scene_data = this.core.save.scene_flags;
+        let event_data = this.core.save.event_flags;
+        //let item_data = this.core.save.itemFlags;
+        //let inf_data = this.core.save.infTable;
+        //let skulltula_data = this.core.save.skulltulaFlags;
 
         parseFlagChanges(
             scene_data,
@@ -513,7 +544,7 @@ export class MMOnlineClient {
             event_data,
             this.clientStorage.eventStorage
         );
-        parseFlagChanges(
+        /*parseFlagChanges(
             item_data,
             this.clientStorage.itemFlagStorage
         );
@@ -524,7 +555,7 @@ export class MMOnlineClient {
         parseFlagChanges(
             skulltula_data,
             this.clientStorage.skulltulaStorage
-        );
+        );*/
 
         for (let i = 0; i < packet.scenes.byteLength; i += 0x1C) {
             let struct = new MMO_SceneStruct(packet.scenes.slice(i, i + 0x1C));
@@ -571,7 +602,7 @@ export class MMOnlineClient {
                 this.clientStorage.eventStorage[i] |= value;
             }
         }
-        for (let i = 0; i < packet.items.byteLength; i++) {
+        /*for (let i = 0; i < packet.items.byteLength; i++) {
             let value = packet.items[i];
             if (this.clientStorage.itemFlagStorage[i] !== value) {
                 this.clientStorage.itemFlagStorage[i] |= value;
@@ -588,13 +619,13 @@ export class MMOnlineClient {
             if (this.clientStorage.skulltulaStorage[i] !== value) {
                 this.clientStorage.skulltulaStorage[i] |= value;
             }
-        }
+        }*/
 
-        this.core.save.permSceneData = this.clientStorage.sceneStorage;
-        this.core.save.eventFlags = this.clientStorage.eventStorage;
-        this.core.save.itemFlags = this.clientStorage.itemFlagStorage;
-        this.core.save.infTable = this.clientStorage.infStorage;
-        this.core.save.skulltulaFlags = this.clientStorage.skulltulaStorage;
+        this.core.save.scene_flags = this.clientStorage.sceneStorage;
+        this.core.save.event_flags = this.clientStorage.eventStorage;
+        //this.core.save.itemFlags = this.clientStorage.itemFlagStorage;
+        //this.core.save.infTable = this.clientStorage.infStorage;
+        //this.core.save.skulltulaFlags = this.clientStorage.skulltulaStorage;
     }
 
     @NetworkHandler('MMO_ClientSceneContextUpdate')
@@ -863,6 +894,7 @@ export class MMOnlineClient {
                         this.updateInventory();
                         this.updateFlags();
                         this.clientStorage.needs_update = false;
+                        this.ModLoader.logger.debug('needs_update = ' + this.clientStorage.needs_update);
                     }
                 }
             }
