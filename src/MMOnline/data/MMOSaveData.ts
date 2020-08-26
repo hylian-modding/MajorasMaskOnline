@@ -204,35 +204,44 @@
 
 
     //Masks
-    if (incoming.FIELD_MASK_DEKU) {
-      save.FIELD_MASK_DEKU = true;
-    }
-    if (incoming.FIELD_MASK_GORON) {
-      save.FIELD_MASK_GORON = true;
-    }
-    if (incoming.FIELD_MASK_ZORA) {
-      save.FIELD_MASK_ZORA = true;
-    }
-    if (incoming.FIELD_MASK_FIERCE_DEITY) {
-      save.FIELD_MASK_FIERCE_DEITY = true;
-    }
-    if (incoming.FIELD_MASK_OF_TRUTH) {
-      save.FIELD_MASK_OF_TRUTH = true;
-    }
-    if (incoming.FIELD_MASK_KAFEI) {
-      save.FIELD_MASK_KAFEI = true;
+    if (incoming.FIELD_MASK_POSTMAN) {
+      save.FIELD_MASK_POSTMAN = true;
     }
     if (incoming.FIELD_MASK_ALL_NIGHT) {
       save.FIELD_MASK_ALL_NIGHT = true;
     }
-    if (incoming.FIELD_MASK_BUNNY_HOOD) {
-      save.FIELD_MASK_BUNNY_HOOD = true;
+    if (incoming.FIELD_MASK_BLAST) {
+      save.FIELD_MASK_BLAST = true;
+    }
+    if (incoming.FIELD_MASK_STONE) {
+      save.FIELD_MASK_STONE = true;
+    }
+    if (incoming.FIELD_MASK_GREAT_FAIRY) {
+      save.FIELD_MASK_GREAT_FAIRY = true;
+    }
+    if (incoming.FIELD_MASK_DEKU) {
+      save.FIELD_MASK_DEKU = true;
     }
     if (incoming.FIELD_MASK_KEATON) {
       save.FIELD_MASK_KEATON = true;
     }
-    if (incoming.FIELD_MASK_GARO) {
-      save.FIELD_MASK_GARO = true;
+    if (incoming.FIELD_MASK_BREMEN) {
+      save.FIELD_MASK_BREMEN = true;
+    }
+    if (incoming.FIELD_MASK_BUNNY_HOOD) {
+      save.FIELD_MASK_BUNNY_HOOD = true;
+    }
+    if (incoming.FIELD_MASK_DON_GERO) {
+      save.FIELD_MASK_DON_GERO = true;
+    }
+    if (incoming.FIELD_MASK_OF_SCENTS) {
+      save.FIELD_MASK_OF_SCENTS = true;
+    }
+    if (incoming.FIELD_MASK_GORON) {
+      save.FIELD_MASK_GORON = true;
+    }
+    if (incoming.FIELD_MASK_GORON) {
+      save.FIELD_MASK_GORON = true;
     }
     if (incoming.FIELD_MASK_ROMANI) {
       save.FIELD_MASK_ROMANI = true;
@@ -240,41 +249,32 @@
     if (incoming.FIELD_MASK_CIRCUS_LEADER) {
       save.FIELD_MASK_CIRCUS_LEADER = true;
     }
-    if (incoming.FIELD_MASK_POSTMAN) {
-      save.FIELD_MASK_POSTMAN = true;
+    if (incoming.FIELD_MASK_KAFEI) {
+      save.FIELD_MASK_KAFEI = true;
     }
     if (incoming.FIELD_MASK_COUPLES) {
       save.FIELD_MASK_COUPLES = true;
     }
-    if (incoming.FIELD_MASK_GREAT_FAIRY) {
-      save.FIELD_MASK_GREAT_FAIRY = true;
+    if (incoming.FIELD_MASK_OF_TRUTH) {
+      save.FIELD_MASK_OF_TRUTH = true;
     }
-    if (incoming.FIELD_MASK_GIBDO) {
-      save.FIELD_MASK_GIBDO = true;
-    }
-    if (incoming.FIELD_MASK_DON_GERO) {
-      save.FIELD_MASK_DON_GERO = true;
+    if (incoming.FIELD_MASK_ZORA) {
+      save.FIELD_MASK_ZORA = true;
     }
     if (incoming.FIELD_MASK_KAMERO) {
       save.FIELD_MASK_KAMERO = true;
     }
+    if (incoming.FIELD_MASK_GIBDO) {
+      save.FIELD_MASK_GIBDO = true;
+    }
+    if (incoming.FIELD_MASK_GARO) {
+      save.FIELD_MASK_GARO = true;
+    }
     if (incoming.FIELD_MASK_CAPTAIN) {
       save.FIELD_MASK_CAPTAIN = true;
     }
-    if (incoming.FIELD_MASK_STONE) {
-      save.FIELD_MASK_STONE = true;
-    }
-    if (incoming.FIELD_MASK_BREMEN) {
-      save.FIELD_MASK_BREMEN = true;
-    }
-    if (incoming.FIELD_MASK_BLAST) {
-      save.FIELD_MASK_BLAST = true;
-    }
-    if (incoming.FIELD_MASK_OF_SCENTS) {
-      save.FIELD_MASK_OF_SCENTS = true;
-    }
-    if (incoming.FIELD_MASK_GIANT) {
-      save.FIELD_MASK_GIANT = true;
+    if (incoming.FIELD_MASK_FIERCE_DEITY) {
+      save.FIELD_MASK_FIERCE_DEITY = true;
     }
 
 
@@ -389,30 +389,30 @@
     data.FIELD_POWDER_KEG = save.inventory.FIELD_POWDER_KEG;
     data.FIELD_GREAT_FAIRYS_SWORD = save.inventory.FIELD_GREAT_FAIRYS_SWORD;
 
-    data.FIELD_MASK_DEKU = save.inventory.FIELD_MASK_DEKU;
-    data.FIELD_MASK_GORON = save.inventory.FIELD_MASK_GORON;
-    data.FIELD_MASK_ZORA = save.inventory.FIELD_MASK_ZORA;
-    data.FIELD_MASK_FIERCE_DEITY = save.inventory.FIELD_MASK_FIERCE_DEITY;
-    data.FIELD_MASK_OF_TRUTH = save.inventory.FIELD_MASK_OF_TRUTH;
-    data.FIELD_MASK_KAFEI = save.inventory.FIELD_MASK_KAFEI;
+    data.FIELD_MASK_POSTMAN = save.inventory.FIELD_MASK_POSTMAN;
     data.FIELD_MASK_ALL_NIGHT = save.inventory.FIELD_MASK_ALL_NIGHT;
-    data.FIELD_MASK_BUNNY_HOOD = save.inventory.FIELD_MASK_BUNNY_HOOD;
+    data.FIELD_MASK_BLAST = save.inventory.FIELD_MASK_BLAST;
+    data.FIELD_MASK_STONE = save.inventory.FIELD_MASK_STONE;
+    data.FIELD_MASK_GREAT_FAIRY = save.inventory.FIELD_MASK_GREAT_FAIRY;
+    data.FIELD_MASK_DEKU = save.inventory.FIELD_MASK_DEKU;
     data.FIELD_MASK_KEATON = save.inventory.FIELD_MASK_KEATON;
-    data.FIELD_MASK_GARO = save.inventory.FIELD_MASK_GARO;
+    data.FIELD_MASK_BREMEN = save.inventory.FIELD_MASK_BREMEN;
+    data.FIELD_MASK_BUNNY_HOOD = save.inventory.FIELD_MASK_BUNNY_HOOD;
+    data.FIELD_MASK_DON_GERO = save.inventory.FIELD_MASK_DON_GERO;
+    data.FIELD_MASK_OF_SCENTS = save.inventory.FIELD_MASK_OF_SCENTS;
+    data.FIELD_MASK_GORON = save.inventory.FIELD_MASK_GORON;
     data.FIELD_MASK_ROMANI = save.inventory.FIELD_MASK_ROMANI;
     data.FIELD_MASK_CIRCUS_LEADER = save.inventory.FIELD_MASK_CIRCUS_LEADER;
-    data.FIELD_MASK_POSTMAN = save.inventory.FIELD_MASK_POSTMAN;
+    data.FIELD_MASK_KAFEI = save.inventory.FIELD_MASK_KAFEI;
     data.FIELD_MASK_COUPLES = save.inventory.FIELD_MASK_COUPLES;
-    data.FIELD_MASK_GREAT_FAIRY = save.inventory.FIELD_MASK_GREAT_FAIRY;
-    data.FIELD_MASK_GIBDO = save.inventory.FIELD_MASK_GIBDO;
-    data.FIELD_MASK_DON_GERO = save.inventory.FIELD_MASK_DON_GERO;
+    data.FIELD_MASK_OF_TRUTH = save.inventory.FIELD_MASK_OF_TRUTH;
+    data.FIELD_MASK_ZORA = save.inventory.FIELD_MASK_ZORA;
     data.FIELD_MASK_KAMERO = save.inventory.FIELD_MASK_KAMERO;
+    data.FIELD_MASK_GIBDO = save.inventory.FIELD_MASK_GIBDO;
+    data.FIELD_MASK_GARO = save.inventory.FIELD_MASK_GARO;
     data.FIELD_MASK_CAPTAIN = save.inventory.FIELD_MASK_CAPTAIN;
-    data.FIELD_MASK_STONE = save.inventory.FIELD_MASK_STONE;
-    data.FIELD_MASK_BREMEN = save.inventory.FIELD_MASK_BREMEN;
-    data.FIELD_MASK_BLAST = save.inventory.FIELD_MASK_BLAST;
-    data.FIELD_MASK_OF_SCENTS = save.inventory.FIELD_MASK_OF_SCENTS;
-    data.FIELD_MASK_GIANT = save.inventory.FIELD_MASK_GIANT;
+    data.FIELD_MASK_FIERCE_DEITY = save.inventory.FIELD_MASK_FIERCE_DEITY;
+    
 
     data.wallet = save.inventory.wallet;
     data.quiver = save.inventory.quiver;
@@ -468,30 +468,29 @@
     save.inventory.FIELD_POWDER_KEG = data.FIELD_POWDER_KEG;
     save.inventory.FIELD_GREAT_FAIRYS_SWORD = data.FIELD_GREAT_FAIRYS_SWORD;
 
-    save.inventory.FIELD_MASK_DEKU = data.FIELD_MASK_DEKU;
-    save.inventory.FIELD_MASK_GORON = data.FIELD_MASK_GORON;
-    save.inventory.FIELD_MASK_ZORA = data.FIELD_MASK_ZORA;
-    save.inventory.FIELD_MASK_FIERCE_DEITY = data.FIELD_MASK_FIERCE_DEITY;
-    save.inventory.FIELD_MASK_OF_TRUTH = data.FIELD_MASK_OF_TRUTH;
-    save.inventory.FIELD_MASK_KAFEI = data.FIELD_MASK_KAFEI;
+    save.inventory.FIELD_MASK_POSTMAN = data.FIELD_MASK_POSTMAN;
     save.inventory.FIELD_MASK_ALL_NIGHT = data.FIELD_MASK_ALL_NIGHT;
-    save.inventory.FIELD_MASK_BUNNY_HOOD = data.FIELD_MASK_BUNNY_HOOD;
+    save.inventory.FIELD_MASK_BLAST = data.FIELD_MASK_BLAST;
+    save.inventory.FIELD_MASK_STONE = data.FIELD_MASK_STONE;
+    save.inventory.FIELD_MASK_GREAT_FAIRY = data.FIELD_MASK_GREAT_FAIRY;
+    save.inventory.FIELD_MASK_DEKU = data.FIELD_MASK_DEKU;
     save.inventory.FIELD_MASK_KEATON = data.FIELD_MASK_KEATON;
-    save.inventory.FIELD_MASK_GARO = data.FIELD_MASK_GARO;
+    save.inventory.FIELD_MASK_BREMEN = data.FIELD_MASK_BREMEN;
+    save.inventory.FIELD_MASK_BUNNY_HOOD = data.FIELD_MASK_BUNNY_HOOD;
+    save.inventory.FIELD_MASK_DON_GERO = data.FIELD_MASK_DON_GERO;
+    save.inventory.FIELD_MASK_OF_SCENTS = data.FIELD_MASK_OF_SCENTS;
+    save.inventory.FIELD_MASK_GORON = data.FIELD_MASK_GORON;
     save.inventory.FIELD_MASK_ROMANI = data.FIELD_MASK_ROMANI;
     save.inventory.FIELD_MASK_CIRCUS_LEADER = data.FIELD_MASK_CIRCUS_LEADER;
-    save.inventory.FIELD_MASK_POSTMAN = data.FIELD_MASK_POSTMAN;
+    save.inventory.FIELD_MASK_KAFEI = data.FIELD_MASK_KAFEI;
     save.inventory.FIELD_MASK_COUPLES = data.FIELD_MASK_COUPLES;
-    save.inventory.FIELD_MASK_GREAT_FAIRY = data.FIELD_MASK_GREAT_FAIRY;
-    save.inventory.FIELD_MASK_GIBDO = data.FIELD_MASK_GIBDO;
-    save.inventory.FIELD_MASK_DON_GERO = data.FIELD_MASK_DON_GERO;
+    save.inventory.FIELD_MASK_OF_TRUTH = data.FIELD_MASK_OF_TRUTH;
+    save.inventory.FIELD_MASK_ZORA = data.FIELD_MASK_ZORA;
     save.inventory.FIELD_MASK_KAMERO = data.FIELD_MASK_KAMERO;
+    save.inventory.FIELD_MASK_GIBDO = data.FIELD_MASK_GIBDO;
+    save.inventory.FIELD_MASK_GARO = data.FIELD_MASK_GARO;
     save.inventory.FIELD_MASK_CAPTAIN = data.FIELD_MASK_CAPTAIN;
-    save.inventory.FIELD_MASK_STONE = data.FIELD_MASK_STONE;
-    save.inventory.FIELD_MASK_BREMEN = data.FIELD_MASK_BREMEN;
-    save.inventory.FIELD_MASK_BLAST = data.FIELD_MASK_BLAST;
-    save.inventory.FIELD_MASK_OF_SCENTS = data.FIELD_MASK_OF_SCENTS;
-    save.inventory.FIELD_MASK_GIANT = data.FIELD_MASK_GIANT;
+    save.inventory.FIELD_MASK_FIERCE_DEITY = data.FIELD_MASK_FIERCE_DEITY;
 
     if (overrideBottles) {
       save.inventory.FIELD_BOTTLE1 = data.FIELD_BOTTLE1;
@@ -573,30 +572,30 @@
     FIELD_BOTTLE5: API.InventoryItem = API.InventoryItem.NONE;
     FIELD_BOTTLE6: API.InventoryItem = API.InventoryItem.NONE;
 
-    FIELD_MASK_DEKU = false;
-    FIELD_MASK_GORON = false;
-    FIELD_MASK_ZORA = false;
-    FIELD_MASK_FIERCE_DEITY = false;
-    FIELD_MASK_OF_TRUTH = false;
-    FIELD_MASK_KAFEI = false;
+    FIELD_MASK_POSTMAN = false;
     FIELD_MASK_ALL_NIGHT = false;
-    FIELD_MASK_BUNNY_HOOD = false;
+    FIELD_MASK_BLAST = false;
+    FIELD_MASK_STONE = false;
+    FIELD_MASK_GREAT_FAIRY = false;
+    FIELD_MASK_DEKU = false;
     FIELD_MASK_KEATON = false;
-    FIELD_MASK_GARO = false;
+    FIELD_MASK_BREMEN = false;
+    FIELD_MASK_BUNNY_HOOD = false;
+    FIELD_MASK_DON_GERO = false;
+    FIELD_MASK_OF_SCENTS = false;
+    FIELD_MASK_GORON = false;
     FIELD_MASK_ROMANI = false;
     FIELD_MASK_CIRCUS_LEADER = false;
-    FIELD_MASK_POSTMAN = false;
+    FIELD_MASK_KAFEI = false;
     FIELD_MASK_COUPLES = false;
-    FIELD_MASK_GREAT_FAIRY = false;
-    FIELD_MASK_GIBDO = false;
-    FIELD_MASK_DON_GERO = false;
+    FIELD_MASK_OF_TRUTH = false;
+    FIELD_MASK_ZORA = false;
     FIELD_MASK_KAMERO = false;
+    FIELD_MASK_GIBDO = false;
+    FIELD_MASK_GARO = false;
     FIELD_MASK_CAPTAIN = false;
-    FIELD_MASK_STONE = false;
-    FIELD_MASK_BREMEN = false;
-    FIELD_MASK_BLAST = false;
-    FIELD_MASK_OF_SCENTS = false;
     FIELD_MASK_GIANT = false;
+    FIELD_MASK_FIERCE_DEITY = false;
 
 
     wallet: API.Wallet = API.Wallet.CHILD;
