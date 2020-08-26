@@ -32,7 +32,7 @@
       item === API.InventoryItem.QSLOT3_PENDANT_OF_MEMORIES
     );
   }
-
+  
   export function createDungeonItemDataFromContext(
     context: API.IDungeonItemManager
   ): IDungeonItemSave {
@@ -292,11 +292,6 @@
       save.FIELD_QUEST_ITEM_1 = incoming.FIELD_QUEST_ITEM_1;
     }
   
-    if (save.FIELD_QUEST_ITEM_1 === API.InventoryItem.DEKU_STICK) {
-      // I don't understand why this is necessary, but Deku Sticks will not stop getting into this slot for some reason.
-      save.FIELD_QUEST_ITEM_1 = API.InventoryItem.NONE;
-    }
-  
     if (
     incoming.FIELD_QUEST_ITEM_1 > save.FIELD_QUEST_ITEM_1 &&
     save.FIELD_QUEST_ITEM_1 <= API.InventoryItem.QSLOT1_TITLE_DEED_SWAMP
@@ -315,12 +310,7 @@
     ) {
       save.FIELD_QUEST_ITEM_2 = incoming.FIELD_QUEST_ITEM_2;
     }
-  
-    if (save.FIELD_QUEST_ITEM_2 === API.InventoryItem.DEKU_STICK) {
-      // I don't understand why this is necessary, but Deku Sticks will not stop getting into this slot for some reason.
-      save.FIELD_QUEST_ITEM_2 = API.InventoryItem.NONE;
-    }
-  
+
     if (incoming.FIELD_QUEST_ITEM_2 > save.FIELD_QUEST_ITEM_2) {
       if (isAdultTradeItem(incoming.FIELD_QUEST_ITEM_2)) {
         save.FIELD_QUEST_ITEM_2 = incoming.FIELD_QUEST_ITEM_2;
