@@ -126,6 +126,34 @@ export class MMOnlineClient {
             this.utility.lastKnownBalance = this.ModLoader.emulator.rdramRead16(0x8011B874);
             this.ModLoader.clientSide.sendPacket(new MMO_BankSyncPacket(this.utility.lastKnownBalance, this.ModLoader.clientLobby));
         }*/
+
+        this.ModLoader.logger.debug( '' + inventory.FIELD_MASK_DEKU
+        + inventory.FIELD_MASK_GORON
+        + inventory.FIELD_MASK_GORON
+        + inventory.FIELD_MASK_ZORA
+        + inventory.FIELD_MASK_FIERCE_DEITY
+        + inventory.FIELD_MASK_OF_TRUTH
+        + inventory.FIELD_MASK_KAFEI
+        + inventory.FIELD_MASK_ALL_NIGHT
+        + inventory.FIELD_MASK_BUNNY_HOOD
+        + inventory.FIELD_MASK_KEATON
+        + inventory.FIELD_MASK_GARO
+        + inventory.FIELD_MASK_ROMANI
+        + inventory.FIELD_MASK_CIRCUS_LEADER
+        + inventory.FIELD_MASK_POSTMAN
+        + inventory.FIELD_MASK_COUPLES
+        + inventory.FIELD_MASK_GREAT_FAIRY
+        + inventory.FIELD_MASK_GIBDO
+        + inventory.FIELD_MASK_DON_GERO
+        + inventory.FIELD_MASK_KAMERO
+        + inventory.FIELD_MASK_CAPTAIN
+        + inventory.FIELD_MASK_STONE
+        + inventory.FIELD_MASK_BREMEN
+        + inventory.FIELD_MASK_BLAST
+        + inventory.FIELD_MASK_OF_SCENTS
+        + inventory.FIELD_MASK_GIANT
+         );
+
         this.clientStorage.needs_update = false;
 
     }
@@ -890,6 +918,7 @@ export class MMOnlineClient {
                         this.LobbyConfig.data_syncing
                     ) {
                         this.updateInventory();
+
                         this.updateFlags();
                         this.clientStorage.needs_update = false;
                         this.ModLoader.logger.debug('needs_update = ' + this.clientStorage.needs_update);
