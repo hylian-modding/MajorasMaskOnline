@@ -127,7 +127,6 @@ export class MMOnlineClient {
             this.ModLoader.clientSide.sendPacket(new MMO_BankSyncPacket(this.utility.lastKnownBalance, this.ModLoader.clientLobby));
         }*/
         this.clientStorage.needs_update = false;
-        this.ModLoader.logger.info('updateInventory() Ended');
 
     }
 
@@ -146,16 +145,13 @@ export class MMOnlineClient {
         //let item_data = this.core.save.item_Flags;
         //let inf_data = this.core.save.infTable;
         //let skulltula_data = this.core.save.skulltulaFlags;
-        this.ModLoader.logger.info('updateFlags() scenes');
         let scenes: any = parseFlagChanges(scene_data, this.clientStorage.sceneStorage);
-        this.ModLoader.logger.info('updateFlags() events');
         let events: any = parseFlagChanges(event_data, this.clientStorage.eventStorage);
         //this.ModLoader.logger.info('updateFlags() items');
         //let items: any = parseFlagChanges(item_data, this.clientStorage.itemFlagStorage);
         //this.ModLoader.logger.info('updateFlags() inf');
         //let inf: any = parseFlagChanges(inf_data, this.clientStorage.infStorage);
         //let skulltulas: any = parseFlagChanges(skulltula_data, this.clientStorage.skulltulaStorage);
-        this.ModLoader.logger.info('updateFlags()');
         this.ModLoader.clientSide.sendPacket(new MMO_ClientFlagUpdate(this.clientStorage.sceneStorage, this.clientStorage.eventStorage, this.ModLoader.clientLobby));
     }
 
@@ -426,6 +422,12 @@ export class MMOnlineClient {
                 break;
             case 3:
                 inventory.FIELD_BOTTLE4 = packet.contents;
+                break;
+            case 4:
+                inventory.FIELD_BOTTLE5 = packet.contents;
+                break;
+            case 5:
+                inventory.FIELD_BOTTLE6 = packet.contents;
                 break;
         }
         mergeInventoryData(this.clientStorage.inventoryStorage, inventory);
