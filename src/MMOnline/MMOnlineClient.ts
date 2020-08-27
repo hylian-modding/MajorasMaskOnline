@@ -49,7 +49,6 @@ export class MMOnlineClient {
     actorHooks!: ActorHookingManagerClient;
     @SidedProxy(ProxySide.CLIENT, KeyLogManagerClient)
     keys!: KeyLogManagerClient;*/
-    puppets!: PuppetOverlord;
     //@SidedProxy(ProxySide.CLIENT, RPCClient)
     //rcp!: RPCClient;
 
@@ -163,18 +162,18 @@ export class MMOnlineClient {
             this.ModLoader.logger.debug("Flag updating temporarily disabled in this scene.");
             return;
         }
-        this.ModLoader.utils.clearBuffer(this.clientStorage.sceneStorage);
-        this.ModLoader.utils.clearBuffer(this.clientStorage.eventStorage);
+        //this.ModLoader.utils.clearBuffer(this.clientStorage.sceneStorage);
+        //this.ModLoader.utils.clearBuffer(this.clientStorage.eventStorage);
         //this.ModLoader.utils.clearBuffer(this.clientStorage.itemFlagStorage);
         //this.ModLoader.utils.clearBuffer(this.clientStorage.infStorage);
         //this.ModLoader.utils.clearBuffer(this.clientStorage.skulltulaStorage);
-        let scene_data = this.core.save.scene_flags;
-        let event_data = this.core.save.event_flags;
+        //let scene_data = this.core.save.scene_flags;
+        //let event_data = this.core.save.event_flags;
         //let item_data = this.core.save.item_Flags;
         //let inf_data = this.core.save.infTable;
         //let skulltula_data = this.core.save.skulltulaFlags;
-        let scenes: any = parseFlagChanges(scene_data, this.clientStorage.sceneStorage);
-        let events: any = parseFlagChanges(event_data, this.clientStorage.eventStorage);
+        //let scenes: any = parseFlagChanges(scene_data, this.clientStorage.sceneStorage);
+        //let events: any = parseFlagChanges(event_data, this.clientStorage.eventStorage);
         //this.ModLoader.logger.info('updateFlags() items');
         //let items: any = parseFlagChanges(item_data, this.clientStorage.itemFlagStorage);
         //this.ModLoader.logger.info('updateFlags() inf');
@@ -221,7 +220,7 @@ export class MMOnlineClient {
     }
 
     updateBottles(onlyfillCache = false) {
-        let bottles: API.InventoryItem[] = [
+        /*let bottles: API.InventoryItem[] = [
             this.core.save.inventory.FIELD_BOTTLE1,
             this.core.save.inventory.FIELD_BOTTLE2,
             this.core.save.inventory.FIELD_BOTTLE3,
@@ -237,7 +236,7 @@ export class MMOnlineClient {
                     this.ModLoader.clientSide.sendPacket(new MMO_BottleUpdatePacket(i, bottles[i], this.ModLoader.clientLobby));
                 }
             }
-        }
+        }*/
     }
 
     updateSkulltulas() {

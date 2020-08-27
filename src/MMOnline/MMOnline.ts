@@ -22,6 +22,7 @@ import { MMOnlineClient } from './MMOnlineClient';
 import { MMOnlineServer } from './MMOnlineServer';
 import { InjectCore } from 'modloader64_api/CoreInjection';
 import * as API from 'MajorasMask/API/MMAPI';
+import { PuppetOverlord } from './data/linkPuppet/PuppetOverlord';
 export const SCENE_ARR_SIZE = 0xD20;
 export const EVENT_ARR_SIZE = 0x8;
 export const ITEM_FLAG_ARR_SIZE = 0x18;
@@ -49,6 +50,12 @@ class MMOnline implements IPlugin, IMMOnlineHelpers, IPluginServerConfig {
     @SidedProxy(ProxySide.SERVER, MMOnlineServer)
     server!: MMOnlineServer;
 
+    puppets: PuppetOverlord;
+
+    constructor() {
+        this.puppets = new PuppetOverlord(this, this.core);
+    }
+    
     // Storage
     LobbyConfig: IMMOnlineLobbyConfig = {} as IMMOnlineLobbyConfig;
     clientStorage: MMOnlineStorageClient = new MMOnlineStorageClient();

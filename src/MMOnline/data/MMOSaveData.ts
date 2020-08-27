@@ -1,6 +1,7 @@
   import * as API from 'MajorasMask/API/Imports';
   import { bus } from 'modloader64_api/EventHandler';
   import { MMOnlineEvents } from '../MMOAPI/MMOAPI';
+  import { ISwords, IShields } from 'MajorasMask/API/Imports';
 
   
   
@@ -688,13 +689,25 @@
   
     sonataOfAwakening = false;
     goronLullaby = false;
+    lullabyIntro = false;
     newWaveBossaNova = false;
     elegyOfEmptiness = false;
     oathToOrder = false;
   
+    preludeIcon = false;
+    unknown1 = false;
+    unknown2 = false;
+    unknown3 = false;
+    unknown4 = false;
+    unknown5 = false;
+
     bombersNotebook = false;
 
-    heartPieces = 0;
+    heartPieces1 = false;
+    heartPieces2 = false;
+    heartPieces3 = false;
+    heartPieces4 = false;
+
     magic_meter_size: API.Magic = API.Magic.NONE;
     double_defense = 0;
   }
@@ -716,10 +729,14 @@
     data.newWaveBossaNova = save.questStatus.newWaveBossaNova;
     data.elegyOfEmptiness = save.questStatus.elegyOfEmptiness;
     data.oathToOrder = save.questStatus.oathToOrder;
-
+    data.lullabyIntro = save.questStatus.lullabyIntro;
+    
     data.bombersNotebook = save.questStatus.bombersNotebook;
 
-    data.heartPieces = save.questStatus.heartPieces;
+    data.heartPieces1 = save.questStatus.heartPieces1;
+    data.heartPieces2 = save.questStatus.heartPieces2;
+    data.heartPieces3 = save.questStatus.heartPieces3;
+    data.heartPieces4 = save.questStatus.heartPieces4;
     data.heart_containers = save.heart_containers;
     data.magic_meter_size = save.magic_meter_size;
     data.double_defense = save.double_defense;
@@ -742,12 +759,51 @@
     save.questStatus.newWaveBossaNova = data.newWaveBossaNova;
     save.questStatus.elegyOfEmptiness = data.elegyOfEmptiness;
     save.questStatus.oathToOrder = data.oathToOrder;
+    save.questStatus.lullabyIntro = data.lullabyIntro;
+    
+    save.questStatus.heartPieces1 = data.heartPieces1;
+    save.questStatus.heartPieces2 = data.heartPieces2;
+    save.questStatus.heartPieces3 = data.heartPieces3;
+    save.questStatus.heartPieces4 = data.heartPieces4;
 
-    let lastKnownHP: number = save.questStatus.heartPieces;
-    save.questStatus.heartPieces = data.heartPieces;
-    if (lastKnownHP < data.heartPieces) {
-      bus.emit(MMOnlineEvents.GAINED_PIECE_OF_HEART, data.heartPieces);
+    let lastKnownHP: number = 0;
+
+    if(data.heartPieces1 && !data.heartPieces2 && !data.heartPieces3 && !data.heartPieces4 )
+    {
+      lastKnownHP = 1;
     }
+    if(data.heartPieces1 && data.heartPieces2 && !data.heartPieces3 && !data.heartPieces4 )
+    {
+      lastKnownHP = 2;
+    }
+
+    if(data.heartPieces1 && data.heartPieces2 && data.heartPieces3 && !data.heartPieces4 )
+    {
+      lastKnownHP = 3;
+    }
+
+    if(data.heartPieces1 && data.heartPieces2 && data.heartPieces3 && data.heartPieces4 )
+    {
+      lastKnownHP = 4;
+    }
+    
+    if (lastKnownHP != 0) {
+      bus.emit(MMOnlineEvents.GAINED_PIECE_OF_HEART, data.heartPieces1);
+      if(lastKnownHP == 4)
+      {
+        lastKnownHP = 0;
+        save.questStatus.heartPieces1 = false;
+        save.questStatus.heartPieces2 = false;
+        save.questStatus.heartPieces3 = false;
+        save.questStatus.heartPieces4 = false;
+        data.heartPieces1 = false;
+        data.heartPieces2 = false;
+        data.heartPieces3 = false;
+        data.heartPieces4 = false;
+      }
+    }
+
+
     let lastKnownHC: number = save.heart_containers;
     save.heart_containers = data.heart_containers;
     if (lastKnownHC < data.heart_containers) {
@@ -814,12 +870,42 @@
     if (incoming.songOfStorms > save.songOfStorms) {
       save.songOfStorms = true;
     }
-    // No idea if this logic is correct. Needs testing.
-    if (incoming.heartPieces > save.heartPieces) {
-      save.heartPieces = incoming.heartPieces;
-    } else if (incoming.heartPieces === 0 && save.heartPieces >= 3) {
-      save.heartPieces = 0;
+    if (incoming.lullabyIntro > save.lullabyIntro) {
+      save.lullabyIntro = true;
     }
+    if (incoming.unknown1 > save.unknown1) {
+      save.unknown1 = true;
+    }
+    if (incoming.unknown2 > save.unknown2) {
+      save.unknown2 = true;
+    }
+    
+    if (incoming.preludeIcon > save.preludeIcon) {
+      save.preludeIcon = true;
+    }
+
+    // No idea if this logic is correct. Needs testing.
+    if (incoming.heartPieces1 > save.heartPieces1) 
+    {
+      save.heartPieces1 = incoming.heartPieces1;
+    } 
+    if (incoming.heartPieces2 > save.heartPieces2) 
+    {
+      save.heartPieces2 = incoming.heartPieces2;
+    }
+    if (incoming.heartPieces3 > save.heartPieces3) 
+    {
+      save.heartPieces3 = incoming.heartPieces3;
+    }
+    if (incoming.heartPieces4 > save.heartPieces4) 
+    {
+      save.heartPieces1 = false;
+      save.heartPieces2 = false;
+      save.heartPieces3 = false;
+      save.heartPieces4 = false;
+    }
+
+
     if (incoming.heart_containers > save.heart_containers) {
       save.heart_containers = incoming.heart_containers;
     }
