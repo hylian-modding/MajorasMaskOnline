@@ -9,9 +9,9 @@ import { IPuppetOverlord } from '../../MMOAPI/IPuppetOverlord';
 import { Postinit, onTick } from 'modloader64_api/PluginLifecycle';
 import { EventHandler, EventsClient } from 'modloader64_api/EventHandler';
 import { IMMOnlineHelpers, MMOnlineEvents } from '../../MMOAPI/MMOAPI';
-import { IActor } from 'MajorasMask/API//IActor';
 import { HorseData } from './HorseData';
-import * as API from 'MajorasMask/API/MMAPI';
+import { IMMCore, MMForms, MMEvents } from 'MajorasMask/API/MMAPI';
+import { IActor } from 'MajorasMask/API/IActor';
 
 export class PuppetOverlord implements IPuppetOverlord {
   private puppets: Map<string, Puppet> = new Map<string, Puppet>();
@@ -27,9 +27,10 @@ export class PuppetOverlord implements IPuppetOverlord {
 
   @ModLoaderAPIInject()
   private ModLoader!: IModLoaderAPI;
-  private core!: API.IMMCore;
+  @InjectCore()
+  private core!: IMMCore;
 
-  constructor(parent: IMMOnlineHelpers, core: API.IMMCore) {
+  constructor(parent: IMMOnlineHelpers, core: IMMCore) {
     this.parent = parent;
     this.core = core;
   }
@@ -60,7 +61,7 @@ export class PuppetOverlord implements IPuppetOverlord {
     this.awaiting_spawn.splice(0, this.awaiting_spawn.length);
   }
 
-  localPlayerChangingScenes(entering_scene: number, form: API.MMForms) {
+  localPlayerChangingScenes(entering_scene: number, form: MMForms) {
     this.awaiting_spawn.splice(0, this.awaiting_spawn.length);
     this.fakeClientPuppet.scene = entering_scene;
     this.fakeClientPuppet.form = form;
@@ -93,7 +94,7 @@ export class PuppetOverlord implements IPuppetOverlord {
     }
   }
 
-  changePuppetScene(player: INetworkPlayer, entering_scene: number, form: API.MMForms) {
+  changePuppetScene(player: INetworkPlayer, entering_scene: number, form: MMForms) {
     if (this.puppets.has(player.uuid)) {
       let puppet = this.puppets.get(player.uuid)!;
       if (puppet.isSpawned && puppet.form !== form) {
@@ -177,9 +178,9 @@ export class PuppetOverlord implements IPuppetOverlord {
   sendPuppetPacket() {
     if (!this.amIAlone) {
       let packet = new MMO_PuppetPacket(this.fakeClientPuppet.data, this.ModLoader.clientLobby);
-/*       if (this.Epona !== undefined) {
-        packet.setHorseData(this.Epona);
-      } */
+      /*       if (this.Epona !== undefined) {
+              packet.setHorseData(this.Epona);
+            } */
       this.ModLoader.clientSide.sendPacket(new MMO_PuppetWrapperPacket(packet, this.ModLoader.clientLobby));
     }
   }
@@ -190,7 +191,7 @@ export class PuppetOverlord implements IPuppetOverlord {
       let actualPacket = JSON.parse(packet.data) as MMO_PuppetPacket;
       puppet.processIncomingPuppetData(actualPacket.data);
       //if (actualPacket.horse_data !== undefined) {
-/*         puppet.processIncomingHorseData(actualPacket.horse_data); */
+        /*         puppet.processIncomingHorseData(actualPacket.horse_data); */
       //}
     }
   }
@@ -215,7 +216,7 @@ export class PuppetOverlord implements IPuppetOverlord {
   }
 
   // TODO
-  isCurrentlyWarping(){
+  isCurrentlyWarping() {
     return false;
   }
 
@@ -250,12 +251,12 @@ export class PuppetOverlord implements IPuppetOverlord {
     this.unregisterPuppet(player);
   }
 
-  @EventHandler(API.MMEvents.ON_LOADING_ZONE)
+  @EventHandler(MMEvents.ON_LOADING_ZONE)
   onLoadingZone(evt: any) {
     this.localPlayerLoadingZone();
   }
 
-  @EventHandler(API.MMEvents.ON_SCENE_CHANGE)
+  @EventHandler(MMEvents.ON_SCENE_CHANGE)
   onSceneChange(scene: number) {
     this.localPlayerLoadingZone();
     this.localPlayerChangingScenes(scene, this.core.save.form);
@@ -283,8 +284,8 @@ export class PuppetOverlord implements IPuppetOverlord {
     this.processPuppetPacket(packet);
   }
 
-  @EventHandler(API.MMEvents.ON_AGE_CHANGE)
-  onAgeChange(form: API.MMForms) {
+  @EventHandler(MMEvents.ON_AGE_CHANGE)
+  onformChange(form: MMForms) {
     //this.localPlayerLoadingZone();
   }
 
@@ -293,45 +294,45 @@ export class PuppetOverlord implements IPuppetOverlord {
     this.generateCrashDump();
   }
 
-  @EventHandler(API.MMEvents.ON_ACTOR_SPAWN)
+  @EventHandler(MMEvents.ON_ACTOR_SPAWN)
   onEponaSpawned(actor: IActor) {
-/*     if (actor.actorID === 0x0014) {
-      // Epona spawned.
-      this.ModLoader.logger.debug("Epona spawned");
-      this.Epona = new HorseData(actor, this.fakeClientPuppet, this.core);
-    } */
+    /*     if (actor.actorID === 0x0014) {
+          // Epona spawned.
+          this.ModLoader.logger.debug("Epona spawned");
+          this.Epona = new HorseData(actor, this.fakeClientPuppet, this.core);
+        } */
   }
 
-  @EventHandler(API.MMEvents.ON_ACTOR_DESPAWN)
+  @EventHandler(MMEvents.ON_ACTOR_DESPAWN)
   onEponaDespawned(actor: IActor) {
-/*     if (actor.actorID === 0x0014) {
-      // Epona despawned.
-      //@ts-ignore
-      this.Epona = undefined;
-      this.ModLoader.logger.debug("Epona despawned");
-    } */
+    /*     if (actor.actorID === 0x0014) {
+          // Epona despawned.
+          //@ts-ignore
+          this.Epona = undefined;
+          this.ModLoader.logger.debug("Epona despawned");
+        } */
   }
 
   @EventHandler("MMOnline:RoguePuppet")
   onRoguePuppet(puppet: Puppet) {
-    if (this.puppets.has(puppet.player.uuid)){
+    if (this.puppets.has(puppet.player.uuid)) {
       this.puppets.delete(puppet.player.uuid);
     }
   }
 
   @EventHandler(ModLoaderEvents.ON_SOFT_RESET_PRE)
-  onReset(evt: any){
+  onReset(evt: any) {
     this.localPlayerLoadingZone();
   }
 
   @EventHandler(MMOnlineEvents.PLAYER_PUPPET_SPAWNED)
-  onSpawn(puppet: Puppet){
+  onSpawn(puppet: Puppet) {
     this.ModLoader.logger.debug("Unlocking puppet spawner.")
     this.queuedSpawn = false;
   }
 
   @EventHandler(MMOnlineEvents.PLAYER_PUPPET_PRESPAWN)
-  onPreSpawn(puppet: Puppet){
+  onPreSpawn(puppet: Puppet) {
     this.ModLoader.logger.debug("Locking puppet spawner.")
     this.queuedSpawn = true;
   }

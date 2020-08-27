@@ -27,7 +27,6 @@ export class MMOnlineServer {
     @SidedProxy(ProxySide.SERVER, KeyLogManagerServer)
     keys!: KeyLogManagerServer;*/
     clientStorage: MMOnlineStorageClient = new MMOnlineStorageClient();
-    puppets!: PuppetOverlord;
 
     sendPacketToPlayersInScene(packet: IPacketHeader) {
         try {

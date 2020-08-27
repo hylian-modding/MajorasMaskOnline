@@ -1,9 +1,13 @@
 import { IModLoaderAPI } from 'modloader64_api/IModLoaderAPI';
-import { IPuppetData } from '../../MMOAPI/IPuppetData';
+import { IPuppetData } from "../../MMOAPI/IPuppetData";
 import { bus } from 'modloader64_api/EventHandler';
-import Vector3 from 'modloader64_api/math/Vector3';
-import * as API from 'MajorasMask/API/MMAPI';
 import { MMOffsets } from 'MajorasMask/API/MMOffsets';
+import { IMMCore, MMForms } from 'MajorasMask/API/MMAPI';
+import * as API from 'MajorasMask/API/MMAPI';
+
+const actor =         0x0000
+const anim_data =     0x0144
+
 export class PuppetData implements IPuppetData {
   pointer: number;
   ModLoader: IModLoaderAPI;
@@ -22,6 +26,19 @@ export class PuppetData implements IPuppetData {
     this.copyFields.push('pos');
     this.copyFields.push('rot');
     this.copyFields.push('anim');
+    this.copyFields.push('xzSpeed');
+    this.copyFields.push('nowShield');
+    this.copyFields.push('nowMask');
+    this.copyFields.push('actionParam1');
+    this.copyFields.push('actionParam2');
+    this.copyFields.push('equipSword');
+    this.copyFields.push('razorDurability');
+    this.copyFields.push('shieldRot');
+    this.copyFields.push('dekuStickLength');
+    this.copyFields.push('nowAnim');
+    this.copyFields.push('lastMask');
+    this.copyFields.push('blastMaskTimer');
+    this.copyFields.push('maskProps');
   }
 
   get pos(): Buffer {
@@ -32,6 +49,33 @@ export class PuppetData implements IPuppetData {
     this.ModLoader.emulator.rdramWriteBuffer(this.pointer + 0x24, pos);
   }
 
+  get rot(): Buffer {
+    let offsets = new MMOffsets;
+    return this.ModLoader.emulator.rdramReadBuffer(offsets.link_instance + 0xBC, 0x6);
+  }
+
+  set rot(rot: Buffer) {
+    this.ModLoader.emulator.rdramWriteBuffer(this.pointer + 0xBC, rot);
+  }
+
+  get maskProps(): Buffer {
+    let offsets = new MMOffsets;
+    return this.ModLoader.emulator.rdramReadBuffer(offsets.mask_props, 0x12C);
+  }
+
+  set maskProps(maskProps: Buffer) {
+    this.ModLoader.emulator.rdramWriteBuffer(this.pointer + 0x3A4, maskProps);
+  }
+
+  get shieldRot(): Buffer {
+    let offsets = new MMOffsets;
+    return this.ModLoader.emulator.rdramReadBuffer(offsets.link_instance + 0xAB2, 0x6);
+  }
+
+  set shieldRot(shieldRot: Buffer) {
+    this.ModLoader.emulator.rdramWriteBuffer(this.pointer + 0x392, shieldRot);
+  }
+
   get anim(): Buffer {
     return this.core.link.anim_data;
   }
@@ -40,226 +84,107 @@ export class PuppetData implements IPuppetData {
     this.ModLoader.emulator.rdramWriteBuffer(this.pointer + 0x144, anim);
   }
 
-  get rot(): Buffer {
-    //return this.core.link.rot;
-
-    let offsets = (global.ModLoader.MMOffsets as MMOffsets);
-    return this.ModLoader.emulator.rdramReadBuffer(offsets.link_instance + 0xBC, 0x6);
+  get xzSpeed(): number {
+    let offsets = new MMOffsets;
+    return this.ModLoader.emulator.rdramRead32(offsets.link_instance + 0x70);
   }
 
-  set rot(rot: Buffer) {
-    //this.ModLoader.math.rdramWriteV3i16(this.pointer + 0xBC, rot);
-    this.ModLoader.emulator.rdramWriteBuffer(this.pointer + 0xBC, rot);
+  set xzSpeed(xzSpeed: number) {
+    this.ModLoader.emulator.rdramWrite32(this.pointer + 0x70, xzSpeed);
   }
 
-  get form(): API.MMForms {
+  get nowShield(): number {
+    let offsets = new MMOffsets;
+    return this.ModLoader.emulator.rdramRead8(offsets.link_instance + 0x144);
+  }
+
+  set nowShield(nowShield: number) {
+    this.ModLoader.emulator.rdramWrite8(this.pointer + 0x1F4, nowShield);
+  }
+
+  get nowMask(): number {
+    let offsets = new MMOffsets;
+    return this.ModLoader.emulator.rdramRead8(offsets.link_instance + (0x144 + 0xF));
+  }
+
+  set nowMask(nowMask: number) {
+    this.ModLoader.emulator.rdramWrite8(this.pointer + 0x1F5, nowMask);
+  }
+
+  get lastMask(): number {
+    let offsets = new MMOffsets;
+    return this.ModLoader.emulator.rdramRead8(offsets.link_instance + (0x144 + 0x11));
+  }
+
+  set lastMask(lastMask: number) {
+    this.ModLoader.emulator.rdramWrite8(this.pointer + 0x3A0, lastMask);
+  }
+
+  get blastMaskTimer(): number {
+    let offsets = new MMOffsets;
+    return this.ModLoader.emulator.rdramRead16(offsets.link_instance + 0xB60);
+  }
+
+  set blastMaskTimer(blastMaskTimer: number) {
+    this.ModLoader.emulator.rdramWrite16(this.pointer + 0x3A2, blastMaskTimer);
+  }
+
+  get actionParam1(): number {
+    let offsets = new MMOffsets;
+    return this.ModLoader.emulator.rdramRead8(offsets.link_instance + 0x147);
+  }
+
+  set actionParam1(actionParam1: number) {
+    this.ModLoader.emulator.rdramWrite8(this.pointer + 0x38C, actionParam1);
+  }
+
+  get actionParam2(): number {
+    let offsets = new MMOffsets;
+    return this.ModLoader.emulator.rdramRead8(offsets.link_instance + 0x14A);
+  }
+
+  set actionParam2(actionParam2: number) {
+    this.ModLoader.emulator.rdramWrite8(this.pointer + 0x38D, actionParam2);
+  }
+
+  get equipSword(): number {
+    let offsets = new MMOffsets;
+    return this.ModLoader.emulator.rdramRead8(offsets.sword_equip);
+  }
+
+  set equipSword(equipSword: number) {
+    this.ModLoader.emulator.rdramWrite8(this.pointer + 0x38E, equipSword);
+  }
+
+  get razorDurability(): number {
+    let offsets = new MMOffsets;
+    return this.ModLoader.emulator.rdramRead16(offsets.razor_hits);
+  }
+
+  set razorDurability(razorDurability: number) {
+    this.ModLoader.emulator.rdramWrite16(this.pointer + 0x390, razorDurability);
+  }
+
+  get dekuStickLength(): number {
+    let offsets = new MMOffsets;
+    return this.ModLoader.emulator.rdramReadF32(offsets.link_instance + 0xB0C);
+  }
+
+  set dekuStickLength(dekuStickLength: number) {
+    this.ModLoader.emulator.rdramWriteF32(this.pointer + 0x398, dekuStickLength);
+  }
+  
+  get nowAnim(): number {
+    let offsets = new MMOffsets;
+    return this.ModLoader.emulator.rdramReadF32(offsets.link_instance + 0x248);
+  }
+
+  set nowAnim(nowAnim: number) {
+    this.ModLoader.emulator.rdramWriteF32(this.pointer + 0x39C, nowAnim);
+  }
+
+  get form(): MMForms {
     return this.core.save.form;
-  }
-
-/*   get left_hand(): number {
-    let num: number = this.core.link.rdramRead8(0x144);
-    let num2: number = this.core.link.rdramRead8(0x148);
-    let id = 0;
-    if (this.form === 0) {
-      switch (num) {
-        case 0:
-          id = 0; // Nothing
-          break;
-        case 3:
-          id = 1; // Master Sword
-          break;
-        case 5:
-          id = this.core.save.swords.biggoronSword ? 2 : 3; // Biggoron.
-          break;
-        case 7:
-          id = 7; // Megaton Hammer.
-          break;
-        case 0x1e:
-          id = 5; // Bottle.
-          break;
-        case 0xff:
-          if (num2 === 0x02) {
-            id = 1;
-          } else if (num2 === 0x0b) {
-            id = 7;
-          }
-          break;
-        default:
-          break;
-      }
-    } else {
-      switch (num) {
-        case 0:
-          break;
-        case 4:
-          id = 4;
-          break;
-        case 0x1e:
-          id = 5;
-          break;
-        case 6:
-          id = 6;
-          break;
-        case 0xff:
-          if (num2 === 0x02) {
-            id = 4;
-          } else if (num2 === 0x0a) {
-            id = 0;
-          }
-          break;
-        default:
-          break;
-      }
-    }
-    return id;
-  }
-
-  set left_hand(num: number) {
-    this.ModLoader.emulator.rdramWrite8(this.pointer + (0x250 + 0x2A), num);
-  }
-
-  set right_hand(num: number) {
-    this.ModLoader.emulator.rdramWrite8(this.pointer + (0x250 + 0x2B), num);
-  }
-
-  get right_hand(): number {
-    let id = 0;
-    let shield: Shield = this.core.link.shield;
-    let num: number = this.core.link.rdramRead8(0x144);
-    let left_hand: number = this.left_hand;
-    if (this.form === 0) {
-      switch (num) {
-        case 0:
-          break;
-        case 0x1d:
-          id = 5;
-          break;
-        case 0x11:
-          id = 7;
-          break;
-        case 0x10:
-          id = 7;
-          break;
-        case 0x08:
-          id = 8;
-          break;
-        default:
-          break;
-      }
-      if (id === 0) {
-        if (
-          left_hand === 3 ||
-          left_hand === 2 ||
-          left_hand === 1 ||
-          num === 0xff
-        ) {
-          switch (shield) {
-            case 0:
-              break;
-            case Shield.HYLIAN:
-              id = 1;
-              break;
-            case Shield.MIRROR:
-              id = 2;
-              break;
-            default:
-              break;
-          }
-        }
-      }
-      if (left_hand === 2) {
-        id = 0;
-      }
-    } else {
-      switch (num) {
-        case 0:
-          break;
-        case 0x1c:
-          id = 4;
-          break;
-        case 0x1d:
-          id = 5;
-          break;
-        case 0x0f:
-          id = 9;
-          break;
-        default:
-          break;
-      }
-      if (id === 0) {
-        if (left_hand === 4 || num === 0xff) {
-          switch (shield) {
-            case 0:
-              break;
-            case Shield.DEKU:
-              id = 3;
-              break;
-            default:
-              break;
-          }
-        }
-      }
-    }
-    return id;
-  }
-
-  get back_item(): number {
-    let id = 0;
-    let sword: boolean = this.core.link.sword !== Sword.NONE;
-    let _sword: Sword = this.core.link.sword;
-    let shield: Shield = this.core.link.shield;
-    let left_hand: number = this.left_hand;
-    let right_hand: number = this.right_hand;
-    if (this.form === 0) {
-      if (!sword && shield === Shield.NONE) {
-        id = 7;
-      } else if (sword && shield === Shield.HYLIAN) {
-        if (left_hand === 1) {
-          id = 9;
-        } else {
-          if (right_hand === 1) {
-            id = 7;
-          } else {
-            id = 1;
-          }
-        }
-      } else if (sword && shield === Shield.MIRROR) {
-        if (left_hand === 1) {
-          id = 9;
-        } else {
-          if (right_hand === 2) {
-            id = 7;
-          } else {
-            id = 2;
-          }
-        }
-      }
-    } else {
-      if (!sword && shield === Shield.NONE) {
-        id = 0;
-      } else if (shield !== Shield.NONE && sword && _sword === 0x11) {
-        if (left_hand === 4) {
-          id = 10;
-        } else {
-          if (right_hand === 3) {
-            id = 4;
-          } else {
-            id = 3;
-          }
-        }
-      } else {
-        if (left_hand === 4) {
-          id = 10;
-        } else {
-          id = 4;
-        }
-      }
-    }
-    return id;
-  } */
-
-  set back_item(num: number) {
-    this.ModLoader.emulator.rdramWrite8(this.pointer + (0x250 + 0x2C), num);
   }
 
   toJSON() {
@@ -268,7 +193,6 @@ export class PuppetData implements IPuppetData {
     for (let i = 0; i < this.copyFields.length; i++) {
       jsonObj[this.copyFields[i]] = (this as any)[this.copyFields[i]];
     }
-    //console.log(JSON.stringify(jsonObj, null, 2));
     return jsonObj;
   }
 }
