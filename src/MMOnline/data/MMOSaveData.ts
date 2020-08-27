@@ -274,6 +274,9 @@
     if (incoming.FIELD_MASK_CAPTAIN) {
       save.FIELD_MASK_CAPTAIN = true;
     }
+    if (incoming.FIELD_MASK_GIANT) {
+      save.FIELD_MASK_GIANT = true;
+    }
     if (incoming.FIELD_MASK_FIERCE_DEITY) {
       save.FIELD_MASK_FIERCE_DEITY = true;
     }
@@ -340,6 +343,12 @@
     }
     if (incoming.FIELD_BOTTLE4 !== API.InventoryItem.NONE) {
       save.FIELD_BOTTLE4 = incoming.FIELD_BOTTLE4;
+    }
+    if (incoming.FIELD_BOTTLE5 !== API.InventoryItem.NONE) {
+      save.FIELD_BOTTLE5 = incoming.FIELD_BOTTLE5;
+    }
+    if (incoming.FIELD_BOTTLE6 !== API.InventoryItem.NONE) {
+      save.FIELD_BOTTLE6 = incoming.FIELD_BOTTLE6;
     }
   
     //-----------------------------------------------------
@@ -412,6 +421,7 @@
     data.FIELD_MASK_GIBDO = save.inventory.FIELD_MASK_GIBDO;
     data.FIELD_MASK_GARO = save.inventory.FIELD_MASK_GARO;
     data.FIELD_MASK_CAPTAIN = save.inventory.FIELD_MASK_CAPTAIN;
+    data.FIELD_MASK_GIANT = save.inventory.FIELD_MASK_GIANT;
     data.FIELD_MASK_FIERCE_DEITY = save.inventory.FIELD_MASK_FIERCE_DEITY;
     
 
@@ -491,6 +501,7 @@
     save.inventory.FIELD_MASK_GIBDO = data.FIELD_MASK_GIBDO;
     save.inventory.FIELD_MASK_GARO = data.FIELD_MASK_GARO;
     save.inventory.FIELD_MASK_CAPTAIN = data.FIELD_MASK_CAPTAIN;
+    save.inventory.FIELD_MASK_GIANT = data.FIELD_MASK_GIANT;
     save.inventory.FIELD_MASK_FIERCE_DEITY = data.FIELD_MASK_FIERCE_DEITY;
 
     if (overrideBottles) {
@@ -620,9 +631,13 @@
     }
     if (incoming.razorSword) {
       save.razorSword = true;
+      save.kokiriSword = true;
+      save.gilded = false;
     }
     if (incoming.gilded) {
       save.gilded = true;
+      save.razorSword = false;
+      save.kokiriSword = false;
     }
     // Shields
     if (incoming.heroesShield) {
@@ -630,6 +645,7 @@
     }
     if (incoming.mirrorShield) {
       save.mirrorShield = true;
+      save.heroesShield = false;
     }
   }
   
@@ -672,6 +688,9 @@
     heart_containers: number;
     magic_meter_size: API.Magic;
     double_defense: number;
+    owl_statues: number;
+    map_visited: number;
+    map_visible: number;
   }
   
   export class QuestSave implements IQuestSave {
@@ -708,6 +727,10 @@
     heartPieces3 = false;
     heartPieces4 = false;
 
+    owl_statues = 0;
+    map_visited = 0;
+    map_visible = 0;
+
     magic_meter_size: API.Magic = API.Magic.NONE;
     double_defense = 0;
   }
@@ -740,6 +763,11 @@
     data.heart_containers = save.heart_containers;
     data.magic_meter_size = save.magic_meter_size;
     data.double_defense = save.double_defense;
+
+    data.owl_statues = save.owl_statues;
+    data.map_visited = save.map_visited;
+    data.map_visible = save.map_visible;
+
     return data;
   }
   
@@ -761,10 +789,16 @@
     save.questStatus.oathToOrder = data.oathToOrder;
     save.questStatus.lullabyIntro = data.lullabyIntro;
     
+    save.questStatus.bombersNotebook = data.bombersNotebook;
+
     save.questStatus.heartPieces1 = data.heartPieces1;
     save.questStatus.heartPieces2 = data.heartPieces2;
     save.questStatus.heartPieces3 = data.heartPieces3;
     save.questStatus.heartPieces4 = data.heartPieces4;
+
+    save.owl_statues = data.owl_statues;
+    save.map_visited = data.map_visited;
+    save.map_visible = data.map_visible;
 
     let lastKnownHP: number = 0;
 
@@ -883,6 +917,21 @@
     if (incoming.preludeIcon > save.preludeIcon) {
       save.preludeIcon = true;
     }
+
+        
+    if (incoming.owl_statues > save.owl_statues) {
+      save.owl_statues = incoming.owl_statues;
+    }
+
+    if (incoming.map_visited > save.map_visited) {
+      save.map_visited = incoming.map_visited;
+    }
+
+
+    if (incoming.map_visible > save.map_visible) {
+      save.map_visible = incoming.map_visible;
+    }
+
 
     // No idea if this logic is correct. Needs testing.
     if (incoming.heartPieces1 > save.heartPieces1) 
