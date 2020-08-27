@@ -1,7 +1,12 @@
 build/
 CustomActorToolkit/
 node_modules/
-src/ThiccMalonMM/
 modloader64-p2-config.json
 modloader64-config.json
 modloader64-config.json
+*.map
+*.js
+libs/
+dist/
+*.bat
+external_cores/

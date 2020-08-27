@@ -1,5 +1,5 @@
 {
-  "name": "MMARO",
+  "name": "MMOnline",
   "version": "1.0.2",
   "description": "",
   "main": "index.js",
@@ -7,7 +7,7 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
-  "author": "Denoflions, Drahsid",
+  "author": "Denoflions, Drahsid, Psi-Hate",
   "license": "ISC",
   "repository": {
     "type": "git",
@@ -16,5 +16,10 @@
   "bugs": {
     "url": "https://github.com/hylian-modding/MMARO/issues"
   },
-  "homepage": "https://github.com/hylian-modding/MMARO#readme"
+  "homepage": "https://github.com/hylian-modding/MMARO#readme",
+  "dependencies": {},
+  "devDependencies": {},
+  "modloader64_deps": {
+    "MajorasMask": "https://github.com/hylian-modding/Core-MajorasMask.git"
+  }
 }

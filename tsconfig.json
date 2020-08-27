@@ -13,8 +13,14 @@
     "moduleResolution": "node",
     "baseUrl": "./",
     "paths": {
-      "@MMARO/*": [
-        "./src/MMARO/*"
+      "@sound/*": [
+        "./build/emulator/*"
+      ],
+      "@MMOnline/*": [
+        "./src/MMOnline/*"
+      ],
+      "MajorasMask/*": [
+        "libs\\MajorasMask/*"
       ]
     }
   },
