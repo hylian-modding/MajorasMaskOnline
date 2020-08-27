@@ -28,7 +28,7 @@ import { Command } from 'MajorasMask/API/Imports';
 import { MMOnlineStorage } from './MMOnlineStorage';
 //import { RPCClient } from './data/RPCHandler';
 
-export let GHOST_MODE_TRIGGERED: boolean = false;
+export let TIME_SYNC_TRIGGERED: boolean = false;
 
 export class MMOnlineClient {
     @InjectCore()
@@ -52,15 +52,6 @@ export class MMOnlineClient {
     //@SidedProxy(ProxySide.CLIENT, RPCClient)
     //rcp!: RPCClient;
 
-    @EventHandler(MMOnlineEvents.GHOST_MODE)
-    onGhostInstruction(evt: any) {
-        this.LobbyConfig.actor_syncing = false;
-        this.LobbyConfig.data_syncing = false;
-        this.clientStorage.first_time_sync = true;
-        this.LobbyConfig.key_syncing = false;
-        GHOST_MODE_TRIGGERED = true;
-    }
-
     sendPacketToPlayersInScene(packet: IPacketHeader) {
         try {
             let storage: MMOnlineStorage = this.ModLoader.lobbyManager.getLobbyStorage(
@@ -82,12 +73,13 @@ export class MMOnlineClient {
             });
         } catch (err) { }
     }
-    
+
     @Preinit()
     preinit() {
         this.config = this.ModLoader.config.registerConfigCategory("MMOnline") as MMOnlineConfigCategory;
         this.ModLoader.config.setData("MMOnline", "mapTracker", false);
         this.ModLoader.config.setData("MMOnline", "keySync", true);
+        this.ModLoader.config.setData("MMOnline", "timeSync", false);
     }
 
     @Init()
@@ -121,40 +113,11 @@ export class MMOnlineClient {
         mergeQuestSaveData(this.clientStorage.questStorage, quest);
         mergeDungeonItemData(this.clientStorage.dungeonItemStorage, di);
         this.ModLoader.clientSide.sendPacket(new MMO_SubscreenSyncPacket(this.clientStorage.inventoryStorage, this.clientStorage.equipmentStorage, this.clientStorage.questStorage, this.clientStorage.dungeonItemStorage, this.ModLoader.clientLobby));
-        /*if (this.utility.lastKnownBalance !== this.ModLoader.emulator.rdramRead16(0x8011B874)) {
-            this.utility.lastKnownBalance = this.ModLoader.emulator.rdramRead16(0x8011B874);
-            this.ModLoader.clientSide.sendPacket(new MMO_BankSyncPacket(this.utility.lastKnownBalance, this.ModLoader.clientLobby));
-        }*/
-
-        this.ModLoader.logger.debug( '' + inventory.FIELD_MASK_DEKU
-        + inventory.FIELD_MASK_GORON
-        + inventory.FIELD_MASK_GORON
-        + inventory.FIELD_MASK_ZORA
-        + inventory.FIELD_MASK_FIERCE_DEITY
-        + inventory.FIELD_MASK_OF_TRUTH
-        + inventory.FIELD_MASK_KAFEI
-        + inventory.FIELD_MASK_ALL_NIGHT
-        + inventory.FIELD_MASK_BUNNY_HOOD
-        + inventory.FIELD_MASK_KEATON
-        + inventory.FIELD_MASK_GARO
-        + inventory.FIELD_MASK_ROMANI
-        + inventory.FIELD_MASK_CIRCUS_LEADER
-        + inventory.FIELD_MASK_POSTMAN
-        + inventory.FIELD_MASK_COUPLES
-        + inventory.FIELD_MASK_GREAT_FAIRY
-        + inventory.FIELD_MASK_GIBDO
-        + inventory.FIELD_MASK_DON_GERO
-        + inventory.FIELD_MASK_KAMERO
-        + inventory.FIELD_MASK_CAPTAIN
-        + inventory.FIELD_MASK_STONE
-        + inventory.FIELD_MASK_BREMEN
-        + inventory.FIELD_MASK_BLAST
-        + inventory.FIELD_MASK_OF_SCENTS
-        + inventory.FIELD_MASK_GIANT
-         );
-
+        if (this.clientStorage.bank !== this.ModLoader.emulator.rdramRead16(0x801F054E)) {
+            this.clientStorage.bank = this.ModLoader.emulator.rdramRead16(0x801F054E);
+            this.ModLoader.clientSide.sendPacket(new MMO_BankSyncPacket(this.clientStorage.bank, this.ModLoader.clientLobby));
+        }
         this.clientStorage.needs_update = false;
-
     }
 
     updateFlags() {
@@ -162,24 +125,24 @@ export class MMOnlineClient {
             this.ModLoader.logger.debug("Flag updating temporarily disabled in this scene.");
             return;
         }
-        //this.ModLoader.utils.clearBuffer(this.clientStorage.sceneStorage);
-        //this.ModLoader.utils.clearBuffer(this.clientStorage.eventStorage);
-        //this.ModLoader.utils.clearBuffer(this.clientStorage.itemFlagStorage);
+
+        this.ModLoader.utils.clearBuffer(this.clientStorage.sceneStorage);
+        this.ModLoader.utils.clearBuffer(this.clientStorage.eventStorage);
+        this.ModLoader.utils.clearBuffer(this.clientStorage.itemFlagStorage);
         //this.ModLoader.utils.clearBuffer(this.clientStorage.infStorage);
         //this.ModLoader.utils.clearBuffer(this.clientStorage.skulltulaStorage);
-        //let scene_data = this.core.save.scene_flags;
-        //let event_data = this.core.save.event_flags;
+        let scene_data = this.core.save.scene_flags;
+        let event_data = this.core.save.event_flags;
         //let item_data = this.core.save.item_Flags;
         //let inf_data = this.core.save.infTable;
         //let skulltula_data = this.core.save.skulltulaFlags;
-        //let scenes: any = parseFlagChanges(scene_data, this.clientStorage.sceneStorage);
-        //let events: any = parseFlagChanges(event_data, this.clientStorage.eventStorage);
-        //this.ModLoader.logger.info('updateFlags() items');
+        let scenes: any = parseFlagChanges(scene_data, this.clientStorage.sceneStorage);
+        let events: any = parseFlagChanges(event_data, this.clientStorage.eventStorage);
         //let items: any = parseFlagChanges(item_data, this.clientStorage.itemFlagStorage);
-        //this.ModLoader.logger.info('updateFlags() inf');
         //let inf: any = parseFlagChanges(inf_data, this.clientStorage.infStorage);
         //let skulltulas: any = parseFlagChanges(skulltula_data, this.clientStorage.skulltulaStorage);
         this.ModLoader.clientSide.sendPacket(new MMO_ClientFlagUpdate(this.clientStorage.sceneStorage, this.clientStorage.eventStorage, this.ModLoader.clientLobby));
+
     }
 
     autosaveSceneData() {
@@ -188,33 +151,45 @@ export class MMOnlineClient {
             if (this.ModLoader.emulator.rdramRead8(0x80600144) === 0x1) {
                 return;
             }
+
             let live_scene_chests: Buffer = this.core.global.liveSceneData_chests;
             let live_scene_switches: Buffer = this.core.global.liveSceneData_switch;
             let live_scene_collect: Buffer = this.core.global.liveSceneData_collectable;
             let live_scene_clear: Buffer = this.core.global.liveSceneData_clear;
             let live_scene_temp: Buffer = this.core.global.liveSceneData_temp;
-            let save_scene_data: Buffer = this.core.global.getSaveDataForCurrentScene();
+            let save_scene_data!: Buffer;
+
+            save_scene_data = this.core.global.getSaveDataForCurrentScene();
+
+
+
             let save: Buffer = Buffer.alloc(0x1c);
             live_scene_chests.copy(save, 0x0); // Chests
             live_scene_switches.copy(save, 0x4); // Switches
             live_scene_clear.copy(save, 0x8); // Room Clear
             live_scene_collect.copy(save, 0xc); // Collectables
             live_scene_temp.copy(save, 0x10); // Unused space.
+
             save_scene_data.copy(save, 0x14, 0x14, 0x18); // Visited Rooms.
             save_scene_data.copy(save, 0x18, 0x18, 0x1c); // Visited Rooms.
+
+
+
             let save_hash_2: string = this.ModLoader.utils.hashBuffer(save);
             if (save_hash_2 !== this.clientStorage.autoSaveHash) {
                 this.ModLoader.logger.info('autosaveSceneData()');
+
                 save_scene_data.copy(save, 0x10, 0x10, 0x14);
                 for (let i = 0; i < save_scene_data.byteLength; i++) {
                     save_scene_data[i] |= save[i];
                 }
+
                 this.clientStorage.autoSaveHash = save_hash_2;
             }
             else {
                 return;
             }
-            this.core.global.writeSaveDataForCurrentScene(save_scene_data);
+            if (this.config.timeSync) { this.core.global.writeSaveDataForCurrentScene(save_scene_data); }
             this.ModLoader.clientSide.sendPacket(new MMO_ClientSceneContextUpdate(live_scene_chests, live_scene_switches, live_scene_clear, live_scene_temp, this.ModLoader.clientLobby, this.core.global.current_scene));
         }
     }
@@ -283,9 +258,6 @@ export class MMOnlineClient {
         this.LobbyConfig.data_syncing = lobby.data['MMOnline:data_syncing'];
         this.LobbyConfig.key_syncing = lobby.data['MMOnline:key_syncing'];
         this.ModLoader.logger.info('MMOnline settings inherited from lobby.');
-        if (GHOST_MODE_TRIGGERED) {
-            bus.emit(MMOnlineEvents.GHOST_MODE, true);
-        }
     }
 
     @EventHandler(API.MMEvents.ON_LOADING_ZONE)
@@ -489,8 +461,8 @@ export class MMOnlineClient {
         //this.core.save.itemFlags = packet.flags.items;
         //this.core.save.infTable = packet.flags.inf;
         //this.core.save.skulltulaFlags = packet.flags.skulltulas;
-        //this.clientStorage.bank = packet.bank.savings;
-        //this.ModLoader.emulator.rdramWrite16(0x8011B874, this.clientStorage.bank);
+        this.clientStorage.bank = packet.bank.savings;
+        this.ModLoader.emulator.rdramWrite16(0x801F054E, this.clientStorage.bank);
         this.clientStorage.first_time_sync = true;
     }
 
@@ -703,7 +675,7 @@ export class MMOnlineClient {
     @NetworkHandler("MMO_BankSyncPacket")
     onBankUpdate(packet: MMO_BankSyncPacket) {
         this.clientStorage.bank = packet.savings;
-        this.ModLoader.emulator.rdramWrite16(0x8011B874, this.clientStorage.bank);
+        this.ModLoader.emulator.rdramWrite16(0x801F054E, this.clientStorage.bank);
     }
 
     healPlayer() {
@@ -714,7 +686,7 @@ export class MMOnlineClient {
             return;
         }
         this.ModLoader.emulator.rdramWrite16(
-            global.ModLoader.save_context + 0x1424,
+            global.ModLoader.save_context + 0x36,
             0x65
         );
     }
@@ -737,11 +709,11 @@ export class MMOnlineClient {
                 break;
             case API.Magic.NORMAL:
                 this.core.save.magic_current = API.MagicQuantities.NORMAL;
-                if(this.core.save.form != API.MMForms.DEKU )  this.core.save.deku_b_state = 0x091EF6C8;
+                if (this.core.save.form != API.MMForms.DEKU) this.core.save.deku_b_state = 0x091EF6C8;
                 break;
             case API.Magic.EXTENDED:
                 this.core.save.magic_current = API.MagicQuantities.EXTENDED;
-                if(this.core.save.form != API.MMForms.DEKU )  this.core.save.deku_b_state = 0x091EF6C8;
+                if (this.core.save.form != API.MMForms.DEKU) this.core.save.deku_b_state = 0x091EF6C8;
                 break;
         }
     }
@@ -781,9 +753,9 @@ export class MMOnlineClient {
             return;
         }
 
-        let addr: number = global.ModLoader.save_context + 0x0068;
-        let buf: Buffer = this.ModLoader.emulator.rdramReadBuffer(addr, 0x7);
-        let addr2: number = global.ModLoader.save_context + 0x0074;
+        let addr: number = global.ModLoader.save_context + 0x005C;
+        let buf: Buffer = this.ModLoader.emulator.rdramReadBuffer(addr, 0x4);
+        let addr2: number = global.ModLoader.save_context + 0x0070;
         let raw_inventory: Buffer = this.ModLoader.emulator.rdramReadBuffer(
             addr2,
             0x24
@@ -895,10 +867,10 @@ export class MMOnlineClient {
                     return;
                 }
                 if (this.LobbyConfig.actor_syncing) {
-                   // this.actorHooks.tick();
+                    // this.actorHooks.tick();
                 }
                 if (this.LobbyConfig.data_syncing) {
-                    this.autosaveSceneData();
+                    if (this.config.timeSync) { this.autosaveSceneData(); }
                     this.updateBottles();
                     this.updateSkulltulas();
                     if (this.LobbyConfig.key_syncing) {
@@ -917,10 +889,8 @@ export class MMOnlineClient {
                         this.LobbyConfig.data_syncing
                     ) {
                         this.updateInventory();
-
-                        this.updateFlags();
+                        if (this.config.timeSync) { this.updateFlags(); }
                         this.clientStorage.needs_update = false;
-                        this.ModLoader.logger.debug('needs_update = ' + this.clientStorage.needs_update);
                     }
                 }
             }

@@ -33,11 +33,13 @@ export interface IMMOnlineLobbyConfig {
     data_syncing: boolean;
     actor_syncing: boolean;
     key_syncing: boolean;
+    time_sync: boolean;
 }
 
 export class MMOnlineConfigCategory {
     mapTracker: boolean = false;
     keySync: boolean = true;
+    timeSync: boolean = true;
 }
 
 class MMOnline implements IPlugin, IMMOnlineHelpers, IPluginServerConfig {
@@ -55,7 +57,7 @@ class MMOnline implements IPlugin, IMMOnlineHelpers, IPluginServerConfig {
     constructor() {
         this.puppets = new PuppetOverlord(this, this.core);
     }
-    
+
     // Storage
     LobbyConfig: IMMOnlineLobbyConfig = {} as IMMOnlineLobbyConfig;
     clientStorage: MMOnlineStorageClient = new MMOnlineStorageClient();

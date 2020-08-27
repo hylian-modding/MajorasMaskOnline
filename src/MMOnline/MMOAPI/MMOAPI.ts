@@ -8,7 +8,6 @@ export enum MMOnlineEvents {
   PLAYER_PUPPET_DESPAWNED = 'MMOnline:onPlayerPuppetDespawned',
   SERVER_PLAYER_CHANGED_SCENES = 'MMOnline:onServerPlayerChangedScenes',
   CLIENT_REMOTE_PLAYER_CHANGED_SCENES = 'MMOnline:onRemotePlayerChangedScenes',
-  GHOST_MODE = 'MMOnline:EnableGhostMode',
   GAINED_HEART_CONTAINER = 'MMOnline:GainedHeartContainer',
   GAINED_PIECE_OF_HEART = 'MMOnline:GainedPieceOfHeart',
   MAGIC_METER_INCREASED = 'MMOnline:GainedMagicMeter',
@@ -43,10 +42,6 @@ export class MMOnline_PlayerScene {
 export interface IMMOnlineHelpers {
   sendPacketToPlayersInScene(packet: IPacketHeader): void;
   getClientStorage(): MMOnlineStorageClient | null;
-}
-
-export function MMOnlineAPI_EnableGhostMode() {
-  bus.emit(MMOnlineEvents.GHOST_MODE, {});
 }
 
 export class MMO_CHILD_MODEL_EVENT{
