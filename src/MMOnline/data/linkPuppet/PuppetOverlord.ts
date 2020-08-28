@@ -12,6 +12,8 @@ import { IMMOnlineHelpers, MMOnlineEvents } from '../../MMOAPI/MMOAPI';
 import { HorseData } from './HorseData';
 import { IMMCore, MMForms, MMEvents } from 'MajorasMask/API/MMAPI';
 import { IActor } from 'MajorasMask/API/IActor';
+import { Z64RomTools } from '@MMOnline/Z64Lib/API/Z64RomTools';
+import MMOnline from '@MMOnline/MMOnline';
 
 export class PuppetOverlord implements IPuppetOverlord {
   private puppets: Map<string, Puppet> = new Map<string, Puppet>();
@@ -24,6 +26,8 @@ export class PuppetOverlord implements IPuppetOverlord {
   private parent: IMMOnlineHelpers;
   private Epona!: HorseData;
   private queuedSpawn: boolean = false;
+
+  rom!: Buffer;
 
   @ModLoaderAPIInject()
   private ModLoader!: IModLoaderAPI;
@@ -145,6 +149,7 @@ export class PuppetOverlord implements IPuppetOverlord {
   processAwaitingSpawns() {
     if (this.awaiting_spawn.length > 0 && !this.queuedSpawn) {
       let puppet: Puppet = this.awaiting_spawn.shift() as Puppet;
+      puppet.onRom(this.rom);
       puppet.spawn();
     }
   }
@@ -241,6 +246,9 @@ export class PuppetOverlord implements IPuppetOverlord {
     this.sendPuppetPacket();
   }
 
+  
+
+  
   @EventHandler(EventsClient.ON_PLAYER_JOIN)
   onPlayerJoin(player: INetworkPlayer) {
     this.registerPuppet(player);
@@ -336,4 +344,10 @@ export class PuppetOverlord implements IPuppetOverlord {
     this.ModLoader.logger.debug("Locking puppet spawner.")
     this.queuedSpawn = true;
   }
+
+  @EventHandler(ModLoaderEvents.ON_ROM_PATCHED)
+    onRom(evt: any) {
+      this.rom = evt.rom;
+    }
+
 }

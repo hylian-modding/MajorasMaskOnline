@@ -1,9 +1,12 @@
-import { IModLoaderAPI } from 'modloader64_api/IModLoaderAPI';
+import { IModLoaderAPI, ModLoaderEvents } from 'modloader64_api/IModLoaderAPI';
 import { IPuppetData } from "../../MMOAPI/IPuppetData";
-import { bus } from 'modloader64_api/EventHandler';
+import { bus, EventHandler } from 'modloader64_api/EventHandler';
 import { MMOffsets } from 'MajorasMask/API/MMOffsets';
 import { IMMCore, MMForms } from 'MajorasMask/API/MMAPI';
 import * as API from 'MajorasMask/API/MMAPI';
+import { Z64RomTools } from '@MMOnline/Z64Lib/API/Z64RomTools';
+import MMOnline from '@MMOnline/MMOnline';
+import { MMOnlineEvents } from '@MMOnline/MMOAPI/MMOAPI';
 
 const actor =         0x0000
 const anim_data =     0x0144
@@ -12,13 +15,13 @@ export class PuppetData implements IPuppetData {
   pointer: number;
   ModLoader: IModLoaderAPI;
   core: API.IMMCore;
-
+  
   private readonly copyFields: string[] = new Array<string>();
 
   constructor(
     pointer: number,
     ModLoader: IModLoaderAPI,
-    core: API.IMMCore
+    core: API.IMMCore,
   ) {
     this.pointer = pointer;
     this.ModLoader = ModLoader;
@@ -40,7 +43,7 @@ export class PuppetData implements IPuppetData {
     this.copyFields.push('blastMaskTimer');
     this.copyFields.push('maskProps');
   }
-
+  
   get pos(): Buffer {
     return this.core.link.rawPos;
   }

@@ -1,9 +1,9 @@
 import { PuppetData } from './PuppetData';
 import { INetworkPlayer } from 'modloader64_api/NetworkHandler';
 import { Command } from 'modloader64_api/OOT/ICommandBuffer';
-import { bus } from 'modloader64_api/EventHandler';
+import { bus, EventHandler } from 'modloader64_api/EventHandler';
 import { MMOnlineEvents, IMMOnlineHelpers } from '../../MMOAPI/MMOAPI';
-import { IModLoaderAPI } from 'modloader64_api/IModLoaderAPI';
+import { IModLoaderAPI, ModLoaderEvents } from 'modloader64_api/IModLoaderAPI';
 import { IPuppet } from '../../MMOAPI/IPuppet';
 import Vector3 from 'modloader64_api/math/Vector3';
 import { HorseData } from './HorseData';
@@ -11,6 +11,9 @@ import fs from 'fs';
 import path from 'path';
 
 import { IMMCore , MMForms} from 'MajorasMask/API/MMAPI';
+import { Z64RomTools } from '@MMOnline/Z64Lib/API/Z64RomTools';
+import MMOnline from '@MMOnline/MMOnline';
+import { MMOnlineClient } from '@MMOnline/MMOnlineClient';
 
 const DEADBEEF_OFFSET: number = 0x288;
 
@@ -28,13 +31,16 @@ export class Puppet implements IPuppet {
   ModLoader: IModLoaderAPI;
   horse!: HorseData;
   parent: IMMOnlineHelpers;
+  tunic_color!: number;
+  MMOClient = new MMOnlineClient;
 
   constructor(
     player: INetworkPlayer,
     core: IMMCore,
     pointer: number,
     ModLoader: IModLoaderAPI,
-    parent: IMMOnlineHelpers
+    parent: IMMOnlineHelpers,
+
   ) {
     this.player = player;
     this.data = new PuppetData(pointer, ModLoader, core);
@@ -45,6 +51,7 @@ export class Puppet implements IPuppet {
     this.id = this.ModLoader.utils.getUUID();
     this.parent = parent;
   }
+
 
   debug_movePuppetToPlayer() {
     let t = JSON.stringify(this.data);
@@ -74,6 +81,7 @@ export class Puppet implements IPuppet {
       this.core.commandBuffer.runCommand(Command.SPAWN_ACTOR, 0x80800000, (success: boolean, result: number) => {
         if (success) {
           this.data.pointer = result & 0x00ffffff;
+          this.applyColor(this.data.pointer);
           this.doNotDespawnMe(this.data.pointer);
           if (this.hasAttachedHorse()) {
             let horse: number = this.getAttachedHorse();
@@ -147,5 +155,30 @@ export class Puppet implements IPuppet {
 
   hasAttachedHorse(): boolean {
     return false;
+  }
+
+  applyColor(pointer: number)
+  {
+      this.ModLoader.logger.debug("Previous puppet tunic color: " + this.ModLoader.emulator.rdramRead32(pointer + 0x530)); 
+      this.ModLoader.logger.debug('Setting tunic color for your puppet: ' + this.tunic_color);
+      this.ModLoader.emulator.rdramWrite32(pointer + 0x530, this.tunic_color);
+      this.ModLoader.logger.debug("Puppet Pointer: " + pointer);
+      this.makeRamDump();
+  }
+
+  makeRamDump() {
+    fs.writeFileSync(global.ModLoader["startdir"] + "/ram_dump.bin", this.ModLoader.emulator.rdramReadBuffer(0x0, (16 * 1024 * 1024)));
+}
+
+  @EventHandler(MMOnlineEvents.PLAYER_PUPPET_PRESPAWN)
+  onRom(rom: any) {
+      let tools: Z64RomTools;
+      let buf: Buffer;
+
+      // Set tunic color
+      tools = new Z64RomTools(this.ModLoader, 0x1A500);
+      buf = tools.decompressFileFromRom(rom, 654);
+      this.tunic_color = buf.readInt32BE(0xB39C);
+      this.ModLoader.logger.debug('Retrieving tunic color for your puppet: ' + this.tunic_color);
   }
 }
