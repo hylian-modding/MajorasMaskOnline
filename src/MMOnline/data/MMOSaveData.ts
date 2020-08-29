@@ -285,7 +285,7 @@ export function mergeInventoryData(
     save.FIELD_MASK_FIERCE_DEITY = true;
   }
 
-  if(incoming.photoCount)
+  if(incoming.photoCount > save.photoCount)
   {
     save.photoCount = incoming.photoCount;
   }
@@ -670,20 +670,19 @@ export function mergePhotoData(
   save: PhotoSave,
   incoming: PhotoSave
 ){
-  let emptyBuf!: Buffer;
-  if (incoming.pictograph_photoChunk1 != emptyBuf) {
+  if (incoming.pictograph_photoChunk1 != save.pictograph_photoChunk1) {
     save.pictograph_photoChunk1 = incoming.pictograph_photoChunk1;
   }
-  if (incoming.pictograph_photoChunk2 != emptyBuf) {
+  if (incoming.pictograph_photoChunk2 != save.pictograph_photoChunk2) {
     save.pictograph_photoChunk2 = incoming.pictograph_photoChunk2;
   }
-  if (incoming.pictograph_quality) {
+  if (incoming.pictograph_quality != save.pictograph_quality) {
     save.pictograph_quality = incoming.pictograph_quality;
   }
-  if (incoming.pictograph_spec) {
+  if (incoming.pictograph_spec != save.pictograph_spec) {
     save.pictograph_spec = incoming.pictograph_spec;
   }
-  if (incoming.pictograph_unk) {
+  if (incoming.pictograph_unk != save.pictograph_unk) {
     save.pictograph_unk = incoming.pictograph_unk;
   }
   
