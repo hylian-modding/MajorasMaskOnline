@@ -10,7 +10,7 @@ import { HorseData } from './HorseData';
 import fs from 'fs';
 import path from 'path';
 
-import { IMMCore , MMForms} from 'MajorasMask/API/MMAPI';
+import { IMMCore , MMForms, MMEvents} from 'MajorasMask/API/MMAPI';
 import { Z64RomTools } from '@MMOnline/Z64Lib/API/Z64RomTools';
 import MMOnline from '@MMOnline/MMOnline';
 import { MMOnlineClient } from '@MMOnline/MMOnlineClient';
@@ -81,7 +81,7 @@ export class Puppet implements IPuppet {
       this.core.commandBuffer.runCommand(Command.SPAWN_ACTOR, 0x80800000, (success: boolean, result: number) => {
         if (success) {
           this.data.pointer = result & 0x00ffffff;
-          this.applyColor(this.data.pointer);
+          //this.applyColor(this.data.pointer);
           this.doNotDespawnMe(this.data.pointer);
           if (this.hasAttachedHorse()) {
             let horse: number = this.getAttachedHorse();
@@ -170,8 +170,8 @@ export class Puppet implements IPuppet {
     fs.writeFileSync(global.ModLoader["startdir"] + "/ram_dump.bin", this.ModLoader.emulator.rdramReadBuffer(0x0, (16 * 1024 * 1024)));
 }
 
-  @EventHandler(MMOnlineEvents.PLAYER_PUPPET_PRESPAWN)
-  onRom(rom: any) {
+  //@EventHandler(ModLoaderEvents.ON_ROM_PATCHED)
+  /*onRom(rom: any) {
       let tools: Z64RomTools;
       let buf: Buffer;
 
@@ -180,5 +180,5 @@ export class Puppet implements IPuppet {
       buf = tools.decompressFileFromRom(rom, 654);
       this.tunic_color = buf.readInt32BE(0xB39C);
       this.ModLoader.logger.debug('Retrieving tunic color for your puppet: ' + this.tunic_color);
-  }
+  }*/
 }

@@ -7,6 +7,7 @@ import { PuppetData } from './linkPuppet/PuppetData';
 //import { HorseData } from './linkPuppet/HorseData';
 import { InventorySave, IEquipmentSave, IQuestSave, IDungeonItemSave } from './MMOSaveData';
 import * as API from 'MajorasMask/API/Imports';
+import { IPhoto } from 'MajorasMask/API/Imports';
 
 
 export class MMO_PuppetPacket{
@@ -27,12 +28,13 @@ export class MMO_PuppetPacket{
     equipment: IEquipmentSave;
     quest: IQuestSave;
     dungeonItems: IDungeonItemSave;
-
+    photo: IPhoto;
     constructor(
       save: InventorySave,
       equipment: IEquipmentSave,
       quest: IQuestSave,
       dungeonItems: IDungeonItemSave,
+      photo: IPhoto,
       lobby: string
     ) {
       super('MMO_SubscreenSyncPacket', 'MMOnline', lobby, false);
@@ -40,14 +42,16 @@ export class MMO_PuppetPacket{
       this.equipment = equipment;
       this.quest = quest;
       this.dungeonItems = dungeonItems;
+      this.photo = photo;
     }
   }
 
+  
   export class MMO_DownloadResponsePacket extends Packet {
     subscreen: MMO_SubscreenSyncPacket;
     flags: MMO_ServerFlagUpdate;
     bank: MMO_BankSyncPacket;
-  
+    
     constructor(
       subscreen: MMO_SubscreenSyncPacket,
       scenes: MMO_ServerFlagUpdate,
@@ -161,6 +165,21 @@ export class MMO_ServerFlagUpdate extends Packet {
 }
 
 export class MMO_ClientSceneContextUpdate extends Packet {
+  collect: Buffer;
+  scene: number;
+
+  constructor(
+    collect: Buffer,
+    lobby: string,
+    scene: number
+  ) {
+    super('MMO_ClientSceneContextUpdate', 'MMOnline', lobby, false);
+    this.collect = collect;
+    this.scene = scene;
+  }
+}
+
+export class MMO_ClientSceneContextUpdateTime extends Packet {
   chests: Buffer;
   switches: Buffer;
   //collect: Buffer;
@@ -186,7 +205,6 @@ export class MMO_ClientSceneContextUpdate extends Packet {
     this.scene = scene;
   }
 }
-
 export class MMO_ActorDeadPacket extends Packet {
   actorUUID: string;
   scene: number;

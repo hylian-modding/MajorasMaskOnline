@@ -9,7 +9,7 @@ import { ServerNetworkHandler, IPacketHeader } from 'modloader64_api/NetworkHand
 import { MMOnline_PlayerScene, MMOnlineEvents } from './MMOAPI/MMOAPI';
 import { MMO_ScenePacket, MMO_BottleUpdatePacket, MMO_DownloadRequestPacket, MMO_DownloadResponsePacket, MMO_SubscreenSyncPacket, MMO_ServerFlagUpdate, MMO_BankSyncPacket, MMO_DownloadResponsePacket2, MMO_ClientFlagUpdate, MMO_ClientSceneContextUpdate } from './data/MMOPackets';
 //import { MMO_KeyRebuildPacket, KeyLogManagerServer } from './data/keys/KeyLogManager';
-import { mergeInventoryData, mergeEquipmentData, mergeQuestSaveData, mergeDungeonItemData, MMO_SceneStruct } from './data/MMOSaveData';
+import { mergeInventoryData, mergeEquipmentData, mergeQuestSaveData, mergeDungeonItemData, MMO_SceneStruct, mergePhotoData } from './data/MMOSaveData';
 import { PuppetOverlord } from './data/linkPuppet/PuppetOverlord';
 import { InjectCore } from 'modloader64_api/CoreInjection';
 import * as API from 'MajorasMask/API/MMAPI';
@@ -158,6 +158,7 @@ export class MMOnlineServer {
                         storage.equipmentStorage,
                         storage.questStorage,
                         storage.dungeonItemStorage,
+                        storage.photoStorage,
                         packet.lobby
                     ),
                     new MMO_ServerFlagUpdate(
@@ -192,6 +193,7 @@ export class MMOnlineServer {
         if (storage === null) {
             return;
         }
+        mergePhotoData(storage.photoStorage, packet.photo);
         mergeInventoryData(storage.inventoryStorage, packet.inventory);
         mergeEquipmentData(storage.equipmentStorage, packet.equipment);
         mergeQuestSaveData(storage.questStorage, packet.quest);
@@ -202,6 +204,7 @@ export class MMOnlineServer {
                 storage.equipmentStorage,
                 storage.questStorage,
                 storage.dungeonItemStorage,
+                storage.photoStorage,
                 packet.lobby
             )
         );

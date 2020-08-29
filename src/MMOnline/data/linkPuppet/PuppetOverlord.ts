@@ -149,7 +149,7 @@ export class PuppetOverlord implements IPuppetOverlord {
   processAwaitingSpawns() {
     if (this.awaiting_spawn.length > 0 && !this.queuedSpawn) {
       let puppet: Puppet = this.awaiting_spawn.shift() as Puppet;
-      puppet.onRom(this.rom);
+      //puppet.onRom(this.rom);
       puppet.spawn();
     }
   }
