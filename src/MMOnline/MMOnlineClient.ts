@@ -105,9 +105,9 @@ export class MMOnlineClient {
     updateInventory() {
         this.ModLoader.logger.info('updateInventory()');
         let inventory = createInventoryFromContext(this.core.save);
-        let equipment = createEquipmentFromContext(this.core.save);
-        let quest = createQuestSaveFromContext(this.core.save);
-        let di = createDungeonItemDataFromContext(this.core.save.dungeonItemManager);
+        //let equipment = createEquipmentFromContext(this.core.save);
+        //let quest = createQuestSaveFromContext(this.core.save);
+        //let di = createDungeonItemDataFromContext(this.core.save.dungeonItemManager);
 
         this.ModLoader.logger.info('updateInventory() createPhotoFromContext() Start');
         let photo = createPhotoFromContext(this.core.save.photo);
@@ -117,9 +117,9 @@ export class MMOnlineClient {
         this.ModLoader.logger.info('updateInventory(): mergePhotoData() End')
 
         mergeInventoryData(this.clientStorage.inventoryStorage, inventory);
-        mergeEquipmentData(this.clientStorage.equipmentStorage, equipment);
-        mergeQuestSaveData(this.clientStorage.questStorage, quest);
-        mergeDungeonItemData(this.clientStorage.dungeonItemStorage, di);
+       // mergeEquipmentData(this.clientStorage.equipmentStorage, equipment);
+        //mergeQuestSaveData(this.clientStorage.questStorage, quest);
+        //mergeDungeonItemData(this.clientStorage.dungeonItemStorage, di);
         this.ModLoader.clientSide.sendPacket(new MMO_SubscreenSyncPacket(this.clientStorage.inventoryStorage, this.clientStorage.equipmentStorage, this.clientStorage.questStorage, this.clientStorage.dungeonItemStorage, this.clientStorage.photoStorage, this.ModLoader.clientLobby));
         if (this.clientStorage.bank !== this.ModLoader.emulator.rdramRead16(0x801F054E)) {
             this.clientStorage.bank = this.ModLoader.emulator.rdramRead16(0x801F054E);
@@ -240,7 +240,7 @@ export class MMOnlineClient {
         }
     }
 
-    updateBottles(onlyfillCache = false) {
+    /*updateBottles(onlyfillCache = false) {
         let bottles: API.InventoryItem[] = [
             this.core.save.inventory.FIELD_BOTTLE1,
             this.core.save.inventory.FIELD_BOTTLE2,
@@ -258,7 +258,7 @@ export class MMOnlineClient {
                 }
             }
         }
-    }
+    }*/
 
     updateSkulltulas() {
         /*if (this.clientStorage.lastKnownSkullCount <
@@ -475,6 +475,7 @@ export class MMOnlineClient {
                 inventory.FIELD_BOTTLE6 = packet.contents;
                 break;
         }
+
         mergeInventoryData(this.clientStorage.inventoryStorage, inventory);
         applyInventoryToContext(
             this.clientStorage.inventoryStorage,
@@ -499,7 +500,7 @@ export class MMOnlineClient {
         applyPhotoToContext(packet.subscreen.photo, this.core.save.photo);
         this.ModLoader.logger.info('MMO_DownloadResponsePacket() applyPhotoToContext() End');
         applyInventoryToContext(packet.subscreen.inventory, this.core.save, true);
-        applyEquipmentToContext(packet.subscreen.equipment, this.core.save);
+        //applyEquipmentToContext(packet.subscreen.equipment, this.core.save);
         applyQuestSaveToContext(packet.subscreen.quest, this.core.save);
         applyDungeonItemDataToContext(
             packet.subscreen.dungeonItems,
@@ -522,7 +523,7 @@ export class MMOnlineClient {
         this.clientStorage.first_time_sync = true;
         this.ModLoader.logger.info('The lobby is mine!');
         this.clientStorage.needs_update = true;
-        this.updateBottles(true);
+        //this.updateBottles(true);
     }
 
     @NetworkHandler('MMO_SubscreenSyncPacket')
@@ -552,7 +553,7 @@ export class MMOnlineClient {
         mergePhotoData(this.clientStorage.photoStorage, photo);
         this.ModLoader.logger.debug("onItemSync_client() mergePhotoData() End");
         mergeInventoryData(this.clientStorage.inventoryStorage, inventory);
-        mergeEquipmentData(this.clientStorage.equipmentStorage, equipment);
+        //mergeEquipmentData(this.clientStorage.equipmentStorage, equipment);
         mergeQuestSaveData(this.clientStorage.questStorage, quest);
         mergeDungeonItemData(this.clientStorage.dungeonItemStorage, dungeonItems);
 
@@ -560,7 +561,7 @@ export class MMOnlineClient {
         mergePhotoData(this.clientStorage.photoStorage, packet.photo);
         this.ModLoader.logger.debug("onItemSync_client()2 mergePhotoData()2 End");
         mergeInventoryData(this.clientStorage.inventoryStorage, packet.inventory);
-        mergeEquipmentData(this.clientStorage.equipmentStorage, packet.equipment);
+        //mergeEquipmentData(this.clientStorage.equipmentStorage, packet.equipment);
         mergeQuestSaveData(this.clientStorage.questStorage, packet.quest);
         
         mergeDungeonItemData(
@@ -571,17 +572,17 @@ export class MMOnlineClient {
             this.clientStorage.inventoryStorage,
             this.core.save
         );
-        applyEquipmentToContext(
+        /*applyEquipmentToContext(
             this.clientStorage.equipmentStorage,
             this.core.save
-        );
+        );*/
         this.ModLoader.logger.debug("onItemSync_client() applyPhototoContext: Start");
         try{
                 applyPhotoToContext(
                 this.clientStorage.photoStorage,
                 this.core.save.photo
             )
-            this.ModLoader.logger.debug("onItemSync_client(): End");
+            this.ModLoader.logger.debug("onItemSync_client() applyPhototoContext: End");
         }
         catch (error) {
             console.error(error);

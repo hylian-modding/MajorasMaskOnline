@@ -179,7 +179,7 @@ export function mergeInventoryData(
   if (incoming.FIELD_POWDER_KEG) {
     save.FIELD_POWDER_KEG = true;
   }
-  /*if (incoming.FIELD_BOTTLE1 > save.FIELD_BOTTLE1) {
+  if (incoming.FIELD_BOTTLE1 > save.FIELD_BOTTLE1) {
     save.FIELD_BOTTLE1 = incoming.FIELD_BOTTLE1;
   }
   if (incoming.FIELD_BOTTLE2 > save.FIELD_BOTTLE2) {
@@ -196,7 +196,8 @@ export function mergeInventoryData(
   }
   if (incoming.FIELD_BOTTLE6 > save.FIELD_BOTTLE6) {
     save.FIELD_BOTTLE6 = incoming.FIELD_BOTTLE6;
-  }*/
+  }
+    
   if (incoming.FIELD_QUEST_ITEM_1 > save.FIELD_QUEST_ITEM_1) {
     save.FIELD_QUEST_ITEM_1 = incoming.FIELD_QUEST_ITEM_1;
   }
@@ -205,10 +206,12 @@ export function mergeInventoryData(
   }
   if (incoming.FIELD_QUEST_ITEM_3 > save.FIELD_QUEST_ITEM_3) {
     save.FIELD_QUEST_ITEM_3 = incoming.FIELD_QUEST_ITEM_3;
-  }
+  } 
 
 
   //Masks
+
+  
   if (incoming.FIELD_MASK_POSTMAN) {
     save.FIELD_MASK_POSTMAN = true;
   }
@@ -285,8 +288,7 @@ export function mergeInventoryData(
     save.FIELD_MASK_FIERCE_DEITY = true;
   }
 
-  if(incoming.photoCount > save.photoCount)
-  {
+  if (incoming.photoCount > save.photoCount) {
     save.photoCount = incoming.photoCount;
   }
 
@@ -294,7 +296,7 @@ export function mergeInventoryData(
   // 1st Quest Item Slot
   // TODO: Add actual flag checks to make SOLD_OUT safe.
   //-----------------------------------------------------
-
+  
   // Catchup code first.
   if (
     incoming.FIELD_QUEST_ITEM_1 !== API.InventoryItem.NONE &&
@@ -303,17 +305,16 @@ export function mergeInventoryData(
     save.FIELD_QUEST_ITEM_1 = incoming.FIELD_QUEST_ITEM_1;
   }
 
-  if (
-    incoming.FIELD_QUEST_ITEM_1 > save.FIELD_QUEST_ITEM_1 &&
-    save.FIELD_QUEST_ITEM_1 <= API.InventoryItem.QSLOT1_TITLE_DEED_SWAMP
-  ) {
-    save.FIELD_QUEST_ITEM_1 = incoming.FIELD_QUEST_ITEM_1;
+if (incoming.FIELD_QUEST_ITEM_1 > save.FIELD_QUEST_ITEM_1) {
+    if (isAdultTradeItem(incoming.FIELD_QUEST_ITEM_1)) {
+      save.FIELD_QUEST_ITEM_1 = incoming.FIELD_QUEST_ITEM_1;
+    }
   }
 
   //-----------------------------------------------------
   // 2nd Quest Item Slot
   //-----------------------------------------------------
-
+ 
   // Catchup code first.
   if (
     incoming.FIELD_QUEST_ITEM_2 !== API.InventoryItem.NONE &&
@@ -328,17 +329,27 @@ export function mergeInventoryData(
     }
   }
 
-  // Allow people to bottle dupe over CLAIM_CHECK.
+  //-----------------------------------------------------
+  // 3rd Quest Item Slot
+  //-----------------------------------------------------
+
   if (
-    !isAdultTradeItem(incoming.FIELD_QUEST_ITEM_2) &&
-    save.FIELD_QUEST_ITEM_2 === API.InventoryItem.QSLOT2_SPECIAL_DELIVERY_TO_MAMA
+    incoming.FIELD_QUEST_ITEM_3 !== API.InventoryItem.NONE &&
+    save.FIELD_QUEST_ITEM_3 === API.InventoryItem.NONE
   ) {
-    save.FIELD_QUEST_ITEM_2 = incoming.FIELD_QUEST_ITEM_2;
+    save.FIELD_QUEST_ITEM_3 = incoming.FIELD_QUEST_ITEM_3;
+  }
+
+  if (incoming.FIELD_QUEST_ITEM_3 > save.FIELD_QUEST_ITEM_3) {
+    if (isAdultTradeItem(incoming.FIELD_QUEST_ITEM_3)) {
+      save.FIELD_QUEST_ITEM_3 = incoming.FIELD_QUEST_ITEM_3;
+    }
   }
 
   //-----------------------------------------------------
   // Bottles
   //-----------------------------------------------------
+  
   if (incoming.FIELD_BOTTLE1 !== API.InventoryItem.NONE) {
     save.FIELD_BOTTLE1 = incoming.FIELD_BOTTLE1;
   }
@@ -380,6 +391,7 @@ export function mergeInventoryData(
 
 export function createInventoryFromContext(save: API.ISaveContext): InventorySave {
   let data = new InventorySave();
+  
   data.FIELD_DEKU_STICKS = save.inventory.FIELD_DEKU_STICKS;
   data.FIELD_DEKU_NUT = save.inventory.FIELD_DEKU_NUT;
   data.FIELD_BOMB = save.inventory.FIELD_BOMB;
@@ -437,6 +449,7 @@ export function createInventoryFromContext(save: API.ISaveContext): InventorySav
   data.dekuNutsCapacity = save.inventory.dekuNutsCapacity;
   data.dekuSticksCapacity = save.inventory.dekuSticksCapacity;
   data.photoCount = save.inventory.photoCount;
+  
   return data;
 }
 
@@ -445,6 +458,7 @@ export function applyInventoryToContext(
   save: API.ISaveContext,
   overrideBottles = false
 ) {
+  
   save.inventory.FIELD_DEKU_STICKS = data.FIELD_DEKU_STICKS;
   save.inventory.FIELD_DEKU_NUT = data.FIELD_DEKU_NUT;
   save.inventory.FIELD_BOMB = data.FIELD_BOMB;
@@ -473,9 +487,9 @@ export function applyInventoryToContext(
   save.inventory.FIELD_OCARINA = data.FIELD_OCARINA;
   save.inventory.FIELD_HOOKSHOT = data.FIELD_HOOKSHOT;
   save.inventory.FIELD_LENS_OF_TRUTH = data.FIELD_LENS_OF_TRUTH;
-  save.inventory.FIELD_QUEST_ITEM_1 = data.FIELD_QUEST_ITEM_1;
-  save.inventory.FIELD_QUEST_ITEM_2 = data.FIELD_QUEST_ITEM_2;
-  save.inventory.FIELD_QUEST_ITEM_3 = data.FIELD_QUEST_ITEM_3;
+  //save.inventory.FIELD_QUEST_ITEM_1 = data.FIELD_QUEST_ITEM_1;
+  //save.inventory.FIELD_QUEST_ITEM_2 = data.FIELD_QUEST_ITEM_2;
+  //save.inventory.FIELD_QUEST_ITEM_3 = data.FIELD_QUEST_ITEM_3;
   save.inventory.FIELD_BOTTLE1 = data.FIELD_BOTTLE1;
   save.inventory.FIELD_BOTTLE2 = data.FIELD_BOTTLE2;
   save.inventory.FIELD_BOTTLE3 = data.FIELD_BOTTLE3;
@@ -561,6 +575,7 @@ export function applyInventoryToContext(
   }
   save.inventory.dekuSticksCapacity = data.dekuSticksCapacity;
   save.inventory.photoCount = data.photoCount;
+  
 }
 
 
@@ -595,6 +610,7 @@ export class InventorySave implements API.IInventoryFields {
   FIELD_BOTTLE5: API.InventoryItem = API.InventoryItem.NONE;
   FIELD_BOTTLE6: API.InventoryItem = API.InventoryItem.NONE;
 
+  
   FIELD_MASK_POSTMAN = false;
   FIELD_MASK_ALL_NIGHT = false;
   FIELD_MASK_BLAST = false;
@@ -632,7 +648,7 @@ export class InventorySave implements API.IInventoryFields {
 //-----------------------------------------------------
 
 
-export interface IPhotoSave extends API.IPhoto{
+export interface IPhotoSave extends API.IPhoto {
 
 }
 export class PhotoSave implements IPhotoSave {
@@ -669,7 +685,7 @@ export function applyPhotoToContext(
 export function mergePhotoData(
   save: PhotoSave,
   incoming: PhotoSave
-){
+) {
   if (incoming.pictograph_photoChunk1 != save.pictograph_photoChunk1) {
     save.pictograph_photoChunk1 = incoming.pictograph_photoChunk1;
   }
@@ -685,7 +701,7 @@ export function mergePhotoData(
   if (incoming.pictograph_unk != save.pictograph_unk) {
     save.pictograph_unk = incoming.pictograph_unk;
   }
-  
+
 }
 //-----------------------------------------------------
 // Equipment

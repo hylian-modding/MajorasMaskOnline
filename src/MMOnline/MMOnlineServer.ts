@@ -124,16 +124,16 @@ export class MMOnlineServer {
         }
         switch (packet.slot) {
             case 0:
-                storage.inventoryStorage.FIELD_BOTTLE1 = packet.contents;
+                //storage.inventoryStorage.FIELD_BOTTLE1 = packet.contents;
                 break;
             case 1:
-                storage.inventoryStorage.FIELD_BOTTLE2 = packet.contents;
+                //storage.inventoryStorage.FIELD_BOTTLE2 = packet.contents;
                 break;
             case 2:
-                storage.inventoryStorage.FIELD_BOTTLE3 = packet.contents;
+                //storage.inventoryStorage.FIELD_BOTTLE3 = packet.contents;
                 break;
             case 3:
-                storage.inventoryStorage.FIELD_BOTTLE4 = packet.contents;
+               // storage.inventoryStorage.FIELD_BOTTLE4 = packet.contents;
                 break;
         }
     }
@@ -195,7 +195,7 @@ export class MMOnlineServer {
         }
         mergePhotoData(storage.photoStorage, packet.photo);
         mergeInventoryData(storage.inventoryStorage, packet.inventory);
-        mergeEquipmentData(storage.equipmentStorage, packet.equipment);
+        //mergeEquipmentData(storage.equipmentStorage, packet.equipment);
         mergeQuestSaveData(storage.questStorage, packet.quest);
         mergeDungeonItemData(storage.dungeonItemStorage, packet.dungeonItems);
         this.ModLoader.serverSide.sendPacket(
