@@ -487,9 +487,9 @@ export function applyInventoryToContext(
   save.inventory.FIELD_OCARINA = data.FIELD_OCARINA;
   save.inventory.FIELD_HOOKSHOT = data.FIELD_HOOKSHOT;
   save.inventory.FIELD_LENS_OF_TRUTH = data.FIELD_LENS_OF_TRUTH;
-  //save.inventory.FIELD_QUEST_ITEM_1 = data.FIELD_QUEST_ITEM_1;
-  //save.inventory.FIELD_QUEST_ITEM_2 = data.FIELD_QUEST_ITEM_2;
-  //save.inventory.FIELD_QUEST_ITEM_3 = data.FIELD_QUEST_ITEM_3;
+  save.inventory.FIELD_QUEST_ITEM_1 = data.FIELD_QUEST_ITEM_1;
+  save.inventory.FIELD_QUEST_ITEM_2 = data.FIELD_QUEST_ITEM_2;
+  save.inventory.FIELD_QUEST_ITEM_3 = data.FIELD_QUEST_ITEM_3;
   save.inventory.FIELD_BOTTLE1 = data.FIELD_BOTTLE1;
   save.inventory.FIELD_BOTTLE2 = data.FIELD_BOTTLE2;
   save.inventory.FIELD_BOTTLE3 = data.FIELD_BOTTLE3;
