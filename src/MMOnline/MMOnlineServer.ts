@@ -9,7 +9,7 @@ import { ServerNetworkHandler, IPacketHeader } from 'modloader64_api/NetworkHand
 import { MMOnline_PlayerScene, MMOnlineEvents } from './MMOAPI/MMOAPI';
 import { MMO_ScenePacket, MMO_BottleUpdatePacket, MMO_DownloadRequestPacket, MMO_DownloadResponsePacket, MMO_SubscreenSyncPacket, MMO_ServerFlagUpdate, MMO_BankSyncPacket, MMO_DownloadResponsePacket2, MMO_ClientFlagUpdate, MMO_ClientSceneContextUpdate } from './data/MMOPackets';
 //import { MMO_KeyRebuildPacket, KeyLogManagerServer } from './data/keys/KeyLogManager';
-import { mergeInventoryData, mergeEquipmentData, mergeQuestSaveData, mergeDungeonItemData, MMO_SceneStruct, mergePhotoData } from './data/MMOSaveData';
+import { mergeInventoryData, mergeEquipmentData, mergeQuestSaveData, mergeDungeonItemData, MMO_SceneStruct, mergePhotoData, mergeBottleData, mergeBottleDataTime } from './data/MMOSaveData';
 import { PuppetOverlord } from './data/linkPuppet/PuppetOverlord';
 import { InjectCore } from 'modloader64_api/CoreInjection';
 import * as API from 'MajorasMask/API/MMAPI';
@@ -159,6 +159,7 @@ export class MMOnlineServer {
                         storage.questStorage,
                         storage.dungeonItemStorage,
                         storage.photoStorage,
+                        storage.bottleStorage,
                         packet.lobby
                     ),
                     new MMO_ServerFlagUpdate(
@@ -195,6 +196,8 @@ export class MMOnlineServer {
         }
         mergePhotoData(storage.photoStorage, packet.photo);
         mergeInventoryData(storage.inventoryStorage, packet.inventory);
+        if(this.clientStorage.timeSync) mergeBottleDataTime(this.clientStorage.bottleStorage, packet.bottle);
+        else mergeBottleData(this.clientStorage.bottleStorage, packet.bottle);
         //mergeEquipmentData(storage.equipmentStorage, packet.equipment);
         mergeQuestSaveData(storage.questStorage, packet.quest);
         mergeDungeonItemData(storage.dungeonItemStorage, packet.dungeonItems);
@@ -205,6 +208,7 @@ export class MMOnlineServer {
                 storage.questStorage,
                 storage.dungeonItemStorage,
                 storage.photoStorage,
+                storage.bottleStorage,
                 packet.lobby
             )
         );

@@ -23,6 +23,7 @@ export class MMOnlineStorageBase {
   playerModelCache: any = {};
   dungeonItemStorage: IDungeonItemSave = new MMODungeonItemContext();
   inventoryStorage: InventorySave = new InventorySave();
+  bottleStorage: InventorySave = new InventorySave();
   equipmentStorage: EquipmentSave = new EquipmentSave();
   questStorage: QuestSave = new QuestSave();
   bank: number = 0;

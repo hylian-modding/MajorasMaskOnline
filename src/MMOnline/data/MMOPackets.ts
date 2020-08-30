@@ -29,12 +29,14 @@ export class MMO_PuppetPacket{
     quest: IQuestSave;
     dungeonItems: IDungeonItemSave;
     photo: IPhoto;
+    bottle: InventorySave;
     constructor(
       save: InventorySave,
       equipment: IEquipmentSave,
       quest: IQuestSave,
       dungeonItems: IDungeonItemSave,
       photo: IPhoto,
+      bottle: InventorySave,
       lobby: string
     ) {
       super('MMO_SubscreenSyncPacket', 'MMOnline', lobby, false);
@@ -43,6 +45,7 @@ export class MMO_PuppetPacket{
       this.quest = quest;
       this.dungeonItems = dungeonItems;
       this.photo = photo;
+      this.bottle = bottle;
     }
   }
 

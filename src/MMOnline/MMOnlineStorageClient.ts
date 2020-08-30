@@ -22,4 +22,5 @@ export class MMOnlineStorageClient extends MMOnlineStorageBase {
   localization: any = {};
   scene_keys: any = {};
   first_time_sync = false;
+  timeSync = false;
 }

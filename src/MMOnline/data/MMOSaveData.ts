@@ -1,9 +1,11 @@
 import * as API from 'MajorasMask/API/Imports';
 import { bus } from 'modloader64_api/EventHandler';
 import { MMOnlineEvents } from '../MMOAPI/MMOAPI';
-import { ISwords, IShields, ISaveContext } from 'MajorasMask/API/Imports';
+import { ISwords, IShields, ISaveContext, InventorySlots } from 'MajorasMask/API/Imports';
 import { MMOnlineClient } from '@MMOnline/MMOnlineClient';
 import { Interface } from 'readline';
+import { MMOnlineConfigCategory } from '@MMOnline/MMOnline';
+import { config } from 'process';
 
 
 
@@ -179,25 +181,7 @@ export function mergeInventoryData(
   if (incoming.FIELD_POWDER_KEG) {
     save.FIELD_POWDER_KEG = true;
   }
-  if (incoming.FIELD_BOTTLE1 > save.FIELD_BOTTLE1) {
-    save.FIELD_BOTTLE1 = incoming.FIELD_BOTTLE1;
-  }
-  if (incoming.FIELD_BOTTLE2 > save.FIELD_BOTTLE2) {
-    save.FIELD_BOTTLE2 = incoming.FIELD_BOTTLE2;
-  }
-  if (incoming.FIELD_BOTTLE3 > save.FIELD_BOTTLE3) {
-    save.FIELD_BOTTLE3 = incoming.FIELD_BOTTLE3;
-  }
-  if (incoming.FIELD_BOTTLE4 > save.FIELD_BOTTLE4) {
-    save.FIELD_BOTTLE4 = incoming.FIELD_BOTTLE4;
-  }
-  if (incoming.FIELD_BOTTLE5 > save.FIELD_BOTTLE5) {
-    save.FIELD_BOTTLE5 = incoming.FIELD_BOTTLE5;
-  }
-  if (incoming.FIELD_BOTTLE6 > save.FIELD_BOTTLE6) {
-    save.FIELD_BOTTLE6 = incoming.FIELD_BOTTLE6;
-  }
-    
+
   if (incoming.FIELD_QUEST_ITEM_1 > save.FIELD_QUEST_ITEM_1) {
     save.FIELD_QUEST_ITEM_1 = incoming.FIELD_QUEST_ITEM_1;
   }
@@ -206,12 +190,10 @@ export function mergeInventoryData(
   }
   if (incoming.FIELD_QUEST_ITEM_3 > save.FIELD_QUEST_ITEM_3) {
     save.FIELD_QUEST_ITEM_3 = incoming.FIELD_QUEST_ITEM_3;
-  } 
-
+  }
 
   //Masks
 
-  
   if (incoming.FIELD_MASK_POSTMAN) {
     save.FIELD_MASK_POSTMAN = true;
   }
@@ -296,7 +278,7 @@ export function mergeInventoryData(
   // 1st Quest Item Slot
   // TODO: Add actual flag checks to make SOLD_OUT safe.
   //-----------------------------------------------------
-  
+
   // Catchup code first.
   if (
     incoming.FIELD_QUEST_ITEM_1 !== API.InventoryItem.NONE &&
@@ -305,7 +287,7 @@ export function mergeInventoryData(
     save.FIELD_QUEST_ITEM_1 = incoming.FIELD_QUEST_ITEM_1;
   }
 
-if (incoming.FIELD_QUEST_ITEM_1 > save.FIELD_QUEST_ITEM_1) {
+  if (incoming.FIELD_QUEST_ITEM_1 > save.FIELD_QUEST_ITEM_1) {
     if (isAdultTradeItem(incoming.FIELD_QUEST_ITEM_1)) {
       save.FIELD_QUEST_ITEM_1 = incoming.FIELD_QUEST_ITEM_1;
     }
@@ -314,7 +296,7 @@ if (incoming.FIELD_QUEST_ITEM_1 > save.FIELD_QUEST_ITEM_1) {
   //-----------------------------------------------------
   // 2nd Quest Item Slot
   //-----------------------------------------------------
- 
+
   // Catchup code first.
   if (
     incoming.FIELD_QUEST_ITEM_2 !== API.InventoryItem.NONE &&
@@ -347,29 +329,6 @@ if (incoming.FIELD_QUEST_ITEM_1 > save.FIELD_QUEST_ITEM_1) {
   }
 
   //-----------------------------------------------------
-  // Bottles
-  //-----------------------------------------------------
-  
-  if (incoming.FIELD_BOTTLE1 !== API.InventoryItem.NONE) {
-    save.FIELD_BOTTLE1 = incoming.FIELD_BOTTLE1;
-  }
-  if (incoming.FIELD_BOTTLE2 !== API.InventoryItem.NONE) {
-    save.FIELD_BOTTLE2 = incoming.FIELD_BOTTLE2;
-  }
-  if (incoming.FIELD_BOTTLE3 !== API.InventoryItem.NONE) {
-    save.FIELD_BOTTLE3 = incoming.FIELD_BOTTLE3;
-  }
-  if (incoming.FIELD_BOTTLE4 !== API.InventoryItem.NONE) {
-    save.FIELD_BOTTLE4 = incoming.FIELD_BOTTLE4;
-  }
-  if (incoming.FIELD_BOTTLE5 !== API.InventoryItem.NONE) {
-    save.FIELD_BOTTLE5 = incoming.FIELD_BOTTLE5;
-  }
-  if (incoming.FIELD_BOTTLE6 !== API.InventoryItem.NONE) {
-    save.FIELD_BOTTLE6 = incoming.FIELD_BOTTLE6;
-  }
-
-  //-----------------------------------------------------
   // Upgrades
   //-----------------------------------------------------
   if (save.wallet < incoming.wallet) {
@@ -389,9 +348,99 @@ if (incoming.FIELD_QUEST_ITEM_1 > save.FIELD_QUEST_ITEM_1) {
   }
 }
 
+export function createBottleFromContext(save: API.ISaveContext): InventorySave {
+  let data = new InventorySave();
+  data.FIELD_BOTTLE1 = save.inventory.FIELD_BOTTLE1;
+  data.FIELD_BOTTLE2 = save.inventory.FIELD_BOTTLE2;
+  data.FIELD_BOTTLE3 = save.inventory.FIELD_BOTTLE3;
+  data.FIELD_BOTTLE4 = save.inventory.FIELD_BOTTLE4;
+  data.FIELD_BOTTLE5 = save.inventory.FIELD_BOTTLE5;
+  data.FIELD_BOTTLE6 = save.inventory.FIELD_BOTTLE6;
+
+  return data;
+}
+
+export function mergeBottleData(
+  save: InventorySave,
+  incoming: InventorySave,) {
+  if (incoming.FIELD_BOTTLE1 !== API.InventoryItem.NONE && incoming.FIELD_BOTTLE1 === API.InventoryItem.BOTTLE_EMPTY) save.FIELD_BOTTLE1 = incoming.FIELD_BOTTLE1;
+  if (incoming.FIELD_BOTTLE2 !== API.InventoryItem.NONE && incoming.FIELD_BOTTLE2 === API.InventoryItem.BOTTLE_EMPTY) save.FIELD_BOTTLE2 = incoming.FIELD_BOTTLE2;
+  if (incoming.FIELD_BOTTLE3 !== API.InventoryItem.NONE && incoming.FIELD_BOTTLE3 === API.InventoryItem.BOTTLE_EMPTY) save.FIELD_BOTTLE3 = incoming.FIELD_BOTTLE3;
+  if (incoming.FIELD_BOTTLE4 !== API.InventoryItem.NONE && incoming.FIELD_BOTTLE4 === API.InventoryItem.BOTTLE_EMPTY) save.FIELD_BOTTLE4 = incoming.FIELD_BOTTLE4;
+  if (incoming.FIELD_BOTTLE5 !== API.InventoryItem.NONE && incoming.FIELD_BOTTLE5 === API.InventoryItem.BOTTLE_EMPTY) save.FIELD_BOTTLE5 = incoming.FIELD_BOTTLE5;
+  if (incoming.FIELD_BOTTLE6 !== API.InventoryItem.NONE && incoming.FIELD_BOTTLE6 === API.InventoryItem.BOTTLE_EMPTY) save.FIELD_BOTTLE6 = incoming.FIELD_BOTTLE6;
+}
+
+export function mergeBottleDataTime(
+  save: InventorySave,
+  incoming: InventorySave,) {
+
+  if (incoming.FIELD_BOTTLE1 > save.FIELD_BOTTLE1) {
+    save.FIELD_BOTTLE1 = incoming.FIELD_BOTTLE1;
+  }
+  if (incoming.FIELD_BOTTLE2 > save.FIELD_BOTTLE2) {
+    save.FIELD_BOTTLE2 = incoming.FIELD_BOTTLE2;
+  }
+  if (incoming.FIELD_BOTTLE3 > save.FIELD_BOTTLE3) {
+    save.FIELD_BOTTLE3 = incoming.FIELD_BOTTLE3;
+  }
+  if (incoming.FIELD_BOTTLE4 > save.FIELD_BOTTLE4) {
+    save.FIELD_BOTTLE4 = incoming.FIELD_BOTTLE4;
+  }
+  if (incoming.FIELD_BOTTLE5 > save.FIELD_BOTTLE5) {
+    save.FIELD_BOTTLE5 = incoming.FIELD_BOTTLE5;
+  }
+  if (incoming.FIELD_BOTTLE6 > save.FIELD_BOTTLE6) {
+    save.FIELD_BOTTLE6 = incoming.FIELD_BOTTLE6;
+  }
+
+  if (incoming.FIELD_BOTTLE1 !== API.InventoryItem.NONE) {
+    save.FIELD_BOTTLE1 = incoming.FIELD_BOTTLE1;
+  }
+  if (incoming.FIELD_BOTTLE2 !== API.InventoryItem.NONE) {
+    save.FIELD_BOTTLE2 = incoming.FIELD_BOTTLE2;
+  }
+  if (incoming.FIELD_BOTTLE3 !== API.InventoryItem.NONE) {
+    save.FIELD_BOTTLE3 = incoming.FIELD_BOTTLE3;
+  }
+  if (incoming.FIELD_BOTTLE4 !== API.InventoryItem.NONE) {
+    save.FIELD_BOTTLE4 = incoming.FIELD_BOTTLE4;
+  }
+  if (incoming.FIELD_BOTTLE5 !== API.InventoryItem.NONE) {
+    save.FIELD_BOTTLE5 = incoming.FIELD_BOTTLE5;
+  }
+  if (incoming.FIELD_BOTTLE6 !== API.InventoryItem.NONE) {
+    save.FIELD_BOTTLE6 = incoming.FIELD_BOTTLE6;
+  }
+}
+
+export function applyBottleToContext(
+  data: InventorySave,
+  save: API.ISaveContext,) {
+
+  if (save.inventory.FIELD_BOTTLE1 === API.InventoryItem.NONE && data.FIELD_BOTTLE1 !== API.InventoryItem.NONE) save.inventory.FIELD_BOTTLE1 = API.InventoryItem.BOTTLE_EMPTY;
+  if (save.inventory.FIELD_BOTTLE2 === API.InventoryItem.NONE && data.FIELD_BOTTLE2 !== API.InventoryItem.NONE) save.inventory.FIELD_BOTTLE2 = API.InventoryItem.BOTTLE_EMPTY;
+  if (save.inventory.FIELD_BOTTLE3 === API.InventoryItem.NONE && data.FIELD_BOTTLE3 !== API.InventoryItem.NONE) save.inventory.FIELD_BOTTLE3 = API.InventoryItem.BOTTLE_EMPTY;
+  if (save.inventory.FIELD_BOTTLE4 === API.InventoryItem.NONE && data.FIELD_BOTTLE4 !== API.InventoryItem.NONE) save.inventory.FIELD_BOTTLE4 = API.InventoryItem.BOTTLE_EMPTY;
+  if (save.inventory.FIELD_BOTTLE5 === API.InventoryItem.NONE && data.FIELD_BOTTLE5 !== API.InventoryItem.NONE) save.inventory.FIELD_BOTTLE5 = API.InventoryItem.BOTTLE_EMPTY;
+  if (save.inventory.FIELD_BOTTLE6 === API.InventoryItem.NONE && data.FIELD_BOTTLE6 !== API.InventoryItem.NONE) save.inventory.FIELD_BOTTLE6 = API.InventoryItem.BOTTLE_EMPTY;
+
+}
+
+export function applyBottleToContextTime(
+  data: InventorySave,
+  save: API.ISaveContext,) {
+  save.inventory.FIELD_BOTTLE1 = data.FIELD_BOTTLE1;
+  save.inventory.FIELD_BOTTLE2 = data.FIELD_BOTTLE2;
+  save.inventory.FIELD_BOTTLE3 = data.FIELD_BOTTLE3;
+  save.inventory.FIELD_BOTTLE4 = data.FIELD_BOTTLE4;
+  save.inventory.FIELD_BOTTLE5 = data.FIELD_BOTTLE5;
+  save.inventory.FIELD_BOTTLE6 = data.FIELD_BOTTLE6;
+}
+
 export function createInventoryFromContext(save: API.ISaveContext): InventorySave {
   let data = new InventorySave();
-  
+
   data.FIELD_DEKU_STICKS = save.inventory.FIELD_DEKU_STICKS;
   data.FIELD_DEKU_NUT = save.inventory.FIELD_DEKU_NUT;
   data.FIELD_BOMB = save.inventory.FIELD_BOMB;
@@ -408,12 +457,7 @@ export function createInventoryFromContext(save: API.ISaveContext): InventorySav
   data.FIELD_QUEST_ITEM_1 = save.inventory.FIELD_QUEST_ITEM_1;
   data.FIELD_QUEST_ITEM_2 = save.inventory.FIELD_QUEST_ITEM_2;
   data.FIELD_QUEST_ITEM_3 = save.inventory.FIELD_QUEST_ITEM_3;
-  data.FIELD_BOTTLE1 = save.inventory.FIELD_BOTTLE1;
-  data.FIELD_BOTTLE2 = save.inventory.FIELD_BOTTLE2;
-  data.FIELD_BOTTLE3 = save.inventory.FIELD_BOTTLE3;
-  data.FIELD_BOTTLE4 = save.inventory.FIELD_BOTTLE4;
-  data.FIELD_BOTTLE5 = save.inventory.FIELD_BOTTLE5;
-  data.FIELD_BOTTLE6 = save.inventory.FIELD_BOTTLE6;
+
   data.FIELD_PICTOGRAPH_BOX = save.inventory.FIELD_PICTOGRAPH_BOX;
   data.FIELD_POWDER_KEG = save.inventory.FIELD_POWDER_KEG;
   data.FIELD_GREAT_FAIRYS_SWORD = save.inventory.FIELD_GREAT_FAIRYS_SWORD;
@@ -449,7 +493,7 @@ export function createInventoryFromContext(save: API.ISaveContext): InventorySav
   data.dekuNutsCapacity = save.inventory.dekuNutsCapacity;
   data.dekuSticksCapacity = save.inventory.dekuSticksCapacity;
   data.photoCount = save.inventory.photoCount;
-  
+
   return data;
 }
 
@@ -458,7 +502,7 @@ export function applyInventoryToContext(
   save: API.ISaveContext,
   overrideBottles = false
 ) {
-  
+
   save.inventory.FIELD_DEKU_STICKS = data.FIELD_DEKU_STICKS;
   save.inventory.FIELD_DEKU_NUT = data.FIELD_DEKU_NUT;
   save.inventory.FIELD_BOMB = data.FIELD_BOMB;
@@ -490,12 +534,7 @@ export function applyInventoryToContext(
   save.inventory.FIELD_QUEST_ITEM_1 = data.FIELD_QUEST_ITEM_1;
   save.inventory.FIELD_QUEST_ITEM_2 = data.FIELD_QUEST_ITEM_2;
   save.inventory.FIELD_QUEST_ITEM_3 = data.FIELD_QUEST_ITEM_3;
-  save.inventory.FIELD_BOTTLE1 = data.FIELD_BOTTLE1;
-  save.inventory.FIELD_BOTTLE2 = data.FIELD_BOTTLE2;
-  save.inventory.FIELD_BOTTLE3 = data.FIELD_BOTTLE3;
-  save.inventory.FIELD_BOTTLE4 = data.FIELD_BOTTLE4;
-  save.inventory.FIELD_BOTTLE5 = data.FIELD_BOTTLE5;
-  save.inventory.FIELD_BOTTLE6 = data.FIELD_BOTTLE6;
+
   save.inventory.FIELD_PICTOGRAPH_BOX = data.FIELD_PICTOGRAPH_BOX;
   save.inventory.FIELD_POWDER_KEG = data.FIELD_POWDER_KEG;
   save.inventory.FIELD_GREAT_FAIRYS_SWORD = data.FIELD_GREAT_FAIRYS_SWORD;
@@ -575,7 +614,7 @@ export function applyInventoryToContext(
   }
   save.inventory.dekuSticksCapacity = data.dekuSticksCapacity;
   save.inventory.photoCount = data.photoCount;
-  
+
 }
 
 
@@ -610,7 +649,7 @@ export class InventorySave implements API.IInventoryFields {
   FIELD_BOTTLE5: API.InventoryItem = API.InventoryItem.NONE;
   FIELD_BOTTLE6: API.InventoryItem = API.InventoryItem.NONE;
 
-  
+
   FIELD_MASK_POSTMAN = false;
   FIELD_MASK_ALL_NIGHT = false;
   FIELD_MASK_BLAST = false;
