@@ -925,7 +925,7 @@ export function applyQuestSaveToContext(data: IQuestSave, save: API.ISaveContext
   let lastKnownMagic: API.Magic = save.magic_meter_size;
   save.magic_meter_size = data.magic_meter_size;
   if (lastKnownMagic < data.magic_meter_size) {
-    bus.emit(MMOnlineEvents.MAGIC_METER_INCREASED, data.magic_meter_size);
+    //bus.emit(MMOnlineEvents.MAGIC_METER_INCREASED, data.magic_meter_size);
   }
   let lastKnownDD: number = save.double_defense;
   save.double_defense = data.double_defense;
