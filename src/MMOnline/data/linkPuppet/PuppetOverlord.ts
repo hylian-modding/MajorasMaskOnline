@@ -13,6 +13,9 @@ import { HorseData } from './HorseData';
 import { IMMCore, MMForms, MMEvents } from 'MajorasMask/API/MMAPI';
 import { IActor } from 'MajorasMask/API/IActor';
 import { Z64RomTools } from '@MMOnline/Z64Lib/API/Z64RomTools';
+import { MMOnlineClient } from '@MMOnline/MMOnlineClient';
+import { PlayerSchedule, get_scaled_time, PlayerScheduleData, RECORD_TICK_MODULO, get_scaled_time_floor, get_schedule_data_index_at_time, get_linear_time } from '../MMOPlayerSchedule';
+import { MMOnlineStorageClient } from '@MMOnline/MMOnlineStorageClient';
 import MMOnline from '@MMOnline/MMOnline';
 
 export class PuppetOverlord implements IPuppetOverlord {
@@ -33,10 +36,12 @@ export class PuppetOverlord implements IPuppetOverlord {
   private ModLoader!: IModLoaderAPI;
   @InjectCore()
   private core!: IMMCore;
-
-  constructor(parent: IMMOnlineHelpers, core: IMMCore) {
+  clientStorage!: MMOnlineStorageClient;
+  
+  constructor(parent: IMMOnlineHelpers, core: IMMCore, clientStorage: MMOnlineStorageClient) {
     this.parent = parent;
     this.core = core;
+    this.clientStorage = clientStorage;
   }
 
   @Postinit()
@@ -76,7 +81,7 @@ export class PuppetOverlord implements IPuppetOverlord {
       'Player ' + player.nickname + ' awaiting puppet assignment.'
     );
     this.playersAwaitingPuppets.push(player);
-  }
+  }  
 
   unregisterPuppet(player: INetworkPlayer) {
     if (this.puppets.has(player.uuid)) {
@@ -104,18 +109,46 @@ export class PuppetOverlord implements IPuppetOverlord {
       if (puppet.isSpawned && puppet.form !== form) {
         puppet.despawn();
       }
-      puppet.scene = entering_scene;
-      puppet.form = form;
-      this.ModLoader.logger.info(
-        'Puppet ' + puppet.id + ' moved to scene ' + puppet.scene
-      );
+
+      if (this.clientStorage.syncMode !== 2) {
+        puppet.scene = entering_scene;
+        puppet.form = form;
+        this.ModLoader.logger.info(
+          'Puppet ' + puppet.id + ' moved to scene ' + puppet.scene
+        );
+
+        if (this.fakeClientPuppet.scene === puppet.scene) {
+          this.ModLoader.logger.info(
+            'Queueing puppet ' + puppet.id + ' for immediate spawning.'
+          );
+          this.awaiting_spawn.push(puppet);
+        }
+      }
+      else {
+        let index = get_scaled_time(puppet.data.time);
+
+        if (Math.abs(puppet.data.time - get_linear_time(this.core.save.day_time, this.core.save.current_day)) <= 135
+          || this.clientStorage.schedules[puppet.player.uuid].schedule_data[index] === undefined) {
+          puppet.scene = entering_scene;
+          puppet.form = form;
+          this.ModLoader.logger.info('Puppet ' + puppet.id + ' moved to scene ' + puppet.scene);
+        }
+        else {
+          let scene = this.clientStorage.schedules[puppet.player.uuid].schedule_data[index].scene;
+          puppet.scene = scene;
+          puppet.form = form;
+          this.ModLoader.logger.info('Puppet ' + puppet.id + ' moved to scene ' + puppet.scene);
+        }
+      }
+
       if (this.fakeClientPuppet.scene === puppet.scene) {
         this.ModLoader.logger.info(
           'Queueing puppet ' + puppet.id + ' for immediate spawning.'
         );
         this.awaiting_spawn.push(puppet);
       }
-    } else {
+    }
+    else {
       this.ModLoader.logger.info('No puppet found for player ' + player.nickname + '.');
     }
   }
@@ -156,36 +189,44 @@ export class PuppetOverlord implements IPuppetOverlord {
 
   lookForMissingOrStrandedPuppets() {
     let check = false;
-    this.puppets.forEach(
-      (value: Puppet, key: string, map: Map<string, Puppet>) => {
-        if (value.scene === this.fakeClientPuppet.scene) {
-          if (!value.isSpawned && this.awaiting_spawn.indexOf(value) === -1) {
-            this.awaiting_spawn.push(value);
-          }
-          check = true;
-        }
-        if (
-          value.scene !== this.fakeClientPuppet.scene &&
-          value.isSpawned &&
-          !value.isShoveled
-        ) {
-          value.shovel();
-        }
+
+    this.puppets.forEach((puppet: Puppet, key: string, map: Map<string, Puppet>) => {
+      let scene = 111
+      let index = get_scaled_time(puppet.data.time);
+
+      if (this.clientStorage.syncMode !== 2) scene = puppet.scene
+      else {
+        if (Math.abs(puppet.data.time - get_linear_time(this.core.save.day_time, this.core.save.current_day)) <= 135 
+          || this.clientStorage.schedules[puppet.player.uuid].schedule_data[index] === undefined) scene = puppet.scene;
+        else scene = this.clientStorage.schedules[puppet.player.uuid].schedule_data[index].scene;
       }
-    );
-    if (check) {
-      this.amIAlone = false;
-    } else {
-      this.amIAlone = true;
-    }
+    
+      if (scene === this.fakeClientPuppet.scene) {
+        if (!puppet.isSpawned && this.awaiting_spawn.indexOf(puppet) === -1) {
+          this.awaiting_spawn.push(puppet);
+        }
+        check = true;
+      }
+  
+      if (scene !== this.fakeClientPuppet.scene && puppet.isSpawned && !puppet.isShoveled) {
+        puppet.shovel();
+      }
+
+    });
+
+    if (check) this.amIAlone = false;
+    else this.amIAlone = true;
   }
+
+  /*
+    it's reggie fils anime
+  */
 
   sendPuppetPacket() {
     if (!this.amIAlone) {
       let packet = new MMO_PuppetPacket(this.fakeClientPuppet.data, this.ModLoader.clientLobby);
-      /*       if (this.Epona !== undefined) {
-              packet.setHorseData(this.Epona);
-            } */
+      packet.data.time = get_linear_time(this.core.save.day_time, this.core.save.current_day);
+      this.ModLoader.logger.debug("Sending packet, in time should be " + packet.data.time.toString());
       this.ModLoader.clientSide.sendPacket(new MMO_PuppetWrapperPacket(packet, this.ModLoader.clientLobby));
     }
   }
@@ -194,7 +235,20 @@ export class PuppetOverlord implements IPuppetOverlord {
     if (this.puppets.has(packet.player.uuid)) {
       let puppet: Puppet = this.puppets.get(packet.player.uuid)!;
       let actualPacket = JSON.parse(packet.data) as MMO_PuppetPacket;
-      puppet.processIncomingPuppetData(actualPacket.data);
+      let scaled_time = get_scaled_time(actualPacket.data.time);
+      let linear_time = get_linear_time(this.core.save.day_time, this.core.save.current_day);
+
+      if (this.clientStorage.schedules[packet.player.uuid].schedule_data[scaled_time] === undefined) this.clientStorage.schedules[packet.player.uuid].schedule_data[scaled_time] = new PlayerScheduleData()
+
+      this.clientStorage.schedules[packet.player.uuid].schedule_data[scaled_time].pos = actualPacket.data.pos;
+      this.clientStorage.schedules[packet.player.uuid].schedule_data[scaled_time].rot = actualPacket.data.rot;
+      this.clientStorage.schedules[packet.player.uuid].schedule_data[scaled_time].anim = actualPacket.data.anim;
+      this.clientStorage.schedules[packet.player.uuid].schedule_data[scaled_time].scene = puppet.scene;
+      this.clientStorage.schedules[packet.player.uuid].schedule_data[scaled_time].alive = true;
+
+      this.ModLoader.logger.debug("Updated schedule for " + packet.player.uuid + " at index " + scaled_time.toString())
+
+      if ((this.clientStorage.syncMode === 2 && Math.abs(scaled_time - linear_time) > 135) || this.clientStorage.syncMode !== 2) puppet.processIncomingPuppetData(actualPacket.data);
       //if (actualPacket.horse_data !== undefined) {
         /*         puppet.processIncomingHorseData(actualPacket.horse_data); */
       //}
@@ -227,13 +281,17 @@ export class PuppetOverlord implements IPuppetOverlord {
 
   @onTick()
   onTick() {
-    if (
-      this.core.helper.isTitleScreen() ||
-      !this.core.helper.isSceneNumberValid() ||
-      this.core.helper.isPaused()
-    ) {
-      return;
+    if (this.clientStorage.syncMode !== 2) {
+      if (this.core.helper.isTitleScreen() || !this.core.helper.isSceneNumberValid() || this.core.helper.isPaused()) {
+        return;
+      }
     }
+    else {
+      if (this.core.helper.isTitleScreen() || !this.core.helper.isSceneNumberValid()) {
+        return;
+      }
+    }
+
     if (
       !this.core.helper.isLinkEnteringLoadingZone() &&
       this.core.helper.isInterfaceShown() &&
@@ -243,6 +301,30 @@ export class PuppetOverlord implements IPuppetOverlord {
       this.processAwaitingSpawns();
       this.lookForMissingOrStrandedPuppets();
     }
+
+    if (this.clientStorage.syncMode === 2) {
+      let linear_time = get_linear_time(this.core.save.day_time, this.core.save.current_day);
+      let scaled_time = 0;
+
+      this.puppets.forEach((puppet: Puppet, key: string, map: Map<string, Puppet>) => {
+        this.ModLoader.logger.info("Time difference is " + Math.abs(puppet.data.time - linear_time).toString() + " (" + get_scaled_time(Math.abs(puppet.data.time - linear_time)) + " schedule ticks)!");
+        if (this.clientStorage.schedules[puppet.player.uuid] !== undefined && Math.abs(puppet.data.time - linear_time) > 135) {
+          let schedule_data0: PlayerScheduleData = this.clientStorage.schedules[puppet.player.uuid].schedule_data[get_scaled_time(linear_time)]
+          scaled_time = get_scaled_time(puppet.data.time);
+
+          if (schedule_data0 !== undefined && schedule_data0.alive) {
+            puppet.data.pos = schedule_data0.pos
+            puppet.data.rot = schedule_data0.rot
+            puppet.data.anim = schedule_data0.anim
+            //puppet.scene = schedule_data0.scene;
+
+            this.ModLoader.logger.debug("schedule_data0 for " + puppet.player.uuid + " at time " + puppet.data.time.toString() + " (" + scaled_time.toString() + " scaled) is alive on scene " + schedule_data0.scene.toString() + "!")
+          }
+          else return;
+        }
+      });
+    }
+
     this.sendPuppetPacket();
   }
 
@@ -252,11 +334,13 @@ export class PuppetOverlord implements IPuppetOverlord {
   @EventHandler(EventsClient.ON_PLAYER_JOIN)
   onPlayerJoin(player: INetworkPlayer) {
     this.registerPuppet(player);
+    if (this.clientStorage.syncMode == 2) this.clientStorage.schedules[player.uuid] = new PlayerSchedule();
   }
 
   @EventHandler(EventsClient.ON_PLAYER_LEAVE)
   onPlayerLeft(player: INetworkPlayer) {
     this.unregisterPuppet(player);
+    if (this.clientStorage.syncMode == 2) delete this.clientStorage.schedules[player.uuid];
   }
 
   @EventHandler(MMEvents.ON_LOADING_ZONE)
@@ -282,13 +366,16 @@ export class PuppetOverlord implements IPuppetOverlord {
 
   @NetworkHandler('MMO_PuppetPacket')
   onPuppetData_client(packet: MMO_PuppetWrapperPacket) {
-    if (
-      this.core.helper.isTitleScreen() ||
-      this.core.helper.isPaused() ||
-      this.core.helper.isLinkEnteringLoadingZone()
-    ) {
-      return;
+    if (this.clientStorage.syncMode !== 2) {
+      if (this.core.helper.isTitleScreen() ||
+        this.core.helper.isPaused() ||
+        this.core.helper.isLinkEnteringLoadingZone()
+      ) {
+        return;
+      }
     }
+    else if (this.core.helper.isTitleScreen() || this.core.helper.isLinkEnteringLoadingZone()) return;
+
     this.processPuppetPacket(packet);
   }
 

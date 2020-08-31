@@ -1,6 +1,6 @@
 import { IPlugin, IModLoaderAPI, IPluginServerConfig, ModLoaderEvents } from 'modloader64_api/IModLoaderAPI';
 import { EventHandler, bus, EventsServer, EventsClient, EventServerJoined, EventServerLeft } from 'modloader64_api/EventHandler';
-import { IMMOnlineHelpers, MMOnlineEvents, MMOnline_PlayerScene } from './MMOAPI/MMOAPI';
+import { IMMOnlineHelpers, MMOnlineEvents, MMOnline_PlayerScene, MMO_CHILD_MODEL_EVENT } from './MMOAPI/MMOAPI';
 
 
 // @Drahsid TODO: Move to Z64lib?
@@ -39,7 +39,7 @@ export interface IMMOnlineLobbyConfig {
 export class MMOnlineConfigCategory {
     mapTracker: boolean = false;
     keySync: boolean = true;
-    timeSync: boolean = true;
+    syncMode: number = 0;
 }
 
 class MMOnline implements IPlugin, IMMOnlineHelpers, IPluginServerConfig {
@@ -54,13 +54,13 @@ class MMOnline implements IPlugin, IMMOnlineHelpers, IPluginServerConfig {
 
     puppets: PuppetOverlord;
 
-    constructor() {
-        this.puppets = new PuppetOverlord(this, this.core);
-    }
-
     // Storage
     LobbyConfig: IMMOnlineLobbyConfig = {} as IMMOnlineLobbyConfig;
     clientStorage: MMOnlineStorageClient = new MMOnlineStorageClient();
+
+    constructor() {
+        this.puppets = new PuppetOverlord(this, this.core, this.clientStorage);
+    }
 
     sendPacketToPlayersInScene(packet: IPacketHeader): void {
         if (this.server !== undefined) {
@@ -72,9 +72,11 @@ class MMOnline implements IPlugin, IMMOnlineHelpers, IPluginServerConfig {
         return this.client !== undefined ? this.client.clientStorage : null;
     }
     
-    preinit(): void { }
+    preinit(): void {
+        if (this.client !== undefined) this.client.clientStorage = this.clientStorage;
+    }
 
-    init(): void { }
+    init(): void {}
 
     postinit(): void {
         this.writeModel();

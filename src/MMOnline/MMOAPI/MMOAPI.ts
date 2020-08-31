@@ -24,7 +24,8 @@ export enum MMOnlineEvents {
   CUSTOM_MODEL_APPLIED_CHILD_MATRIX_ITEM_SHIELD = "MMOnline:CUSTOM_MODEL_APPLIED_CHILD_MATRIX_ITEM_SHIELD",
   ON_INVENTORY_UPDATE = 'MMOnline:OnInventoryUpdate',
   ON_EXTERNAL_ACTOR_SYNC_LOAD = 'MMOnline:OnExternalActorSyncLoad',
-  ON_REGISTER_EMOTE = 'MMOnline:OnRegisterEmote'
+  ON_REGISTER_EMOTE = 'MMOnline:OnRegisterEmote',
+  ON_PLAYER_TIME_UPDATE = "MMOnline:OnPlayerTimeUpdate"
 }
 
 export class MMOnline_PlayerScene {

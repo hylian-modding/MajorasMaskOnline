@@ -13,7 +13,7 @@ import path from 'path';
 import { IMMCore , MMForms, MMEvents} from 'MajorasMask/API/MMAPI';
 import { Z64RomTools } from '@MMOnline/Z64Lib/API/Z64RomTools';
 import MMOnline from '@MMOnline/MMOnline';
-import { MMOnlineClient } from '@MMOnline/MMOnlineClient';
+
 
 const DEADBEEF_OFFSET: number = 0x288;
 
@@ -32,7 +32,6 @@ export class Puppet implements IPuppet {
   horse!: HorseData;
   parent: IMMOnlineHelpers;
   tunic_color!: number;
-  MMOClient = new MMOnlineClient;
 
   constructor(
     player: INetworkPlayer,
@@ -71,6 +70,7 @@ export class Puppet implements IPuppet {
       this.ModLoader.logger.debug('Puppet resurrected.');
       return;
     }
+
     if (!this.isSpawned && !this.isSpawning) {
       bus.emit(MMOnlineEvents.PLAYER_PUPPET_PRESPAWN, this);
       this.isSpawning = true;
@@ -88,6 +88,7 @@ export class Puppet implements IPuppet {
             this.doNotDespawnMe(horse);
             //this.horse = new HorseData(this.core.link, this, this.core);
           }
+
           this.void = this.ModLoader.math.rdramReadV3(this.data.pointer + 0x24);
           this.isSpawned = true;
           this.isSpawning = false;
@@ -168,7 +169,7 @@ export class Puppet implements IPuppet {
 
   makeRamDump() {
     fs.writeFileSync(global.ModLoader["startdir"] + "/ram_dump.bin", this.ModLoader.emulator.rdramReadBuffer(0x0, (16 * 1024 * 1024)));
-}
+  }
 
   //@EventHandler(ModLoaderEvents.ON_ROM_PATCHED)
   /*onRom(rom: any) {

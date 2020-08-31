@@ -7,7 +7,7 @@ import MMOnline from './MMOnline';
 import { IModLoaderAPI, ModLoaderEvents } from 'modloader64_api/IModLoaderAPI';
 import { ServerNetworkHandler, IPacketHeader } from 'modloader64_api/NetworkHandler';
 import { MMOnline_PlayerScene, MMOnlineEvents } from './MMOAPI/MMOAPI';
-import { MMO_ScenePacket, MMO_BottleUpdatePacket, MMO_DownloadRequestPacket, MMO_DownloadResponsePacket, MMO_SubscreenSyncPacket, MMO_ServerFlagUpdate, MMO_BankSyncPacket, MMO_DownloadResponsePacket2, MMO_ClientFlagUpdate, MMO_ClientSceneContextUpdate } from './data/MMOPackets';
+import { MMO_ScenePacket, MMO_BottleUpdatePacket, MMO_DownloadRequestPacket, MMO_DownloadResponsePacket, MMO_SubscreenSyncPacket, MMO_ServerFlagUpdate, MMO_BankSyncPacket, MMO_DownloadResponsePacket2, MMO_ClientFlagUpdate, MMO_ClientSceneContextUpdate, MMO_TimePacket } from './data/MMOPackets';
 //import { MMO_KeyRebuildPacket, KeyLogManagerServer } from './data/keys/KeyLogManager';
 import { mergeInventoryData, mergeEquipmentData, mergeQuestSaveData, mergeDungeonItemData, MMO_SceneStruct, mergePhotoData, mergeBottleData, mergeBottleDataTime } from './data/MMOSaveData';
 import { PuppetOverlord } from './data/linkPuppet/PuppetOverlord';
@@ -22,6 +22,7 @@ export class MMOnlineServer {
     core!: API.IMMCore;
     @ParentReference()
     parent!: MMOnline;
+
     /*@SidedProxy(ProxySide.SERVER, ActorHookingManagerServer)
     actorHooks!: ActorHookingManagerServer;
     @SidedProxy(ProxySide.SERVER, KeyLogManagerServer)
@@ -38,14 +39,14 @@ export class MMOnlineServer {
                 return;
             }
             Object.keys(storage.players).forEach((key: string) => {
-                if (storage.players[key] === storage.players[packet.player.uuid]) {
+                //if (storage.players[key] === storage.players[packet.player.uuid]) {
                     if (storage.networkPlayerInstances[key].uuid !== packet.player.uuid) {
                         this.ModLoader.serverSide.sendPacketToSpecificPlayer(
                             packet,
                             storage.networkPlayerInstances[key]
                         );
                     }
-                }
+                //}
             });
         } catch (err) { }
     }
@@ -66,9 +67,11 @@ export class MMOnlineServer {
             evt.lobby,
             this.parent
         ) as MMOnlineStorage;
+
         if (storage === null) {
             return;
         }
+
         storage.players[evt.player.uuid] = -1;
         storage.networkPlayerInstances[evt.player.uuid] = evt.player;
     }
@@ -79,9 +82,11 @@ export class MMOnlineServer {
             evt.lobby,
             this.parent
         ) as MMOnlineStorage;
+
         if (storage === null) {
             return;
         }
+
         delete storage.players[evt.player.uuid];
         delete storage.networkPlayerInstances[evt.player.uuid];
     }
@@ -93,10 +98,13 @@ export class MMOnlineServer {
                 packet.lobby,
                 this.parent
             ) as MMOnlineStorage;
+
             if (storage === null) {
                 return;
             }
+
             storage.players[packet.player.uuid] = packet.scene;
+
             this.ModLoader.logger.info(
                 'Server: Player ' +
                 packet.player.nickname +
@@ -109,6 +117,64 @@ export class MMOnlineServer {
         }
     }
 
+    // @ServerNetworkHandler('MMO_TimePacket')
+    // onTimeUpdateServer(packet: MMO_TimePacket) {
+    //     try {
+    //         let storage: MMOnlineStorage = this.ModLoader.lobbyManager.getLobbyStorage(
+    //             packet.lobby,
+    //             this.parent
+    //         ) as MMOnlineStorage;
+
+    //         if (storage === null) {
+    //             return;
+    //         }
+
+    //         let time = get_scaled_time(packet.time);
+    //         storage.schedules[packet.player.uuid].current_time = packet.time;
+    //         storage.schedules[packet.player.uuid].current_day = packet.day;
+    //         storage.schedules[packet.player.uuid].time_speed = packet.time_speed;
+    //         storage.schedules[packet.player.uuid].schedule_data[time].pos = puppets[packet.player.uuid].pos
+    //         storage.schedules[packet.player.uuid].schedule_data[time].rot = puppets[packet.player.uuid].rot;
+    //         storage.schedules[packet.player.uuid].schedule_data[time].anim = puppets[packet.player.uuid].anim;
+    //         storage.schedules[packet.player.uuid].schedule_data[time].scene = puppets[packet.player.uuid].current_scene;
+    //         storage.schedules[packet.player.uuid].schedule_data[time].alive = true;
+
+    //         //this.puppetOverlord.puppets[packet.player.uuid].pos
+    //     }
+    //     catch(err) {}
+    // }
+
+    // @ServerNetworkHandler('MMO_QueryPlayerScheduleDataPacket')
+    // onQueryPlayerScheduleData(packet: any) {
+    //     try {
+    //         let storage: MMOnlineStorage = this.ModLoader.lobbyManager.getLobbyStorage(
+    //             packet.lobby,
+    //             this.parent
+    //         ) as MMOnlineStorage;
+
+    //         if (storage === null) {
+    //             return;
+    //         }
+            
+    //         let return_data: PlayerScheduleData[] = [];
+    //         let schedule: PlayerScheduleData;
+    //         let time = storage.schedules[packet.player.uuid].current_time;
+    //         let day = storage.schedules[packet.player.uuid].current_day;
+    //         let scene = storage.schedules[packet.player.uuid].current_scene;
+            
+
+    //         Object.keys(storage.players).forEach((key: string) => {
+    //             if (storage.networkPlayerInstances[key].uuid !== packet.player.uuid) {
+    //                 schedule = storage.schedules[storage.networkPlayerInstances[key].uuid].get_schedule_data_at_time(time, day);
+    //                 if (schedule.scene == scene && schedule.alive) return_data.push(schedule);
+    //             }
+    //         })
+
+    //         // send return_data in a packet
+    //     }
+    //     catch(err) {}
+    // }
+    
     //------------------------------
     // Subscreen Syncing
     //------------------------------
@@ -196,7 +262,7 @@ export class MMOnlineServer {
         }
         mergePhotoData(storage.photoStorage, packet.photo);
         mergeInventoryData(storage.inventoryStorage, packet.inventory);
-        if(this.clientStorage.timeSync) mergeBottleDataTime(this.clientStorage.bottleStorage, packet.bottle);
+        if(this.clientStorage.syncMode === 0) mergeBottleDataTime(this.clientStorage.bottleStorage, packet.bottle);
         else mergeBottleData(this.clientStorage.bottleStorage, packet.bottle);
         //mergeEquipmentData(storage.equipmentStorage, packet.equipment);
         mergeQuestSaveData(storage.questStorage, packet.quest);

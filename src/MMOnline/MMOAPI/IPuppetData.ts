@@ -9,3 +9,4 @@ export interface IPuppetData {
     rot: Buffer;
     toJSON(): any;
 }
+

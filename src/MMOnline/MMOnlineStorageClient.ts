@@ -1,5 +1,6 @@
 import { MMOnlineStorageBase } from './MMOnlineStorageBase';
 import * as API from 'MajorasMask/API/MMAPI';
+import PlayerSchedule from './data/MMOPlayerSchedule';
 
 export class MMOnlineStorageClient extends MMOnlineStorageBase {
   autoSaveHash = '!';
@@ -21,6 +22,10 @@ export class MMOnlineStorageClient extends MMOnlineStorageBase {
   overlayCache: any = {};
   localization: any = {};
   scene_keys: any = {};
+  schedules: any = {};
+  schedule: PlayerSchedule = new PlayerSchedule();
   first_time_sync = false;
-  timeSync = false;
+  syncMode = 0;
+  last_time = 0;
+  last_day = 0;
 }

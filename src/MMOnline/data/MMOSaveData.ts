@@ -914,46 +914,31 @@ export function applyQuestSaveToContext(data: IQuestSave, save: API.ISaveContext
 
   save.questStatus.bombersNotebook = data.bombersNotebook;
 
-  save.questStatus.heartPieces1 = data.heartPieces1;
-  save.questStatus.heartPieces2 = data.heartPieces2;
-  save.questStatus.heartPieces3 = data.heartPieces3;
-  save.questStatus.heartPieces4 = data.heartPieces4;
-
+  if(save.questStatus.heartPieces1 < data.heartPieces1 && !save.questStatus.heartPieces2) {
+    save.questStatus.heartPieces1 = data.heartPieces1;
+    bus.emit(MMOnlineEvents.GAINED_PIECE_OF_HEART, data.heartPieces1);
+  }
+  if(save.questStatus.heartPieces2 < data.heartPieces2 && !save.questStatus.heartPieces1)
+  {
+    save.questStatus.heartPieces2 = data.heartPieces2;
+    save.questStatus.heartPieces1 = false;
+    bus.emit(MMOnlineEvents.GAINED_PIECE_OF_HEART, data.heartPieces2);
+  } 
+  if(data.heartPieces1 > save.questStatus.heartPieces1 && data.heartPieces2 > save.questStatus.heartPieces2)
+  {
+    save.questStatus.heartPieces1 = data.heartPieces1;
+    save.questStatus.heartPieces2 = data.heartPieces2;
+  }
+  if(save.questStatus.heartPieces3 < data.heartPieces3 && save.questStatus.heartPieces2 && save.questStatus.heartPieces1) save.questStatus.heartPieces3 = data.heartPieces3;
+  if(save.questStatus.heartPieces3) {
+    save.questStatus.heartPieces1 = false;
+    save.questStatus.heartPieces2 = false;
+    save.questStatus.heartPieces3 = false;
+    bus.emit(MMOnlineEvents.GAINED_HEART_CONTAINER, data.heartPieces3);
+  }
   save.owl_statues = data.owl_statues;
   save.map_visited = data.map_visited;
   save.map_visible = data.map_visible;
-
-  let lastKnownHP: number = 0;
-
-  if (data.heartPieces1 && !data.heartPieces2 && !data.heartPieces3 && !data.heartPieces4) {
-    lastKnownHP = 1;
-  }
-  if (data.heartPieces1 && data.heartPieces2 && !data.heartPieces3 && !data.heartPieces4) {
-    lastKnownHP = 2;
-  }
-
-  if (data.heartPieces1 && data.heartPieces2 && data.heartPieces3 && !data.heartPieces4) {
-    lastKnownHP = 3;
-  }
-
-  if (data.heartPieces1 && data.heartPieces2 && data.heartPieces3 && data.heartPieces4) {
-    lastKnownHP = 4;
-  }
-
-  if (lastKnownHP != 0) {
-    bus.emit(MMOnlineEvents.GAINED_PIECE_OF_HEART, data.heartPieces1);
-    if (lastKnownHP == 4) {
-      lastKnownHP = 0;
-      save.questStatus.heartPieces1 = false;
-      save.questStatus.heartPieces2 = false;
-      save.questStatus.heartPieces3 = false;
-      save.questStatus.heartPieces4 = false;
-      data.heartPieces1 = false;
-      data.heartPieces2 = false;
-      data.heartPieces3 = false;
-      data.heartPieces4 = false;
-    }
-  }
 
 
   let lastKnownHC: number = save.heart_containers;
@@ -1052,22 +1037,15 @@ export function mergeQuestSaveData(save: IQuestSave, incoming: IQuestSave) {
 
 
   // No idea if this logic is correct. Needs testing.
-  if (incoming.heartPieces1 > save.heartPieces1) {
+  if (incoming.heartPieces1) {
     save.heartPieces1 = incoming.heartPieces1;
   }
-  if (incoming.heartPieces2 > save.heartPieces2) {
+  if (incoming.heartPieces2) {
     save.heartPieces2 = incoming.heartPieces2;
   }
-  if (incoming.heartPieces3 > save.heartPieces3) {
+  if (incoming.heartPieces3) {
     save.heartPieces3 = incoming.heartPieces3;
   }
-  if (incoming.heartPieces4 > save.heartPieces4) {
-    save.heartPieces1 = false;
-    save.heartPieces2 = false;
-    save.heartPieces3 = false;
-    save.heartPieces4 = false;
-  }
-
 
   if (incoming.heart_containers > save.heart_containers) {
     save.heart_containers = incoming.heart_containers;

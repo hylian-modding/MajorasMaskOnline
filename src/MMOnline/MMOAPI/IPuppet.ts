@@ -18,3 +18,4 @@ export interface IPuppet {
     shovel(): void;
     despawn(): void;
 }
+

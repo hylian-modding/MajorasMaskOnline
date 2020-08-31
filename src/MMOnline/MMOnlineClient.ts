@@ -5,7 +5,7 @@ import * as API from 'MajorasMask/API/MMAPI'
 import { MMOnlineEvents, MMOnline_PlayerScene } from './MMOAPI/MMOAPI';
 //import { ActorHookingManagerClient } from './data/ActorHookingSystem';
 import { createEquipmentFromContext, createInventoryFromContext, createQuestSaveFromContext, mergeEquipmentData, mergeInventoryData, mergeQuestSaveData, createDungeonItemDataFromContext, mergeDungeonItemData, InventorySave, applyInventoryToContext, applyBottleToContext, applyEquipmentToContext, applyQuestSaveToContext, applyDungeonItemDataToContext, EquipmentSave, QuestSave, MMODungeonItemContext, IDungeonItemSave, MMO_SceneStruct, createPhotoFromContext, mergePhotoData, PhotoSave, applyPhotoToContext, createBottleFromContext, mergeBottleData, mergeBottleDataTime, applyBottleToContextTime } from './data/MMOSaveData';
-import { MMO_ClientFlagUpdate, MMO_ClientSceneContextUpdate, MMO_DownloadRequestPacket, MMO_SubscreenSyncPacket, MMO_BottleUpdatePacket, MMO_SceneGUIPacket, MMO_BankSyncPacket, MMO_ScenePacket, MMO_SceneRequestPacket, MMO_DownloadResponsePacket, MMO_DownloadResponsePacket2, MMO_ServerFlagUpdate, MMO_ClientSceneContextUpdateTime } from './data/MMOPackets';
+import { MMO_ClientFlagUpdate, MMO_ClientSceneContextUpdate, MMO_DownloadRequestPacket, MMO_SubscreenSyncPacket, MMO_BottleUpdatePacket, MMO_SceneGUIPacket, MMO_BankSyncPacket, MMO_ScenePacket, MMO_SceneRequestPacket, MMO_DownloadResponsePacket, MMO_DownloadResponsePacket2, MMO_ServerFlagUpdate, MMO_ClientSceneContextUpdateTime, MMO_TimePacket } from './data/MMOPackets';
 import path from 'path';
 import { GUITunnelPacket } from 'modloader64_api/GUITunnel';
 import fs from 'fs';
@@ -27,6 +27,7 @@ import { SidedProxy, ProxySide } from 'modloader64_api/SidedProxy/SidedProxy';
 import { Command } from 'MajorasMask/API/Imports';
 import { MMOnlineStorage } from './MMOnlineStorage';
 //import { RPCClient } from './data/RPCHandler';
+import { RECORD_TICK_MODULO, NUM_SCHEDULE_TICKS, NUM_TICKS_PER_DAY, NUM_SCHEDULE_RECORD_TICKS, NUM_RECORD_TICKS_PER_DAY, get_scaled_time, PlayerScheduleData, PlayerSchedule } from './data/MMOPlayerSchedule'
 
 export let TIME_SYNC_TRIGGERED: boolean = false;
 
@@ -38,7 +39,7 @@ export class MMOnlineClient {
     ModLoader!: IModLoaderAPI;
 
     LobbyConfig: IMMOnlineLobbyConfig = {} as IMMOnlineLobbyConfig;
-    clientStorage: MMOnlineStorageClient = new MMOnlineStorageClient();
+    clientStorage!: MMOnlineStorageClient;
     config!: MMOnlineConfigCategory;
 
     /*@SidedProxy(ProxySide.CLIENT, ModelManagerClient)
@@ -62,14 +63,14 @@ export class MMOnlineClient {
                 return;
             }
             Object.keys(storage.players).forEach((key: string) => {
-                if (storage.players[key] === storage.players[packet.player.uuid]) {
+                //if (storage.players[key] === storage.players[packet.player.uuid]) {
                     if (storage.networkPlayerInstances[key].uuid !== packet.player.uuid) {
                         this.ModLoader.serverSide.sendPacketToSpecificPlayer(
                             packet,
                             storage.networkPlayerInstances[key]
                         );
                     }
-                }
+                //}
             });
         } catch (err) { }
     }
@@ -79,13 +80,13 @@ export class MMOnlineClient {
         this.config = this.ModLoader.config.registerConfigCategory("MMOnline") as MMOnlineConfigCategory;
         this.ModLoader.config.setData("MMOnline", "mapTracker", false);
         this.ModLoader.config.setData("MMOnline", "keySync", true);
-        this.ModLoader.config.setData("MMOnline", "timeSync", false);
-        this.clientStorage.timeSync = this.config.timeSync;
+        this.ModLoader.config.setData("MMOnline", "syncMode", 0); // 0 is default, 1 is time sync, 2 is groundhog's-day sync
+        
     }
 
     @Init()
     init(): void {
-        //this.modelManager.clientStorage = this.clientStorage;
+        this.clientStorage.syncMode = this.config.syncMode;
     }
 
     @Postinit()
@@ -107,7 +108,7 @@ export class MMOnlineClient {
         this.ModLoader.logger.info('updateInventory()');
         let inventory = createInventoryFromContext(this.core.save);
         let inventoryBottle = createBottleFromContext(this.core.save);
-        //let equipment = createEquipmentFromContext(this.core.save);
+        let equipment = createEquipmentFromContext(this.core.save);
         //let quest = createQuestSaveFromContext(this.core.save);
         //let di = createDungeonItemDataFromContext(this.core.save.dungeonItemManager);
 
@@ -116,10 +117,10 @@ export class MMOnlineClient {
 
         mergeInventoryData(this.clientStorage.inventoryStorage, inventory);
 
-        if(this.clientStorage.timeSync) mergeBottleDataTime(this.clientStorage.bottleStorage, inventoryBottle);
+        if(this.clientStorage.syncMode !== 1) mergeBottleDataTime(this.clientStorage.bottleStorage, inventoryBottle);
         else mergeBottleData(this.clientStorage.bottleStorage, inventoryBottle);
         
-       // mergeEquipmentData(this.clientStorage.equipmentStorage, equipment);
+        mergeEquipmentData(this.clientStorage.equipmentStorage, equipment);
         //mergeQuestSaveData(this.clientStorage.questStorage, quest);
         //mergeDungeonItemData(this.clientStorage.dungeonItemStorage, di);
         this.ModLoader.clientSide.sendPacket(new MMO_SubscreenSyncPacket(this.clientStorage.inventoryStorage, this.clientStorage.equipmentStorage, this.clientStorage.questStorage, this.clientStorage.dungeonItemStorage, this.clientStorage.photoStorage, this.clientStorage.bottleStorage, this.ModLoader.clientLobby));
@@ -197,7 +198,7 @@ export class MMOnlineClient {
             else {
                 return;
             }
-            if (this.clientStorage.timeSync) { this.core.global.writeSaveDataForCurrentScene(save_scene_data); }
+            if (this.clientStorage.syncMode !== 1) { this.core.global.writeSaveDataForCurrentScene(save_scene_data); }
             this.ModLoader.clientSide.sendPacket(new MMO_ClientSceneContextUpdateTime(live_scene_chests, live_scene_switches, live_scene_clear, live_scene_temp, this.ModLoader.clientLobby, this.core.global.current_scene));
         }
     }
@@ -259,6 +260,41 @@ export class MMOnlineClient {
                     this.ModLoader.clientSide.sendPacket(new MMO_BottleUpdatePacket(i, bottles[i], this.ModLoader.clientLobby));
                 }
             }
+        }
+    }
+
+    updateTime() {
+        let last_time = this.clientStorage.last_time;
+        let current_time = this.core.save.day_time;
+        let scaled_time = get_scaled_time(current_time);
+        let time_speed = this.core.save.time_speed;
+        let last_day = this.clientStorage.last_day;
+        let current_day = this.core.save.current_day;
+
+        if((current_time - last_time) > RECORD_TICK_MODULO)
+        {
+            //this.ModLoader.clientSide.sendPacket(new MMO_TimePacket(current_time, time_speed, current_day, this.ModLoader.clientLobby));
+
+            let num = Math.floor(current_time - last_time / RECORD_TICK_MODULO)
+
+            // Did we somehow miss more than 6 ticks? Will make players stand around for SoDT
+            if (num > 1) {
+                for (let index = get_scaled_time(last_time); index < scaled_time; index++) {
+                    this.core.link.rawPos.copy(this.clientStorage.schedule.schedule_data[index].pos);
+                    this.core.link.rot.copy(this.clientStorage.schedule.schedule_data[index].rot);
+                    this.core.link.anim_data.copy(this.clientStorage.schedule.schedule_data[index].anim);
+                    this.clientStorage.schedule.schedule_data[index].scene = this.core.global.current_scene;
+                    this.clientStorage.schedule.schedule_data[index].alive = true;
+                }
+            }
+
+            this.core.link.rawPos.copy(this.clientStorage.schedule.schedule_data[scaled_time].pos);
+            this.core.link.rot.copy(this.clientStorage.schedule.schedule_data[scaled_time].rot);
+            this.core.link.anim_data.copy(this.clientStorage.schedule.schedule_data[scaled_time].anim);
+            this.clientStorage.schedule.schedule_data[scaled_time].scene = this.core.global.current_scene;
+            this.clientStorage.schedule.schedule_data[scaled_time].alive = true;
+
+            last_time = current_time;
         }
     }
 
@@ -525,7 +561,8 @@ export class MMOnlineClient {
         this.clientStorage.first_time_sync = true;
         this.ModLoader.logger.info('The lobby is mine!');
         this.clientStorage.needs_update = true;
-        if(this.clientStorage.timeSync) this.updateBottlesTime(true);
+
+        if(this.clientStorage.syncMode !== 1) this.updateBottlesTime(true);
     }
 
     @NetworkHandler('MMO_SubscreenSyncPacket')
@@ -556,53 +593,36 @@ export class MMOnlineClient {
         mergePhotoData(this.clientStorage.photoStorage, photo);
 
         mergeInventoryData(this.clientStorage.inventoryStorage, inventory);
-        if(this.clientStorage.timeSync) mergeBottleDataTime(this.clientStorage.bottleStorage, inventoryBottle);
+        if(this.clientStorage.syncMode !== 1) mergeBottleDataTime(this.clientStorage.bottleStorage, inventoryBottle);
         else mergeBottleData(this.clientStorage.bottleStorage, inventoryBottle);
-        //mergeEquipmentData(this.clientStorage.equipmentStorage, equipment);
+        
+        mergeEquipmentData(this.clientStorage.equipmentStorage, equipment);
         mergeQuestSaveData(this.clientStorage.questStorage, quest);
         //mergeDungeonItemData(this.clientStorage.dungeonItemStorage, dungeonItems);
-
         mergePhotoData(this.clientStorage.photoStorage, packet.photo);
         mergeInventoryData(this.clientStorage.inventoryStorage, packet.inventory);
 
-        if(this.clientStorage.timeSync) mergeBottleDataTime(this.clientStorage.bottleStorage, packet.bottle);
+        if(this.clientStorage.syncMode !== 1) mergeBottleDataTime(this.clientStorage.bottleStorage, packet.bottle);
         else mergeBottleData(this.clientStorage.bottleStorage, packet.bottle);
-        //mergeEquipmentData(this.clientStorage.equipmentStorage, packet.equipment);
+        
+        mergeEquipmentData(this.clientStorage.equipmentStorage, packet.equipment);
         mergeQuestSaveData(this.clientStorage.questStorage, packet.quest);
         
         /*mergeDungeonItemData(
             this.clientStorage.dungeonItemStorage,
             packet.dungeonItems
         );*/
-        applyInventoryToContext(
-            this.clientStorage.inventoryStorage,
-            this.core.save
-        );
+        applyInventoryToContext(this.clientStorage.inventoryStorage, this.core.save);
 
-
-        if(this.clientStorage.timeSync) applyBottleToContextTime(this.clientStorage.bottleStorage, this.core.save);
+        if(this.clientStorage.syncMode !== 1) applyBottleToContextTime(this.clientStorage.bottleStorage, this.core.save);
         else applyBottleToContext(this.clientStorage.bottleStorage, this.core.save);
 
-        /*applyEquipmentToContext(
-            this.clientStorage.equipmentStorage,
-            this.core.save
-        );*/
-
-        applyPhotoToContext(
-            this.clientStorage.photoStorage,
-            this.core.save.photo
-        )
-
+        /*applyEquipmentToContext(this.clientStorage.equipmentStorage, this.core.save);*/
+        applyPhotoToContext(this.clientStorage.photoStorage, this.core.save.photo)
         applyQuestSaveToContext(this.clientStorage.questStorage, this.core.save);
-        /*applyDungeonItemDataToContext(
-            this.clientStorage.dungeonItemStorage,
-            this.core.save.dungeonItemManager
-        );*/
+        /*applyDungeonItemDataToContext(this.clientStorage.dungeonItemStorage, this.core.save.dungeonItemManager);*/
         
-        this.ModLoader.gui.tunnel.send(
-            'MMOnline:onSubscreenPacket',
-            new GUITunnelPacket('MMOnline', 'MMOnline:onSubscreenPacket', packet)
-        );
+        this.ModLoader.gui.tunnel.send('MMOnline:onSubscreenPacket', new GUITunnelPacket('MMOnline', 'MMOnline:onSubscreenPacket', packet));
         this.ModLoader.logger.debug("onItemSync_client() End");
     }
 
@@ -622,84 +642,81 @@ export class MMOnlineClient {
         //let inf_data = this.core.save.infTable;
         //let skulltula_data = this.core.save.skulltulaFlags;
 
-        parseFlagChanges(
-            scene_data,
-            this.clientStorage.sceneStorage
-        );
-        parseFlagChanges(
-            event_data,
-            this.clientStorage.eventStorage
-        );
-        /*parseFlagChanges(
-            item_data,
-            this.clientStorage.itemFlagStorage
-        );
-        parseFlagChanges(
-            inf_data,
-            this.clientStorage.infStorage
-        );
-        parseFlagChanges(
-            skulltula_data,
-            this.clientStorage.skulltulaStorage
-        );*/
+        parseFlagChanges(scene_data, this.clientStorage.sceneStorage);
+        parseFlagChanges(event_data, this.clientStorage.eventStorage);
+        /*parseFlagChanges(item_data, this.clientStorage.itemFlagStorage);
+        parseFlagChanges(inf_data, this.clientStorage.infStorage);
+        parseFlagChanges(skulltula_data, this.clientStorage.skulltulaStorage);*/
 
         for (let i = 0; i < packet.scenes.byteLength; i += 0x1C) {
             let struct = new MMO_SceneStruct(packet.scenes.slice(i, i + 0x1C));
             let cur = new MMO_SceneStruct(this.clientStorage.sceneStorage.slice(i, i + 0x1C));
-            for (let j = 0; j < struct.chests.byteLength; j++) {
+            let j;
+            
+            for (j = 0; j < struct.chests.byteLength; j++) {
                 if (struct.chests[j] !== cur.chests[i]) {
                     cur.chests[j] |= struct.chests[j];
                 }
             }
-            for (let j = 0; j < struct.collectible.byteLength; j++) {
+
+            for (j = 0; j < struct.collectible.byteLength; j++) {
                 if (struct.collectible[j] !== cur.collectible[i]) {
                     cur.collectible[j] |= struct.collectible[j];
                 }
             }
-            for (let j = 0; j < struct.room_clear.byteLength; j++) {
+
+            for (j = 0; j < struct.room_clear.byteLength; j++) {
                 if (struct.room_clear[j] !== cur.room_clear[i]) {
                     cur.room_clear[j] |= struct.room_clear[j];
                 }
             }
-            for (let j = 0; j < struct.switches.byteLength; j++) {
+
+            for (j = 0; j < struct.switches.byteLength; j++) {
                 if (struct.switches[j] !== cur.switches[i]) {
                     cur.switches[j] |= struct.switches[j];
                 }
             }
-            for (let j = 0; j < struct.visited_floors.byteLength; j++) {
+
+            for (j = 0; j < struct.visited_floors.byteLength; j++) {
                 if (struct.visited_floors[j] !== cur.visited_floors[i]) {
                     cur.visited_floors[j] |= struct.visited_floors[j];
                 }
             }
-            for (let j = 0; j < struct.visited_rooms.byteLength; j++) {
+
+            for (j = 0; j < struct.visited_rooms.byteLength; j++) {
                 if (struct.visited_rooms[j] !== cur.visited_rooms[i]) {
                     cur.visited_rooms[j] |= struct.visited_rooms[j];
                 }
             }
-            for (let j = 0; j < struct.unused.byteLength; j++) {
+
+            for (j = 0; j < struct.unused.byteLength; j++) {
                 if (struct.unused[j] !== cur.unused[i]) {
                     cur.unused[j] = struct.unused[j];
                 }
             }
         }
+
         for (let i = 0; i < packet.events.byteLength; i++) {
             let value = packet.events[i];
             if (this.clientStorage.eventStorage[i] !== value) {
                 this.clientStorage.eventStorage[i] |= value;
             }
         }
+
         /*for (let i = 0; i < packet.items.byteLength; i++) {
             let value = packet.items[i];
             if (this.clientStorage.itemFlagStorage[i] !== value) {
                 this.clientStorage.itemFlagStorage[i] |= value;
             }
         }
+
         for (let i = 0; i < packet.inf.byteLength; i++) {
             let value = packet.inf[i];
             if (this.clientStorage.infStorage[i] !== value) {
                 this.clientStorage.infStorage[i] |= value;
             }
         }
+
         for (let i = 0; i < packet.skulltulas.byteLength; i++) {
             let value = packet.skulltulas[i];
             if (this.clientStorage.skulltulaStorage[i] !== value) {
@@ -716,59 +733,32 @@ export class MMOnlineClient {
 
     @NetworkHandler('MMO_ClientSceneContextUpdate')
     onSceneContextSync_client(packet: MMO_ClientSceneContextUpdate) {
-        if (
-            this.core.helper.isTitleScreen() ||
-            !this.core.helper.isSceneNumberValid() ||
-            this.core.helper.isLinkEnteringLoadingZone()
-        ) {
-            return;
-        }
-        if (this.core.global.current_scene !== packet.scene) {
-            return;
-        }
+        if (this.core.helper.isTitleScreen() || !this.core.helper.isSceneNumberValid() || this.core.helper.isLinkEnteringLoadingZone()) return;
+        if (this.core.global.current_scene !== packet.scene) return;
 
         let buf3: Buffer = this.core.global.liveSceneData_collectable;
-        if (Object.keys(parseFlagChanges(packet.collect, buf3) > 0)) {
-            this.core.global.liveSceneData_collectable = buf3;
-        }
+        if (Object.keys(parseFlagChanges(packet.collect, buf3) > 0)) this.core.global.liveSceneData_collectable = buf3;
     }
 
     @NetworkHandler('MMO_ClientSceneContextUpdateTime')
     onSceneContextSyncTime_client(packet: MMO_ClientSceneContextUpdateTime) {
-        if (
-            this.core.helper.isTitleScreen() ||
-            !this.core.helper.isSceneNumberValid() ||
-            this.core.helper.isLinkEnteringLoadingZone()
-        ) {
-            return;
-        }
-        if (this.core.global.current_scene !== packet.scene) {
-            return;
-        }
-        let buf1: Buffer = this.core.global.liveSceneData_chests;
-        if (Object.keys(parseFlagChanges(packet.chests, buf1) > 0)) {
-            this.core.global.liveSceneData_chests = buf1;
-        }
+        if (this.core.helper.isTitleScreen() ||!this.core.helper.isSceneNumberValid() || this.core.helper.isLinkEnteringLoadingZone()) return;
+        if (this.core.global.current_scene !== packet.scene) return;
 
-        let buf2: Buffer = this.core.global.liveSceneData_switch;
-        if (Object.keys(parseFlagChanges(packet.switches, buf2) > 0)) {
-            this.core.global.liveSceneData_switch = buf2;
-        }
+        let buf: Buffer = this.core.global.liveSceneData_chests;
+        if (Object.keys(parseFlagChanges(packet.chests, buf) > 0)) this.core.global.liveSceneData_chests = buf;
 
-        let buf3: Buffer = this.core.global.liveSceneData_collectable;
-        /*if (Object.keys(parseFlagChanges(packet.collect, buf3) > 0)) {
-            this.core.global.liveSceneData_collectable = buf3;
-        }*/
+        buf = this.core.global.liveSceneData_switch;
+        if (Object.keys(parseFlagChanges(packet.switches, buf) > 0)) this.core.global.liveSceneData_switch = buf;
 
-        let buf4: Buffer = this.core.global.liveSceneData_clear;
-        if (Object.keys(parseFlagChanges(packet.clear, buf4) > 0)) {
-            this.core.global.liveSceneData_clear = buf4;
-        }
+        buf = this.core.global.liveSceneData_collectable;
+        /*if (Object.keys(parseFlagChanges(packet.collect, buf) > 0)) this.core.global.liveSceneData_collectable = buf;*/
 
-        let buf5: Buffer = this.core.global.liveSceneData_temp;
-        if (Object.keys(parseFlagChanges(packet.temp, buf5) > 0)) {
-            this.core.global.liveSceneData_temp = buf5;
-        }
+        buf = this.core.global.liveSceneData_clear;
+        if (Object.keys(parseFlagChanges(packet.clear, buf) > 0)) this.core.global.liveSceneData_clear = buf;
+
+        buf = this.core.global.liveSceneData_temp;
+        if (Object.keys(parseFlagChanges(packet.temp, buf) > 0)) this.core.global.liveSceneData_temp = buf;
     }
 
     @NetworkHandler("MMO_BankSyncPacket")
@@ -778,16 +768,8 @@ export class MMOnlineClient {
     }
 
     healPlayer() {
-        if (
-            this.core.helper.isTitleScreen() ||
-            !this.core.helper.isSceneNumberValid()
-        ) {
-            return;
-        }
-        this.ModLoader.emulator.rdramWrite16(
-            global.ModLoader.save_context + 0x36,
-            0x65
-        );
+        if (this.core.helper.isTitleScreen() || !this.core.helper.isSceneNumberValid()) return;
+        this.ModLoader.emulator.rdramWrite16(global.ModLoader.save_context + 0x36, 0x65);
     }
 
     @EventHandler(MMOnlineEvents.GAINED_PIECE_OF_HEART)
@@ -808,94 +790,74 @@ export class MMOnlineClient {
                 break;
             case API.Magic.NORMAL:
                 this.core.save.magic_current = API.MagicQuantities.NORMAL;
-                if (this.core.save.form != API.MMForms.DEKU) this.core.save.deku_b_state = 0x091EF6C8;
+                if (this.core.save.form === API.MMForms.DEKU) this.core.save.deku_b_state = 0x091EF6C8;
                 break;
             case API.Magic.EXTENDED:
                 this.core.save.magic_current = API.MagicQuantities.EXTENDED;
-                if (this.core.save.form != API.MMForms.DEKU) this.core.save.deku_b_state = 0x091EF6C8;
+                if (this.core.save.form === API.MMForms.DEKU) this.core.save.deku_b_state = 0x091EF6C8;
                 break;
         }
     }
 
     @EventHandler(API.MMEvents.ON_AGE_CHANGE)
     onAgeChange(form: API.MMForms) {
-        let gui_p: MMO_SceneGUIPacket = new MMO_SceneGUIPacket(
-            this.core.global.current_scene,
-            form,
-            this.ModLoader.clientLobby
-        );
+        let gui_p: MMO_SceneGUIPacket = new MMO_SceneGUIPacket(this.core.global.current_scene, form, this.ModLoader.clientLobby);
+
         /*if (this.modelManager.clientStorage.adultIcon.byteLength > 1) {
             gui_p.setAdultIcon(this.modelManager.clientStorage.adultIcon);
         }
+        
         if (this.modelManager.clientStorage.childIcon.byteLength > 1) {
             gui_p.setChildIcon(this.modelManager.clientStorage.childIcon);
         }*/
-        this.ModLoader.gui.tunnel.send(
-            'MMOnline:onAgeChange',
-            new GUITunnelPacket('MMOnline', 'MMOnline:onAgeChange', gui_p)
-        );
-        this.ModLoader.clientSide.sendPacket(
-            new MMO_ScenePacket(
-                this.ModLoader.clientLobby,
-                this.core.global.current_scene,
-                form
-            )
-        );
+        if(this.core.save.form === API.MMForms.DEKU) this.core.save.deku_b_state = 0x091EF6C8;
+        this.ModLoader.gui.tunnel.send('MMOnline:onAgeChange', new GUITunnelPacket('MMOnline', 'MMOnline:onAgeChange', gui_p));
+        this.ModLoader.clientSide.sendPacket(new MMO_ScenePacket(this.ModLoader.clientLobby, this.core.global.current_scene, form));
     }
 
     @EventHandler(MMOnlineEvents.ON_INVENTORY_UPDATE)
     onInventoryUpdate(inventory: API.IInventory) {
         this.ModLoader.logger.debug("onInventoryUpdate() Start");
-        if (
-            this.core.helper.isTitleScreen() ||
-            !this.core.helper.isSceneNumberValid()
-        ) {
-            return;
-        }
+        if (this.core.helper.isTitleScreen() || !this.core.helper.isSceneNumberValid()) return;
 
         let addr: number = global.ModLoader.save_context + 0x005C;
         let buf: Buffer = this.ModLoader.emulator.rdramReadBuffer(addr, 0x4);
         let addr2: number = global.ModLoader.save_context + 0x0070;
-        let raw_inventory: Buffer = this.ModLoader.emulator.rdramReadBuffer(
-            addr2,
-            0x24
-        );
-        if (
-            buf[0x4] !== API.InventoryItem.NONE &&
-            raw_inventory[buf[0x4]] !== API.InventoryItem.NONE
-        ) {
+        let raw_inventory: Buffer = this.ModLoader.emulator.rdramReadBuffer(addr2, 0x24);
+        
+        if (buf[0x4] !== API.InventoryItem.NONE && raw_inventory[buf[0x4]] !== API.InventoryItem.NONE) {
             buf[0x1] = raw_inventory[buf[0x4]];
             this.ModLoader.emulator.rdramWriteBuffer(addr, buf);
+            
             /*this.core.commandBuffer.runCommand(
                 Command.UPDATE_C_BUTTON_ICON,
                 0x00000001,
                 (success: boolean, result: number) => { }
             );*/
         }
-        if (
-            buf[0x5] !== API.InventoryItem.NONE &&
-            raw_inventory[buf[0x5]] !== API.InventoryItem.NONE
-        ) {
+
+        if (buf[0x5] !== API.InventoryItem.NONE && raw_inventory[buf[0x5]] !== API.InventoryItem.NONE) {
             buf[0x2] = raw_inventory[buf[0x5]];
             this.ModLoader.emulator.rdramWriteBuffer(addr, buf);
+            
             /*this.core.commandBuffer.runCommand(
                 Command.UPDATE_C_BUTTON_ICON,
                 0x00000002,
                 (success: boolean, result: number) => { }
             );*/
         }
-        if (
-            buf[0x6] !== API.InventoryItem.NONE &&
-            raw_inventory[buf[0x6]] !== API.InventoryItem.NONE
-        ) {
+
+        if (buf[0x6] !== API.InventoryItem.NONE && raw_inventory[buf[0x6]] !== API.InventoryItem.NONE) {
             buf[0x3] = raw_inventory[buf[0x6]];
             this.ModLoader.emulator.rdramWriteBuffer(addr, buf);
+            
             /*this.core.commandBuffer.runCommand(
                 Command.UPDATE_C_BUTTON_ICON,
                 0x00000003,
                 (success: boolean, result: number) => { }
             );*/
         }
+
         this.ModLoader.logger.debug("onInventoryUpdate() End");
     }
 
@@ -907,7 +869,6 @@ export class MMOnlineClient {
         );
         this.utility.makeRamDump();
     }*/
-
 
     @EventHandler(EventsClient.ON_INJECT_FINISHED)
     onStartupFinished(evt: any) {
@@ -967,34 +928,39 @@ export class MMOnlineClient {
                 if (!this.clientStorage.first_time_sync) {
                     return;
                 }
+
                 if (this.LobbyConfig.actor_syncing) {
                     // this.actorHooks.tick();
                 }
+
                 if (this.LobbyConfig.data_syncing) {
-                    if (this.clientStorage.timeSync) 
+                    if (this.clientStorage.syncMode === 0) 
                     {
                         this.autosaveSceneDataTime();
                         this.updateBottlesTime();
+                    }
+                    else if (this.clientStorage.syncMode === 2) {
+                        //this.updateTime();
                     }
 
                     if (this.LobbyConfig.key_syncing) {
                         //this.keys.update();
                     }
+
                     let state = this.core.link.state;
+
                     if (
                         state === API.LinkState.BUSY ||
                         state === API.LinkState.GETTING_ITEM ||
                         state === API.LinkState.TALKING ||
                         state === API.LinkState.CAMERA
-                    ) {
+                    ) 
+                    {
                         this.clientStorage.needs_update = true;
-                    } else if (
-                        state === API.LinkState.STANDING &&
-                        this.clientStorage.needs_update &&
-                        this.LobbyConfig.data_syncing
-                    ) {
+                    }
+                    else if (state === API.LinkState.STANDING && this.clientStorage.needs_update && this.LobbyConfig.data_syncing) {
                         this.updateInventory();
-                        if (this.clientStorage.timeSync) this.updateFlags();
+                        if (this.clientStorage.syncMode=== 0) this.updateFlags();
                         this.clientStorage.needs_update = false;
                     }
                 }   

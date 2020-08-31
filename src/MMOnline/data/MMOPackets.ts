@@ -143,6 +143,19 @@ export class MMO_ClientFlagUpdate extends Packet {
   }
 }
 
+export class MMO_TimePacket extends Packet {
+  time: number;
+  time_speed: number;
+  day: number;
+
+  constructor(time: number, time_speed: number, day: number, lobby: string) {
+    super('MMO_BottleUpdatePacket', 'MMOnline', lobby, true);
+    this.time = time;
+    this.time_speed = time_speed;
+    this.day = day;
+  }
+}
+
 export class MMO_ServerFlagUpdate extends Packet {
   scenes: Buffer;
   events: Buffer;
