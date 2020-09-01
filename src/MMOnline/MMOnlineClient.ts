@@ -4,7 +4,7 @@ import { INetworkPlayer, LobbyData, NetworkHandler, IPacketHeader } from 'modloa
 import * as API from 'MajorasMask/API/MMAPI'
 import { MMOnlineEvents, MMOnline_PlayerScene } from './MMOAPI/MMOAPI';
 //import { ActorHookingManagerClient } from './data/ActorHookingSystem';
-import { createEquipmentFromContext, createInventoryFromContext, createQuestSaveFromContext, mergeEquipmentData, mergeInventoryData, mergeQuestSaveData, createDungeonItemDataFromContext, mergeDungeonItemData, InventorySave, applyInventoryToContext, applyBottleToContext, applyEquipmentToContext, applyQuestSaveToContext, applyDungeonItemDataToContext, EquipmentSave, QuestSave, MMODungeonItemContext, IDungeonItemSave, MMO_SceneStruct, createPhotoFromContext, mergePhotoData, PhotoSave, applyPhotoToContext, createBottleFromContext, mergeBottleData, mergeBottleDataTime, applyBottleToContextTime, createTradeFromContext, mergeInventoryTrade, applyTradeToContext } from './data/MMOSaveData';
+import { createEquipmentFromContext, createInventoryFromContext, createQuestSaveFromContext, mergeEquipmentData, mergeInventoryData, mergeQuestSaveData, createDungeonItemDataFromContext, mergeDungeonItemData, InventorySave, applyInventoryToContext, applyBottleToContext, applyEquipmentToContext, applyQuestSaveToContext, applyDungeonItemDataToContext, EquipmentSave, QuestSave, MMODungeonItemContext, IDungeonItemSave, MMO_SceneStruct, createPhotoFromContext, mergePhotoData, PhotoSave, applyPhotoToContext, createBottleFromContext, mergeBottleData, mergeBottleDataTime, applyBottleToContextTime, createTradeFromContext, mergeInventoryTrade, applyTradeToContext, IQuestSave } from './data/MMOSaveData';
 import { MMO_ClientFlagUpdate, MMO_ClientSceneContextUpdate, MMO_DownloadRequestPacket, MMO_SubscreenSyncPacket, MMO_BottleUpdatePacket, MMO_SceneGUIPacket, MMO_BankSyncPacket, MMO_ScenePacket, MMO_SceneRequestPacket, MMO_DownloadResponsePacket, MMO_DownloadResponsePacket2, MMO_ServerFlagUpdate, MMO_ClientSceneContextUpdateTime, MMO_TimePacket } from './data/MMOPackets';
 import path from 'path';
 import { GUITunnelPacket } from 'modloader64_api/GUITunnel';
@@ -337,22 +337,22 @@ export class MMOnlineClient {
         }*/
     }
 
-    @EventHandler(API.MMEvents.ON_SAVE_LOADED)
+     @EventHandler(API.MMEvents.ON_SAVE_LOADED)
     onSaveLoaded(evt: any) {
         this.ModLoader.logger.debug("On_Save_Loaded");
         setTimeout(() => {
             if (this.LobbyConfig.data_syncing) {
                 this.ModLoader.clientSide.sendPacket(new MMO_DownloadRequestPacket(this.ModLoader.clientLobby));
             }
-            //let gui_p: MMO_SceneGUIPacket = new MMO_SceneGUIPacket(this.core.global.current_scene, this.core.save.form, this.ModLoader.clientLobby);
+            let gui_p: MMO_SceneGUIPacket = new MMO_SceneGUIPacket(this.core.global.current_scene, this.core.save.form, this.ModLoader.clientLobby);
             /*if (this.modelManager.clientStorage.adultIcon.byteLength > 1) {
                 gui_p.setAdultIcon(this.modelManager.clientStorage.adultIcon);
             }
             if (this.modelManager.clientStorage.childIcon.byteLength > 1) {
                 gui_p.setChildIcon(this.modelManager.clientStorage.childIcon);
             }*/
-            //this.ModLoader.gui.tunnel.send('MMOnline:onAgeChange', new GUITunnelPacket('MMOnline', 'MMOnline:onAgeChange', gui_p));
-        }, 3000);
+            this.ModLoader.gui.tunnel.send('MMOnline:onAgeChange', new GUITunnelPacket('MMOnline', 'MMOnline:onAgeChange', gui_p));
+        }, 1000);
     }
 
     //------------------------------
@@ -628,7 +628,7 @@ export class MMOnlineClient {
         let equipment: EquipmentSave = createEquipmentFromContext(
             this.core.save
         ) as EquipmentSave;
-        let quest: QuestSave = createQuestSaveFromContext(this.core.save);
+        let quest: QuestSave = createQuestSaveFromContext(this.core.save) as IQuestSave;
         //this.ModLoader.logger.debug('onItemSync_client() createQuestSaveFromContext() heartPieceCount: ' + quest.heartPieceCount);
         /*let dungeonItems: MMODungeonItemContext = createDungeonItemDataFromContext(
             this.core.save.dungeonItemManager
@@ -657,7 +657,8 @@ export class MMOnlineClient {
         //mergeDungeonItemData(this.clientStorage.dungeonItemStorage, dungeonItems);
         mergePhotoData(this.clientStorage.photoStorage, packet.photo);
         mergeInventoryData(this.clientStorage.inventoryStorage, packet.inventory);
-
+        mergeQuestSaveData(this.clientStorage.questStorage, packet.quest);
+        
         if(this.clientStorage.syncMode === 1) {
             mergeBottleDataTime(this.clientStorage.bottleStorage, packet.bottle);
             mergeInventoryTrade(this.clientStorage.tradeStorage, packet.trade);

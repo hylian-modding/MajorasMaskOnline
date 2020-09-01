@@ -1,11 +1,12 @@
 import * as API from 'MajorasMask/API/Imports';
-import { bus } from 'modloader64_api/EventHandler';
+import { bus, setupEventHandlers } from 'modloader64_api/EventHandler';
 import { MMOnlineEvents } from '../MMOAPI/MMOAPI';
 import { ISwords, IShields, ISaveContext, InventorySlots } from 'MajorasMask/API/Imports';
 import { MMOnlineClient } from '@MMOnline/MMOnlineClient';
 import { Interface } from 'readline';
 import { MMOnlineConfigCategory } from '@MMOnline/MMOnline';
 import { config } from 'process';
+import { setActorBehavior } from 'MajorasMask/src/Actor';
 
 
 
