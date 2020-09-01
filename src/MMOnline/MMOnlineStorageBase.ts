@@ -26,5 +26,6 @@ export class MMOnlineStorageBase {
   bottleStorage: InventorySave = new InventorySave();
   equipmentStorage: EquipmentSave = new EquipmentSave();
   questStorage: QuestSave = new QuestSave();
+  tradeStorage: InventorySave = new InventorySave();
   bank: number = 0;
 }

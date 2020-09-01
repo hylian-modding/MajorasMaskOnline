@@ -226,6 +226,7 @@ export class MMOnlineServer {
                         storage.dungeonItemStorage,
                         storage.photoStorage,
                         storage.bottleStorage,
+                        storage.tradeStorage,
                         packet.lobby
                     ),
                     new MMO_ServerFlagUpdate(
@@ -262,10 +263,11 @@ export class MMOnlineServer {
         }
         mergePhotoData(storage.photoStorage, packet.photo);
         mergeInventoryData(storage.inventoryStorage, packet.inventory);
-        if(this.clientStorage.syncMode === 0) mergeBottleDataTime(this.clientStorage.bottleStorage, packet.bottle);
-        else mergeBottleData(this.clientStorage.bottleStorage, packet.bottle);
-        //mergeEquipmentData(storage.equipmentStorage, packet.equipment);
+        if(this.clientStorage.syncMode === 1) mergeBottleDataTime(storage.bottleStorage, packet.bottle);
+        else mergeBottleData(storage.bottleStorage, packet.bottle);
+        mergeEquipmentData(storage.equipmentStorage, packet.equipment);
         mergeQuestSaveData(storage.questStorage, packet.quest);
+        this.ModLoader.logger.debug("onItemSync_server() Heart Piece Count: " + packet.quest.heartPieceCount)
         mergeDungeonItemData(storage.dungeonItemStorage, packet.dungeonItems);
         this.ModLoader.serverSide.sendPacket(
             new MMO_SubscreenSyncPacket(
@@ -275,6 +277,7 @@ export class MMOnlineServer {
                 storage.dungeonItemStorage,
                 storage.photoStorage,
                 storage.bottleStorage,
+                storage.tradeStorage,
                 packet.lobby
             )
         );

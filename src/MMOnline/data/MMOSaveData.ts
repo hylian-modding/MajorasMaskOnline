@@ -166,7 +166,7 @@ export function mergeInventoryData(
   if (incoming.FIELD_LIGHT_ARROW) {
     save.FIELD_LIGHT_ARROW = true;
   }
-  if (incoming.FIELD_OCARINA > save.FIELD_OCARINA) {
+  if (incoming.FIELD_OCARINA) {
     save.FIELD_OCARINA = incoming.FIELD_OCARINA;
   }
   if (incoming.FIELD_HOOKSHOT > save.FIELD_HOOKSHOT) {
@@ -180,16 +180,6 @@ export function mergeInventoryData(
   }
   if (incoming.FIELD_POWDER_KEG) {
     save.FIELD_POWDER_KEG = true;
-  }
-
-  if (incoming.FIELD_QUEST_ITEM_1 > save.FIELD_QUEST_ITEM_1) {
-    save.FIELD_QUEST_ITEM_1 = incoming.FIELD_QUEST_ITEM_1;
-  }
-  if (incoming.FIELD_QUEST_ITEM_2 > save.FIELD_QUEST_ITEM_2) {
-    save.FIELD_QUEST_ITEM_2 = incoming.FIELD_QUEST_ITEM_2;
-  }
-  if (incoming.FIELD_QUEST_ITEM_3 > save.FIELD_QUEST_ITEM_3) {
-    save.FIELD_QUEST_ITEM_3 = incoming.FIELD_QUEST_ITEM_3;
   }
 
   //Masks
@@ -348,6 +338,40 @@ export function mergeInventoryData(
   }
 }
 
+export function createTradeFromContext(save: API.ISaveContext): InventorySave {
+  let data = new InventorySave();
+
+  data.FIELD_QUEST_ITEM_1 = save.inventory.FIELD_QUEST_ITEM_1;
+  data.FIELD_QUEST_ITEM_2 = save.inventory.FIELD_QUEST_ITEM_2;
+  data.FIELD_QUEST_ITEM_3 = save.inventory.FIELD_QUEST_ITEM_3;
+
+  return data;
+}
+
+export function mergeInventoryTrade(
+  save: InventorySave,
+  incoming: InventorySave,) {
+
+  if (incoming.FIELD_QUEST_ITEM_1) {
+    save.FIELD_QUEST_ITEM_1 = incoming.FIELD_QUEST_ITEM_1;
+  }
+  if (incoming.FIELD_QUEST_ITEM_2) {
+    save.FIELD_QUEST_ITEM_2 = incoming.FIELD_QUEST_ITEM_2;
+  }
+  if (incoming.FIELD_QUEST_ITEM_3) {
+    save.FIELD_QUEST_ITEM_3 = incoming.FIELD_QUEST_ITEM_3;
+  }
+
+}
+
+export function applyTradeToContext(
+  data: InventorySave,
+  save: API.ISaveContext,) {
+  save.inventory.FIELD_QUEST_ITEM_1 = data.FIELD_QUEST_ITEM_1;
+  save.inventory.FIELD_QUEST_ITEM_2 = data.FIELD_QUEST_ITEM_2;
+  save.inventory.FIELD_QUEST_ITEM_3 = data.FIELD_QUEST_ITEM_3;
+}
+
 export function createBottleFromContext(save: API.ISaveContext): InventorySave {
   let data = new InventorySave();
   data.FIELD_BOTTLE1 = save.inventory.FIELD_BOTTLE1;
@@ -363,12 +387,12 @@ export function createBottleFromContext(save: API.ISaveContext): InventorySave {
 export function mergeBottleData(
   save: InventorySave,
   incoming: InventorySave,) {
-  if (incoming.FIELD_BOTTLE1 !== API.InventoryItem.NONE && incoming.FIELD_BOTTLE1 === API.InventoryItem.BOTTLE_EMPTY) save.FIELD_BOTTLE1 = incoming.FIELD_BOTTLE1;
-  if (incoming.FIELD_BOTTLE2 !== API.InventoryItem.NONE && incoming.FIELD_BOTTLE2 === API.InventoryItem.BOTTLE_EMPTY) save.FIELD_BOTTLE2 = incoming.FIELD_BOTTLE2;
-  if (incoming.FIELD_BOTTLE3 !== API.InventoryItem.NONE && incoming.FIELD_BOTTLE3 === API.InventoryItem.BOTTLE_EMPTY) save.FIELD_BOTTLE3 = incoming.FIELD_BOTTLE3;
-  if (incoming.FIELD_BOTTLE4 !== API.InventoryItem.NONE && incoming.FIELD_BOTTLE4 === API.InventoryItem.BOTTLE_EMPTY) save.FIELD_BOTTLE4 = incoming.FIELD_BOTTLE4;
-  if (incoming.FIELD_BOTTLE5 !== API.InventoryItem.NONE && incoming.FIELD_BOTTLE5 === API.InventoryItem.BOTTLE_EMPTY) save.FIELD_BOTTLE5 = incoming.FIELD_BOTTLE5;
-  if (incoming.FIELD_BOTTLE6 !== API.InventoryItem.NONE && incoming.FIELD_BOTTLE6 === API.InventoryItem.BOTTLE_EMPTY) save.FIELD_BOTTLE6 = incoming.FIELD_BOTTLE6;
+  if (incoming.FIELD_BOTTLE1 !== API.InventoryItem.NONE && save.FIELD_BOTTLE1 === API.InventoryItem.NONE) save.FIELD_BOTTLE1 = API.InventoryItem.BOTTLE_EMPTY;
+  if (incoming.FIELD_BOTTLE2 !== API.InventoryItem.NONE && save.FIELD_BOTTLE2 === API.InventoryItem.NONE) save.FIELD_BOTTLE2 = API.InventoryItem.BOTTLE_EMPTY;
+  if (incoming.FIELD_BOTTLE3 !== API.InventoryItem.NONE && save.FIELD_BOTTLE3 === API.InventoryItem.NONE) save.FIELD_BOTTLE3 = API.InventoryItem.BOTTLE_EMPTY;
+  if (incoming.FIELD_BOTTLE4 !== API.InventoryItem.NONE && save.FIELD_BOTTLE4 === API.InventoryItem.NONE) save.FIELD_BOTTLE4 = API.InventoryItem.BOTTLE_EMPTY;
+  if (incoming.FIELD_BOTTLE5 !== API.InventoryItem.NONE && save.FIELD_BOTTLE5 === API.InventoryItem.NONE) save.FIELD_BOTTLE5 = API.InventoryItem.BOTTLE_EMPTY;
+  if (incoming.FIELD_BOTTLE6 !== API.InventoryItem.NONE && save.FIELD_BOTTLE6 === API.InventoryItem.NONE) save.FIELD_BOTTLE6 = API.InventoryItem.BOTTLE_EMPTY;
 }
 
 export function mergeBottleDataTime(
@@ -454,9 +478,6 @@ export function createInventoryFromContext(save: API.ISaveContext): InventorySav
   data.FIELD_OCARINA = save.inventory.FIELD_OCARINA;
   data.FIELD_HOOKSHOT = save.inventory.FIELD_HOOKSHOT;
   data.FIELD_LENS_OF_TRUTH = save.inventory.FIELD_LENS_OF_TRUTH;
-  data.FIELD_QUEST_ITEM_1 = save.inventory.FIELD_QUEST_ITEM_1;
-  data.FIELD_QUEST_ITEM_2 = save.inventory.FIELD_QUEST_ITEM_2;
-  data.FIELD_QUEST_ITEM_3 = save.inventory.FIELD_QUEST_ITEM_3;
 
   data.FIELD_PICTOGRAPH_BOX = save.inventory.FIELD_PICTOGRAPH_BOX;
   data.FIELD_POWDER_KEG = save.inventory.FIELD_POWDER_KEG;
@@ -531,9 +552,6 @@ export function applyInventoryToContext(
   save.inventory.FIELD_OCARINA = data.FIELD_OCARINA;
   save.inventory.FIELD_HOOKSHOT = data.FIELD_HOOKSHOT;
   save.inventory.FIELD_LENS_OF_TRUTH = data.FIELD_LENS_OF_TRUTH;
-  save.inventory.FIELD_QUEST_ITEM_1 = data.FIELD_QUEST_ITEM_1;
-  save.inventory.FIELD_QUEST_ITEM_2 = data.FIELD_QUEST_ITEM_2;
-  save.inventory.FIELD_QUEST_ITEM_3 = data.FIELD_QUEST_ITEM_3;
 
   save.inventory.FIELD_PICTOGRAPH_BOX = data.FIELD_PICTOGRAPH_BOX;
   save.inventory.FIELD_POWDER_KEG = data.FIELD_POWDER_KEG;
@@ -757,14 +775,16 @@ export function mergeEquipmentData(
   if (incoming.gilded) {
     save.gilded = true;
     save.razorSword = false;
+    save.kokiriSword = true;
   }
-  if (incoming.kokiriSword && incoming.gilded) {
+  if (!incoming.kokiriSword && incoming.gilded) {
     save.razorSword = true;
   }
 
   // Shields
   if (incoming.heroesShield) {
     save.heroesShield = true;
+    save.mirrorShield = false;
   }
   if (incoming.mirrorShield) {
     save.mirrorShield = true;
@@ -775,7 +795,7 @@ export function mergeEquipmentData(
 export function createEquipmentFromContext(save: API.ISaveContext) {
   let data = new EquipmentSave();
   data.kokiriSword = save.swords.kokiriSword;
-  data.razorSword = save.swords.razorSword;
+  data.razorSword = (save.swords.kokiriSword && save.swords.gilded) ? true : false;
   data.gilded = save.swords.gilded;
 
   data.heroesShield = save.shields.heroesShield;
@@ -809,6 +829,7 @@ export class EquipmentSave implements IEquipmentSave {
 // Add heart containers here, it makes sense to put them with the heart pieces.
 export interface IQuestSave extends API.IQuestStatus {
   heart_containers: number;
+  heartPieceCount: number;
   magic_meter_size: API.Magic;
   double_defense: number;
   owl_statues: number;
@@ -844,7 +865,7 @@ export class QuestSave implements IQuestSave {
   unknown5 = false;
 
   bombersNotebook = false;
-
+  heartPieceCount = 0;
   heartPieces1 = false;
   heartPieces2 = false;
   heartPieces3 = false;
@@ -879,10 +900,7 @@ export function createQuestSaveFromContext(save: API.ISaveContext): IQuestSave {
 
   data.bombersNotebook = save.questStatus.bombersNotebook;
 
-  data.heartPieces1 = save.questStatus.heartPieces1;
-  data.heartPieces2 = save.questStatus.heartPieces2;
-  data.heartPieces3 = save.questStatus.heartPieces3;
-  data.heartPieces4 = save.questStatus.heartPieces4;
+  data.heartPieceCount = save.questStatus.heartPieceCount;
   data.heart_containers = save.heart_containers;
   data.magic_meter_size = save.magic_meter_size;
   data.double_defense = save.double_defense;
@@ -914,28 +932,13 @@ export function applyQuestSaveToContext(data: IQuestSave, save: API.ISaveContext
 
   save.questStatus.bombersNotebook = data.bombersNotebook;
 
-  if(save.questStatus.heartPieces1 < data.heartPieces1 && !save.questStatus.heartPieces2) {
-    save.questStatus.heartPieces1 = data.heartPieces1;
-    bus.emit(MMOnlineEvents.GAINED_PIECE_OF_HEART, data.heartPieces1);
+
+  let lastKnownHP: number = save.questStatus.heartPieceCount;
+  save.questStatus.heartPieceCount = data.heartPieceCount;
+  if (lastKnownHP < data.heartPieceCount) {
+    bus.emit(MMOnlineEvents.GAINED_PIECE_OF_HEART, data.heartPieceCount);
   }
-  if(save.questStatus.heartPieces2 < data.heartPieces2 && !save.questStatus.heartPieces1)
-  {
-    save.questStatus.heartPieces2 = data.heartPieces2;
-    save.questStatus.heartPieces1 = false;
-    bus.emit(MMOnlineEvents.GAINED_PIECE_OF_HEART, data.heartPieces2);
-  } 
-  if(data.heartPieces1 > save.questStatus.heartPieces1 && data.heartPieces2 > save.questStatus.heartPieces2)
-  {
-    save.questStatus.heartPieces1 = data.heartPieces1;
-    save.questStatus.heartPieces2 = data.heartPieces2;
-  }
-  if(save.questStatus.heartPieces3 < data.heartPieces3 && save.questStatus.heartPieces2 && save.questStatus.heartPieces1) save.questStatus.heartPieces3 = data.heartPieces3;
-  if(save.questStatus.heartPieces3) {
-    save.questStatus.heartPieces1 = false;
-    save.questStatus.heartPieces2 = false;
-    save.questStatus.heartPieces3 = false;
-    bus.emit(MMOnlineEvents.GAINED_HEART_CONTAINER, data.heartPieces3);
-  }
+
   save.owl_statues = data.owl_statues;
   save.map_visited = data.map_visited;
   save.map_visible = data.map_visible;
@@ -1030,21 +1033,16 @@ export function mergeQuestSaveData(save: IQuestSave, incoming: IQuestSave) {
     save.map_visited = incoming.map_visited;
   }
 
-
   if (incoming.map_visible > save.map_visible) {
     save.map_visible = incoming.map_visible;
   }
 
-
-  // No idea if this logic is correct. Needs testing.
-  if (incoming.heartPieces1) {
-    save.heartPieces1 = incoming.heartPieces1;
-  }
-  if (incoming.heartPieces2) {
-    save.heartPieces2 = incoming.heartPieces2;
-  }
-  if (incoming.heartPieces3) {
-    save.heartPieces3 = incoming.heartPieces3;
+  if (incoming.heartPieceCount > save.heartPieceCount) {
+    save.heartPieceCount = incoming.heartPieceCount;
+    //console.log("incoming.heartPieceCount > save.heartPieceCount")
+  } else if (incoming.heartPieceCount === 0 && save.heartPieceCount >= 3) {
+    save.heartPieceCount = 0;
+    //console.log ("incoming.heartPieceCount === 0 && save.heartPieceCount >= 3")
   }
 
   if (incoming.heart_containers > save.heart_containers) {

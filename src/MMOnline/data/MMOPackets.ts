@@ -30,6 +30,7 @@ export class MMO_PuppetPacket{
     dungeonItems: IDungeonItemSave;
     photo: IPhoto;
     bottle: InventorySave;
+    trade: InventorySave;
     constructor(
       save: InventorySave,
       equipment: IEquipmentSave,
@@ -37,6 +38,7 @@ export class MMO_PuppetPacket{
       dungeonItems: IDungeonItemSave,
       photo: IPhoto,
       bottle: InventorySave,
+      trade: InventorySave,
       lobby: string
     ) {
       super('MMO_SubscreenSyncPacket', 'MMOnline', lobby, false);
@@ -46,6 +48,7 @@ export class MMO_PuppetPacket{
       this.dungeonItems = dungeonItems;
       this.photo = photo;
       this.bottle = bottle;
+      this.trade = trade;
     }
   }
 
@@ -149,7 +152,7 @@ export class MMO_TimePacket extends Packet {
   day: number;
 
   constructor(time: number, time_speed: number, day: number, lobby: string) {
-    super('MMO_BottleUpdatePacket', 'MMOnline', lobby, true);
+    super('MMO_TimePacket', 'MMOnline', lobby, true);
     this.time = time;
     this.time_speed = time_speed;
     this.day = day;

@@ -168,7 +168,7 @@ export class Puppet implements IPuppet {
   }
 
   makeRamDump() {
-    fs.writeFileSync(global.ModLoader["startdir"] + "/ram_dump.bin", this.ModLoader.emulator.rdramReadBuffer(0x0, (16 * 1024 * 1024)));
+    //fs.writeFileSync(global.ModLoader["startdir"] + "/ram_dump.bin", this.ModLoader.emulator.rdramReadBuffer(0x0, (16 * 1024 * 1024)));
   }
 
   //@EventHandler(ModLoaderEvents.ON_ROM_PATCHED)

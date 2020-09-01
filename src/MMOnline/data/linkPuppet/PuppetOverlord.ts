@@ -225,8 +225,8 @@ export class PuppetOverlord implements IPuppetOverlord {
   sendPuppetPacket() {
     if (!this.amIAlone) {
       let packet = new MMO_PuppetPacket(this.fakeClientPuppet.data, this.ModLoader.clientLobby);
-      packet.data.time = get_linear_time(this.core.save.day_time, this.core.save.current_day);
-      this.ModLoader.logger.debug("Sending packet, in time should be " + packet.data.time.toString());
+      //packet.data.time = get_linear_time(this.core.save.day_time, this.core.save.current_day);
+      //this.ModLoader.logger.debug("Sending packet, in time should be " + packet.data.time.toString());
       this.ModLoader.clientSide.sendPacket(new MMO_PuppetWrapperPacket(packet, this.ModLoader.clientLobby));
     }
   }
@@ -235,20 +235,21 @@ export class PuppetOverlord implements IPuppetOverlord {
     if (this.puppets.has(packet.player.uuid)) {
       let puppet: Puppet = this.puppets.get(packet.player.uuid)!;
       let actualPacket = JSON.parse(packet.data) as MMO_PuppetPacket;
-      let scaled_time = get_scaled_time(actualPacket.data.time);
-      let linear_time = get_linear_time(this.core.save.day_time, this.core.save.current_day);
+      //let scaled_time = get_scaled_time(actualPacket.data.time);
+      //let linear_time = get_linear_time(this.core.save.day_time, this.core.save.current_day);
 
-      if (this.clientStorage.schedules[packet.player.uuid].schedule_data[scaled_time] === undefined) this.clientStorage.schedules[packet.player.uuid].schedule_data[scaled_time] = new PlayerScheduleData()
+      //if (this.clientStorage.schedules[packet.player.uuid].schedule_data[scaled_time] === undefined) this.clientStorage.schedules[packet.player.uuid].schedule_data[scaled_time] = new PlayerScheduleData()
 
-      this.clientStorage.schedules[packet.player.uuid].schedule_data[scaled_time].pos = actualPacket.data.pos;
-      this.clientStorage.schedules[packet.player.uuid].schedule_data[scaled_time].rot = actualPacket.data.rot;
-      this.clientStorage.schedules[packet.player.uuid].schedule_data[scaled_time].anim = actualPacket.data.anim;
-      this.clientStorage.schedules[packet.player.uuid].schedule_data[scaled_time].scene = puppet.scene;
-      this.clientStorage.schedules[packet.player.uuid].schedule_data[scaled_time].alive = true;
+      //this.clientStorage.schedules[packet.player.uuid].schedule_data[scaled_time].pos = actualPacket.data.pos;
+      //this.clientStorage.schedules[packet.player.uuid].schedule_data[scaled_time].rot = actualPacket.data.rot;
+      //this.clientStorage.schedules[packet.player.uuid].schedule_data[scaled_time].anim = actualPacket.data.anim;
+      //this.clientStorage.schedules[packet.player.uuid].schedule_data[scaled_time].scene = puppet.scene;
+      //this.clientStorage.schedules[packet.player.uuid].schedule_data[scaled_time].alive = true;
 
-      this.ModLoader.logger.debug("Updated schedule for " + packet.player.uuid + " at index " + scaled_time.toString())
+      //this.ModLoader.logger.debug("Updated schedule for " + packet.player.uuid + " at index " + scaled_time.toString())
 
-      if ((this.clientStorage.syncMode === 2 && Math.abs(scaled_time - linear_time) > 135) || this.clientStorage.syncMode !== 2) puppet.processIncomingPuppetData(actualPacket.data);
+      //if ((this.clientStorage.syncMode === 2 && Math.abs(scaled_time - linear_time) > 135) || this.clientStorage.syncMode !== 2) puppet.processIncomingPuppetData(actualPacket.data);
+      puppet.processIncomingPuppetData(actualPacket.data);
       //if (actualPacket.horse_data !== undefined) {
         /*         puppet.processIncomingHorseData(actualPacket.horse_data); */
       //}
