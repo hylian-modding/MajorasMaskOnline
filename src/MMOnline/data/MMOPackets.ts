@@ -160,23 +160,23 @@ export class MMO_TimePacket extends Packet {
 }
 
 export class MMO_ServerFlagUpdate extends Packet {
-  scenes: Buffer;
-  events: Buffer;
+  //scenes: Buffer;
+  //events: Buffer;
   //items: Buffer;
   //inf: Buffer;
   //skulltulas: Buffer;
 
   constructor(
-    scenes: Buffer,
-    events: Buffer,
+    //scenes: Buffer,
+    //events: Buffer,
     //items: Buffer,
     //inf: Buffer,
     //skulltulas: Buffer,
     lobby: string
   ) {
     super('MMO_ServerFlagUpdate', 'MMOnline', lobby, false);
-    this.scenes = scenes;
-    this.events = events;
+    //this.scenes = scenes;
+    //this.events = events;
     //this.items = items;
     //this.inf = inf;
     //this.skulltulas = skulltulas;

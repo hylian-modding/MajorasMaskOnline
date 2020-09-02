@@ -230,8 +230,8 @@ export class MMOnlineServer {
                         packet.lobby
                     ),
                     new MMO_ServerFlagUpdate(
-                        storage.sceneStorage,
-                        storage.eventStorage,
+                        //storage.sceneStorage,
+                        //storage.eventStorage,
                         //storage.itemFlagStorage,
                         //storage.infStorage,
                         //storage.skulltulaStorage,
@@ -362,8 +362,8 @@ export class MMOnlineServer {
         }*/
         this.ModLoader.serverSide.sendPacket(
             new MMO_ServerFlagUpdate(
-                storage.sceneStorage,
-                storage.eventStorage,
+                //storage.sceneStorage,
+                //storage.eventStorage,
                 //storage.itemFlagStorage,
                 //storage.infStorage,
                 //storage.skulltulaStorage,

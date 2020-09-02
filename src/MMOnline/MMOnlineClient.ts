@@ -509,7 +509,6 @@ export class MMOnlineClient {
             );
         }
     }
-    /*
     @NetworkHandler('MMO_BottleUpdatePacket')
     onFIELD_BOTTLEclient(packet: MMO_BottleUpdatePacket) {
         if (
@@ -550,7 +549,7 @@ export class MMOnlineClient {
             true
         );
         bus.emit(MMOnlineEvents.ON_INVENTORY_UPDATE, this.core.save.inventory);
-    }*/
+    }
 
     // The server is giving me data.
     @NetworkHandler('MMO_DownloadResponsePacket')
@@ -701,7 +700,7 @@ export class MMOnlineClient {
 
 
     @NetworkHandler('MMO_ServerFlagUpdate')
-    onSceneFlagSync_client(packet: MMO_ServerFlagUpdate) {
+    /*onSceneFlagSync_client(packet: MMO_ServerFlagUpdate) {
         this.ModLoader.logger.debug("onSceneFlagSync_client() Start");
         this.ModLoader.utils.clearBuffer(this.clientStorage.sceneStorage);
         this.ModLoader.utils.clearBuffer(this.clientStorage.eventStorage);
@@ -717,9 +716,9 @@ export class MMOnlineClient {
 
         parseFlagChanges(scene_data, this.clientStorage.sceneStorage);
         parseFlagChanges(event_data, this.clientStorage.eventStorage);
-        /*parseFlagChanges(item_data, this.clientStorage.itemFlagStorage);
+        parseFlagChanges(item_data, this.clientStorage.itemFlagStorage);
         parseFlagChanges(inf_data, this.clientStorage.infStorage);
-        parseFlagChanges(skulltula_data, this.clientStorage.skulltulaStorage);*/
+        parseFlagChanges(skulltula_data, this.clientStorage.skulltulaStorage);
 
         for (let i = 0; i < packet.scenes.byteLength; i += 0x1C) {
             let struct = new MMO_SceneStruct(packet.scenes.slice(i, i + 0x1C));
@@ -795,7 +794,7 @@ export class MMOnlineClient {
             if (this.clientStorage.skulltulaStorage[i] !== value) {
                 this.clientStorage.skulltulaStorage[i] |= value;
             }
-        }*/
+        }
 
         this.core.save.scene_flags = this.clientStorage.sceneStorage;
         this.core.save.event_flags = this.clientStorage.eventStorage;
@@ -804,7 +803,7 @@ export class MMOnlineClient {
         //this.core.save.skulltulaFlags = this.clientStorage.skulltulaStorage;
         
         this.ModLoader.logger.debug("onSceneFlagSync_client() End");
-    }
+    }*/
 
     @NetworkHandler('MMO_ClientSceneContextUpdate')
     onSceneContextSync_client(packet: MMO_ClientSceneContextUpdate) {
