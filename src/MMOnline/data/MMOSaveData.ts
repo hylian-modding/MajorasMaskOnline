@@ -775,21 +775,17 @@ export function mergeEquipmentData(
   }
   if (incoming.gilded) {
     save.gilded = true;
-    save.razorSword = false;
-    save.kokiriSword = true;
   }
-  if (!incoming.kokiriSword && incoming.gilded) {
+  if (incoming.razorSword) {
     save.razorSword = true;
   }
 
   // Shields
   if (incoming.heroesShield) {
-    save.heroesShield = true;
-    save.mirrorShield = false;
+    save.heroesShield = false;
   }
   if (incoming.mirrorShield) {
     save.mirrorShield = true;
-    save.heroesShield = false;
   }
 }
 
