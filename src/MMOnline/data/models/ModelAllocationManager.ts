@@ -3,7 +3,7 @@ import { INetworkPlayer } from 'modloader64_api/NetworkHandler';
 
 export class ModelAllocationManager {
   MAX_MODELS = 16;
-  RESERVED_SLOTS = 0;
+  RESERVED_SLOTS = 5;
   models: ModelPlayer[] = new Array<ModelPlayer>(this.MAX_MODELS);
 
   constructor() {

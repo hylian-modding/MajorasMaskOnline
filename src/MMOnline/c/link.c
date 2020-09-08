@@ -99,23 +99,23 @@ static void init(entity_t *en, z64_global_t *gl)
 	{
 		(en->puppet).form = (en->actor).variable;
 		(en->puppet).playas.isZZ = true;
-
+		uint32_t base = 0x80900000;
 		switch ((en->puppet).form)
 		{
 		case FORM_DEITY:
-			(en->puppet).playas.init = (puppet_init_t){0x80900000, 0x0, 0x0010, 0x0003, 1.50f};
+			(en->puppet).playas.init = (puppet_init_t){base + (en->puppet.form * 0x37800), 0x0, 0x0010, 0x0003, 1.50f};
 			break;
 		case FORM_GORON:
-			(en->puppet).playas.init = (puppet_init_t){0x80910000, 0x0, 0x0020, 0x0025, 0.75f};
+			(en->puppet).playas.init = (puppet_init_t){base + (en->puppet.form * 0x37800, 0x0, 0x0020, 0x0025, 0.75f};
 			break;
 		case FORM_ZORA:
-			(en->puppet).playas.init = (puppet_init_t){0x80920000, 0x0, 0x0009, 0x0023, 1.0f};
+			(en->puppet).playas.init = (puppet_init_t){base + (en->puppet.form * 0x37800, 0x0, 0x0009, 0x0023, 1.0f};
 			break;
 		case FORM_DEKU:
-			(en->puppet).playas.init = (puppet_init_t){0x80930000, 0x0, 0x0005, 0x0015, 0.30f};
+			(en->puppet).playas.init = (puppet_init_t){base + (en->puppet.form * 0x37800, 0x0, 0x0005, 0x0015, 0.30f};
 			break;
 		case FORM_HUMAN:
-			(en->puppet).playas.init = (puppet_init_t){0x80940000, 0x0, 0x0005, 0x0002, 0.65f};
+			(en->puppet).playas.init = (puppet_init_t){base + (en->puppet.form * 0x37800, 0x0, 0x0005, 0x0002, 0.65f};
 			break;
 		}
 

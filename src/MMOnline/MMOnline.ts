@@ -83,13 +83,12 @@ class MMOnline implements IPlugin, IMMOnlineHelpers, IPluginServerConfig {
     writeModel() {
         // These use the OOT adult format.
         let zz: zzstatic = new zzstatic(Z64LibSupportedGames.MAJORAS_MASK);
-        this.ModLoader.emulator.rdramWriteBuffer(0x80900000, zz.doRepoint(fs.readFileSync(path.resolve(__dirname, "data", "models", "zobjs", "Deity.zobj")), 0, true, 0x80900000));
-        this.ModLoader.emulator.rdramWriteBuffer(0x80910000, zz.doRepoint(fs.readFileSync(path.resolve(__dirname, "data", "models", "zobjs", "Goron.zobj")), 0, true, 0x80910000));
-        this.ModLoader.emulator.rdramWriteBuffer(0x80920000, zz.doRepoint(fs.readFileSync(path.resolve(__dirname, "data", "models", "zobjs", "Zora.zobj")), 0, true, 0x80920000));
-        this.ModLoader.emulator.rdramWriteBuffer(0x80930000, zz.doRepoint(fs.readFileSync(path.resolve(__dirname, "data", "models", "zobjs", "Deku.zobj")), 0, true, 0x80930000));
-        this.ModLoader.emulator.rdramWriteBuffer(0x80940000, zz.doRepoint(fs.readFileSync(path.resolve(__dirname, "data", "models", "zobjs", "Human.zobj")), 0, true, 0x80940000));
+        this.ModLoader.emulator.rdramWriteBuffer(0x80900000 + (0x37800 * 1), zz.doRepoint(fs.readFileSync(path.resolve(__dirname, "data", "models", "zobjs", "Deity.zobj")), 0, true, 0x80900000 + (0x37800 * 1)));
+        this.ModLoader.emulator.rdramWriteBuffer(0x80900000 + (0x37800 * 1), zz.doRepoint(fs.readFileSync(path.resolve(__dirname, "data", "models", "zobjs", "Goron.zobj")), 0, true, 0x80900000 + (0x37800 * 1)));
+        this.ModLoader.emulator.rdramWriteBuffer(0x80900000 + (0x37800 * 2), zz.doRepoint(fs.readFileSync(path.resolve(__dirname, "data", "models", "zobjs", "Zora.zobj")), 0, true, 0x80900000 + (0x37800 * 1)));
+        this.ModLoader.emulator.rdramWriteBuffer(0x80900000 + (0x37800 * 3), zz.doRepoint(fs.readFileSync(path.resolve(__dirname, "data", "models", "zobjs", "Deku.zobj")), 0, true, 0x80900000 + (0x37800 * 1)));
+        this.ModLoader.emulator.rdramWriteBuffer(0x80900000 + (0x37800 * 4), zz.doRepoint(fs.readFileSync(path.resolve(__dirname, "data", "models", "zobjs", "Human.zobj")), 0, true, 0x80900000 + (0x37800 * 1)));
     }
-
 
     onTick(frame?: number): void {
         if (this.core.helper.isTitleScreen() || !this.core.helper.isSceneNumberValid()) return;

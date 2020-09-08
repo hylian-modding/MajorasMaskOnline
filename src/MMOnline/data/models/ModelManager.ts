@@ -117,6 +117,7 @@ import {MMRomPatches} from 'Z64Lib/API/MM/MMRomPatches';
         model.writeUInt32BE(code_file.readUInt32BE(offset), 0x500c);
         this.clientStorage.childModel = model;
       }
+      tools.fixLinkObjectTableEntry(evt.rom, Z64LibSupportedGames.MAJORAS_MASK);
     }
   
     setupPuppetModels(evt: any) {
@@ -457,7 +458,7 @@ import {MMRomPatches} from 'Z64Lib/API/MM/MMRomPatches';
       let index: number = this.allocationManager.getModelIndex(model);
       this.ModLoader.logger.info("This model is assigned to model block " + index + ".");
       let allocation_size = 0x37800;
-      let addr: number = 0x950000 + allocation_size * index;
+      let addr: number = 0x900000 + allocation_size * index;
       this.ModLoader.logger.info("Model block " + index + " starts at address 0x" + addr.toString(16) + ".");
       let zobj_size: number = allocation_size;
       let passed: boolean = false;
