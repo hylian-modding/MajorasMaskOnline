@@ -75,7 +75,6 @@ export class Puppet implements IPuppet {
       bus.emit(MMOnlineEvents.PLAYER_PUPPET_PRESPAWN, this);
       this.isSpawning = true;
       this.data.pointer = 0x0;
-      this.ModLoader.emulator.rdramWrite16(0x80000E, this.form);
       (this.parent as any)["writeModel"]();
       fs.writeFileSync(global.ModLoader.startdir + "/ram.bin", this.ModLoader.emulator.rdramReadBuffer(0x0, (16 * 1024 * 1024)));
       this.core.commandBuffer.runCommand(Command.SPAWN_ACTOR, 0x80800000, (success: boolean, result: number) => {

@@ -281,18 +281,6 @@ import {MMRomPatches} from 'Z64Lib/API/MM/MMRomPatches';
           packet.player.nickname +
           '.'
         );
-      } else if (packet.form === 0x69) {
-        (this.clientStorage.playerModelCache[packet.player.uuid] as ModelPlayer).model.setEquipment(zlib.inflateSync(packet.model));
-        let thread: ModelThread = new ModelThread(
-          (this.clientStorage.playerModelCache[packet.player.uuid] as ModelPlayer).model.equipment.zobj,
-          this.ModLoader
-        );
-        thread.startThread(Z64LibSupportedGames.MAJORAS_MASK);
-        this.ModLoader.logger.info(
-          'client: Saving custom equipment model(s) for player ' +
-          packet.player.nickname +
-          '.'
-        );
       }
     }
   
@@ -310,7 +298,7 @@ import {MMRomPatches} from 'Z64Lib/API/MM/MMRomPatches';
         let index: number = this.allocationManager.getModelIndex(model);
         this.ModLoader.logger.info("This model is assigned to model block " + index + ".");
         let allocation_size = 0x37800;
-        let addr: number = 0x800000 + allocation_size * index;
+        let addr: number = 0x900000 + allocation_size * index;
         this.ModLoader.logger.info("Model block " + index + " starts at address 0x" + addr.toString(16) + ".");
         let pos: number = 0;
         while(pos < packet.mod.byteLength){
@@ -471,7 +459,7 @@ import {MMRomPatches} from 'Z64Lib/API/MM/MMRomPatches';
           this.ModLoader.logger.info("Writing child model into model block " + index + ".");
           this.ModLoader.emulator.rdramWriteBuffer(
             addr,
-            new zzstatic(Z64LibSupportedGames.MAJORAS_MASK).doRepoint(this.ModLoader.utils.cloneBuffer(model.model.child.zobj), index)
+            new zzstatic(Z64LibSupportedGames.MAJORAS_MASK).doRepoint(this.ModLoader.utils.cloneBuffer(model.model.child.zobj), index, true, 0x900000)
           );
           zobj_size = model.model.child.zobj.byteLength;
           passed = true;

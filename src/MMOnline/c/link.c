@@ -119,7 +119,7 @@ static void init(entity_t *en, z64_global_t *gl)
 				break;
 			}
 		}else{
-			(en->puppet).playas.init = (puppet_init_t){base + (en->puppet.form * 0x37800), 0x0, 0x0010, 0x0003, 1.50f};
+			(en->puppet).playas.init = (puppet_init_t){base + (en->puppet.form * 0x37800), 0x0, 0x0005, 0x0002, 0.65f};
 		}
 
 		(en->puppet).playas.init.skeleton = AVAL((en->puppet).playas.init.base, uint32_t, 0x500C);
