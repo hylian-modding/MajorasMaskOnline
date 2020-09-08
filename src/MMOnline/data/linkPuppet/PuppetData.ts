@@ -4,7 +4,7 @@ import { bus, EventHandler } from 'modloader64_api/EventHandler';
 import { MMOffsets } from 'MajorasMask/API/MMOffsets';
 import { IMMCore, MMForms } from 'MajorasMask/API/MMAPI';
 import * as API from 'MajorasMask/API/MMAPI';
-import { Z64RomTools } from '@MMOnline/Z64Lib/API/Z64RomTools';
+import { Z64RomTools } from 'Z64Lib/API/Z64RomTools';
 import MMOnline from '@MMOnline/MMOnline';
 import { MMOnlineEvents } from '@MMOnline/MMOAPI/MMOAPI';
 import { runInThisContext } from 'vm';

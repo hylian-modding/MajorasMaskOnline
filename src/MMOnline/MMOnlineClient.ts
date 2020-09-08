@@ -19,7 +19,7 @@ import { parseFlagChanges } from './parseFlagChanges';
 import { IMMOnlineLobbyConfig, MMOnlineConfigCategory } from './MMOnline';
 import { IModLoaderAPI, ModLoaderEvents } from 'modloader64_api/IModLoaderAPI';
 //import { ModelPlayer } from './data/models/ModelPlayer';
-import { Z64RomTools } from './Z64Lib/API/Z64RomTools';
+import { Z64RomTools } from 'Z64Lib/API/Z64RomTools';
 import { IActor } from 'modloader64_api/OOT/IActor';
 //import { KeyLogManagerClient } from './data/keys/KeyLogManager';
 import { PuppetOverlord } from './data/linkPuppet/PuppetOverlord';
@@ -29,6 +29,7 @@ import { MMOnlineStorage } from './MMOnlineStorage';
 //import { RPCClient } from './data/RPCHandler';
 import { RECORD_TICK_MODULO, NUM_SCHEDULE_TICKS, NUM_TICKS_PER_DAY, NUM_SCHEDULE_RECORD_TICKS, NUM_RECORD_TICKS_PER_DAY, get_scaled_time, PlayerScheduleData, PlayerSchedule } from './data/MMOPlayerSchedule'
 import { SaveContext } from 'MajorasMask/src/Imports';
+import { ModelManagerClient } from './data/models/ModelManager';
 
 export let TIME_SYNC_TRIGGERED: boolean = false;
 
@@ -43,8 +44,10 @@ export class MMOnlineClient {
     clientStorage!: MMOnlineStorageClient;
     config!: MMOnlineConfigCategory;
 
-    /*@SidedProxy(ProxySide.CLIENT, ModelManagerClient)
+    @SidedProxy(ProxySide.CLIENT, ModelManagerClient)
     modelManager!: ModelManagerClient;
+
+    /*
     @SidedProxy(ProxySide.CLIENT, UtilityActorHelper)
     utility!: UtilityActorHelper;
     @SidedProxy(ProxySide.CLIENT, ActorHookingManagerClient)
@@ -88,6 +91,7 @@ export class MMOnlineClient {
     @Init()
     init(): void {
         this.clientStorage.syncMode = this.config.syncMode;
+        this.modelManager.clientStorage = this.clientStorage;
     }
 
     @Postinit()

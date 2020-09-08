@@ -7,7 +7,8 @@ import { PuppetData } from './linkPuppet/PuppetData';
 //import { HorseData } from './linkPuppet/HorseData';
 import { InventorySave, IEquipmentSave, IQuestSave, IDungeonItemSave } from './MMOSaveData';
 import * as API from 'MajorasMask/API/Imports';
-import { IPhoto } from 'MajorasMask/API/Imports';
+import { IPhoto, MMForms } from 'MajorasMask/API/Imports';
+import { INetworkPlayer } from 'modloader64_api/NetworkHandler';
 
 
 export class MMO_PuppetPacket{
@@ -237,17 +238,6 @@ export class MMO_ActorDeadPacket extends Packet {
   }
 }
 
-export class MMO_AllocateModelPacket extends Packet {
-  model: Buffer;
-  form: API.MMForms;
-
-  constructor(model: Buffer, form: API.MMForms, lobby: string) {
-    super('MMO_AllocateModelPacket', 'MMOnline', lobby, true);
-    this.model = model;
-    this.form = form;
-  }
-}
-
 export class MMO_DownloadAllModelsPacket extends Packet {
   models: any;
 
@@ -265,17 +255,6 @@ export class MMO_BottleUpdatePacket extends Packet {
     super('MMO_BottleUpdatePacket', 'MMOnline', lobby, true);
     this.slot = slot;
     this.contents = contents;
-  }
-}
-
-export class MMO_IconAllocatePacket extends Packet {
-  icon: Buffer;
-  form: API.MMForms;
-
-  constructor(buf: Buffer, form: API.MMForms, lobby: string) {
-    super('MMO_IconAllocatePacket', 'MMOnline', lobby, true);
-    this.icon = buf;
-    this.form = form;
   }
 }
 
@@ -309,5 +288,54 @@ export class MMO_SceneGUIPacket extends Packet {
 
   setChildIcon(iconChild: Buffer) {
     this.iconChild = iconChild.toString('base64');
+  }
+}
+
+export class MMO_ModifyModelPacket extends Packet{
+  mod: Buffer;
+  offset: number;
+  form: MMForms;
+
+  constructor(lobby: string, mod: Buffer, offset: number, form: MMForms){
+    super('MMO_ModifyModelPacket', 'MMOnline', lobby, false);
+    this.mod = mod;
+    this.offset = offset;
+    this.form = form;
+  }
+}
+
+export class MMO_GiveModelPacket extends Packet {
+
+  target: INetworkPlayer;
+
+  constructor(lobby: string, player: INetworkPlayer) {
+    super('MMO_GiveModelPacket', 'MMOnline', lobby, true);
+    this.target = player;
+  }
+}
+
+export class MMO_AllocateModelPacket extends Packet {
+  model: Buffer;
+  form: MMForms;
+  hash: string;
+
+  constructor(model: Buffer, form: MMForms, lobby: string, hash: string) {
+    super('MMO_AllocateModelPacket', 'MMOnline', lobby, true);
+    this.model = model;
+    this.form = form;
+    this.hash = hash;
+  }
+}
+
+export class MMO_IconAllocatePacket extends Packet {
+  icon: Buffer;
+  form: MMForms;
+  hash: string;
+
+  constructor(buf: Buffer, form: MMForms, lobby: string, hash: string) {
+    super('MMO_IconAllocatePacket', 'MMOnline', lobby, true);
+    this.icon = buf;
+    this.form = form;
+    this.hash = hash;
   }
 }

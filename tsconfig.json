@@ -21,6 +21,9 @@
       ],
       "MajorasMask/*": [
         "libs\\MajorasMask/*"
+      ],
+      "Z64Lib/*": [
+        "libs\\Z64Lib/*"
       ]
     }
   },

@@ -9,10 +9,8 @@ import { MMOnlineStorage } from './MMOnlineStorage';
 
 import { MMOnlineStorageClient } from './MMOnlineStorageClient';
 import { IPacketHeader, ServerNetworkHandler, NetworkHandler, INetworkPlayer } from 'modloader64_api/NetworkHandler';
-import { zzstatic } from './Z64Lib/API/zzstatic';
-import { Z64LibSupportedGames } from './Z64Lib/API/Z64LibSupportedGames';
-import { ManifestMapper } from './data/models/ManifestMapper';
-import { ModelManager } from './data/models/ModelManager';
+import { zzstatic } from 'Z64Lib/API/zzstatic';
+import { Z64LibSupportedGames } from 'Z64Lib/API/Z64LibSupportedGames';
 
 import printf from './printf'
 import path from 'path';

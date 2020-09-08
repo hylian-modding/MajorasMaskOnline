@@ -1,279 +1,498 @@
-import { EventHandler } from "modloader64_api/EventHandler";
-import { zzstatic } from "../../Z64Lib/API/zzstatic";
-import fs from 'fs';
-import { Z64LibSupportedGames } from "../../Z64Lib/API/Z64LibSupportedGames";
-import { Z64RomTools } from "../../Z64Lib/API/Z64RomTools";
-import { ModLoaderEvents, IModLoaderAPI } from "modloader64_api/IModLoaderAPI";
-import { ModLoaderAPIInject } from "modloader64_api/ModLoaderAPIInjector";
-import { MMOnlineEvents, MMO_CHILD_MODEL_EVENT } from "../../MMOAPI/MMOAPI";
-
-class ManifestBuffer {
-    buf: Buffer;
-    cur: number = 0;
-    start: number;
-    constructor(buf: Buffer, start: number) {
-        this.buf = buf;
-        this.start = start;
-    }
-
-    GoTo(num: number) {
-        this.cur = num;
-    }
-
-    Write32(data: number) {
-        this.buf.writeUInt32BE(this.start + data, this.cur);
-        this.cur += 0x4;
-    }
-
-    Hi32(data: number) {
-        let temp: Buffer = Buffer.alloc(0x4);
-        temp.writeUInt32BE(data, 0);
-        this.buf.writeUInt32BE(temp.readUInt16BE(0), this.cur);
-    }
-
-    Lo32(data: number) {
-        let temp: Buffer = Buffer.alloc(0x4);
-        temp.writeUInt32BE(data, 0);
-        this.buf.writeUInt32BE(temp.readUInt16BE(2), this.cur);
-    }
-
-    HexString(hex: string) {
-        let b = Buffer.from(hex, 'hex');
-        b.copy(this.buf, this.cur);
-        this.cur += b.byteLength;
-    }
-}
-
-class ModelManagerContainer {
-    childFile: string = '';
-    isChildBig: boolean = false;
-
-    hasChildModel() {
-        return this.childFile !== '';
-    }
-}
-
-export class ModelManager {
-
+import {
+    IModLoaderAPI,
+    ModLoaderEvents,
+  } from 'modloader64_api/IModLoaderAPI';
+  import {
+    EventHandler,
+    EventsClient,
+  } from 'modloader64_api/EventHandler';
+  import { MMOnlineStorageClient } from '../../MMOnlineStorageClient';
+  import zlib from 'zlib';
+  import {
+    MMO_AllocateModelPacket,
+    MMO_IconAllocatePacket,
+    MMO_GiveModelPacket,
+    MMO_ModifyModelPacket,
+  } from '../MMOPackets';
+  import { Age, OotEvents, IOOTCore } from 'modloader64_api/OOT/OOTAPI';
+  import {
+    INetworkPlayer,
+    NetworkHandler,
+  } from 'modloader64_api/NetworkHandler';
+  import { MMOnlineEvents } from '../../MMOAPI/MMOAPI';
+  import { ModelPlayer } from './ModelPlayer';
+  import { ModelAllocationManager } from './ModelAllocationManager';
+  import { Puppet } from '../linkPuppet/Puppet';
+  import fs from 'fs';
+  import { ModLoaderAPIInject } from 'modloader64_api/ModLoaderAPIInjector';
+  import path from 'path';
+  import { ModelObject } from './ModelContainer';
+  import { PatchTypes } from 'modloader64_api/Patchers/PatchManager';
+  import { Z64RomTools, trimBuffer } from 'Z64Lib/API/Z64RomTools';
+  import { InjectCore } from 'modloader64_api/CoreInjection';
+  import { MMChildManifest } from 'Z64Lib/API/MM/MMChildManifest';
+  import { zzstatic } from 'Z64Lib/API/zzstatic';
+  import { Z64LibSupportedGames } from 'Z64Lib/API/Z64LibSupportedGames';
+  import { ModelThread } from 'Z64Lib/API/ModelThread';
+import { MMForms } from 'MajorasMask/API/MMAPI';
+import {MMRomPatches} from 'Z64Lib/API/MM/MMRomPatches';
+  
+  export class ModelManagerClient {
     @ModLoaderAPIInject()
     ModLoader!: IModLoaderAPI;
-
-    container: ModelManagerContainer = new ModelManagerContainer();
-
+    @InjectCore()
+    core!: IOOTCore;
+    clientStorage!: MMOnlineStorageClient;
+    allocationManager: ModelAllocationManager;
+    customModelFileAdult = '';
+    customModelFileChild = '';
+    customModelFileAnims = '';
+    customModelRepointsAdult = __dirname + '/zobjs/adult.json';
+    customModelRepointsChild = __dirname + '/zobjs/child.json';
+    customModelFileAdultIcon = '';
+    customModelFileChildIcon = '';
+    cacheDir: string = "./cache";
+    isThreaded: boolean = false;
+  
+    constructor() {
+      this.allocationManager = new ModelAllocationManager();
+    }
+  
+    @EventHandler(MMOnlineEvents.CUSTOM_MODEL_APPLIED_ADULT)
+    onCustomModel(file: string) {
+      this.customModelFileAdult = file;
+    }
+  
     @EventHandler(MMOnlineEvents.CUSTOM_MODEL_APPLIED_CHILD)
-    CUSTOM_MODEL_APPLIED_CHILD(data: MMO_CHILD_MODEL_EVENT) {
-        this.container.childFile = data.file;
-        this.container.isChildBig = data.isAdultHeight
+    onCustomModel2(file: string) {
+      this.customModelFileChild = file;
     }
-
-    private injectChildModel(rom: Buffer, file: string): Buffer {
-        let zz: zzstatic = new zzstatic(Z64LibSupportedGames.MAJORAS_MASK);
-        let buf = Buffer.alloc(0x37800, 0xAB);
-        zz.doRepoint(fs.readFileSync(file), 0, true, 0x80950000).copy(buf);
-        let tools = new Z64RomTools(this.ModLoader, 0x1A500);
-        let child = tools.decompressFileFromRom(rom, 654);
-        buf.copy(child, 0, 0, 0x5000);
-        tools.recompressFileIntoRom(rom, 654, buf);
-
-        let obj_start: number = 0x80950000;
-        let code: ManifestBuffer = new ManifestBuffer(tools.decompressFileFromRom(rom, 31), obj_start);
-        let player: ManifestBuffer = new ManifestBuffer(tools.decompressFileFromRom(rom, 38), obj_start);
-        let hookshot: ManifestBuffer = new ManifestBuffer(tools.decompressFileFromRom(rom, 83), obj_start);
-
-        code.GoTo(VROM_CODE + 0x11A55C);
-        code.Write32(LUT_DL_WAIST);
-        code.Write32(LUT_DL_WAIST);
-        code.Write32(LUT_DL_RFIST_SHIELD_HERO);       // Right Fist + Hero's Shield
-        code.Write32(LUT_DL_RFIST_SHIELD_HERO);
-        code.Write32(LUT_DL_RFIST_SHIELD_MIRROR);     // Right Fist + Mirror Shield
-        code.Write32(LUT_DL_RFIST_SHIELD_MIRROR);
-        code.GoTo(VROM_CODE + 0x11A5EC);
-        code.Write32(LUT_DL_SHIELD_HERO_BACK);        // Rotated Hero's Shield
-        code.Write32(LUT_DL_SHIELD_HERO_BACK);
-        code.Write32(LUT_DL_SHIELD_MIRROR_BACK);      // Rotated Mirror Shield
-        code.Write32(LUT_DL_SHIELD_MIRROR_BACK);
-        code.Write32(LUT_DL_SWORD_KOKIRI_SHEATHED);   // Sheathed Kokiri Sword
-        code.Write32(LUT_DL_SWORD_KOKIRI_SHEATHED);
-        code.Write32(LUT_DL_SWORD_RAZOR_SHEATHED);   // Sheathed Razor Sword
-        code.Write32(LUT_DL_SWORD_RAZOR_SHEATHED);
-        code.Write32(LUT_DL_SWORD_GILDED_SHEATHED);   // Sheathed Gilded Sword
-        code.Write32(LUT_DL_SWORD_GILDED_SHEATHED);
-        code.Write32(LUT_DL_SHEATH_KOKIRI);           // Kokiri Sword Sheath
-        code.Write32(LUT_DL_SHEATH_KOKIRI);
-        code.Write32(LUT_DL_SHEATH_RAZOR);            // Razor Sword Sheath
-        code.Write32(LUT_DL_SHEATH_RAZOR);
-        code.Write32(LUT_DL_SHEATH_GILDED);           // Gilded Sword Sheath
-        code.Write32(LUT_DL_SHEATH_GILDED);
-        code.GoTo(VROM_CODE + 0x11A64C);                    // Left Fist + Great Fairy's Sword
-        code.Write32(LUT_DL_LFIST_GFSWORD_SWORD);
-        code.Write32(LUT_DL_LFIST_GFSWORD_SWORD);
-        code.GoTo(VROM_CODE + 0x11A674);                    // Left Hand
-        code.Write32(LUT_DL_LHAND);
-        code.Write32(LUT_DL_LHAND);
-        code.GoTo(VROM_CODE + 0x11A69C);                    // Left Fist
-        code.Write32(LUT_DL_LFIST);
-        code.Write32(LUT_DL_LFIST);
-        code.GoTo(VROM_CODE + 0x11A6CC);                    // Left Fist + Kokiri Sword
-        code.Write32(LUT_DL_LFIST_KOKIRI_SWORD);
-        code.Write32(LUT_DL_LFIST_KOKIRI_SWORD);
-        code.GoTo(VROM_CODE + 0x11A6D4);                    // Left Fist + Razor Sword
-        code.Write32(LUT_DL_LFIST_RAZOR_SWORD);
-        code.Write32(LUT_DL_LFIST_RAZOR_SWORD);
-        code.GoTo(VROM_CODE + 0x11A6DC);                    // Left Fist + Gilded Sword
-        code.Write32(LUT_DL_LFIST_GILDED_SWORD);
-        code.Write32(LUT_DL_LFIST_GILDED_SWORD);
-        code.GoTo(VROM_CODE + 0x11A704);                    // Right Hand
-        code.Write32(LUT_DL_RHAND);
-        code.Write32(LUT_DL_RHAND);
-        code.GoTo(VROM_CODE + 0x11A72C);                    // Right Fist
-        code.Write32(LUT_DL_RFIST);
-        code.Write32(LUT_DL_RFIST);
-        code.GoTo(VROM_CODE + 0x11A754);                    // Right Fist + Hero's Bow
-        code.Write32(LUT_DL_RFIST_BOW);
-        code.Write32(LUT_DL_RFIST_BOW);
-        code.GoTo(VROM_CODE + 0x11A77C);                    // Right Hand + Ocarina of Time
-        code.Write32(LUT_DL_RHAND_OCARINA_TIME);
-        code.Write32(LUT_DL_RHAND_OCARINA_TIME);
-        code.GoTo(VROM_CODE + 0x11A7A4);                    // Right Fist + Hookshot
-        code.Write32(LUT_DL_RFIST_HOOKSHOT);
-        code.Write32(LUT_DL_RFIST_HOOKSHOT);
-        code.GoTo(VROM_CODE + 0x11A7CC);                    // Outstreched Left Hand (for holding bottles)
-        code.Write32(LUT_DL_LHAND_BOTTLE);
-        code.Write32(LUT_DL_LHAND_BOTTLE);
-        code.GoTo(VROM_CODE + 0x11A7F8);                    // Left Fist
-        code.Write32(LUT_DL_LFIST);
-        code.GoTo(VROM_CODE + 0x11A80C);                    // Right Shoulder
-        code.Write32(LUT_DL_RSHOULDER);
-        code.GoTo(VROM_CODE + 0X11A820);                    // FPS Right Arm + Hero's Bow
-        code.Write32(LUT_DL_FPS_RARM_BOW);
-        code.GoTo(VROM_CODE + 0x11A834);                    // FPS Right Arm + Hookshot
-        code.Write32(LUT_DL_FPS_RARM_HOOKSHOT);
-        code.GoTo(VROM_CODE + 0x11B2D4);                    // Hero's Bow String
-        code.Write32(LUT_DL_BOW_STRING);
-        // Hookshot Spike
-        hookshot.GoTo(VROM_ARMS_HOOK + 0xA2E);
-        hookshot.Hi32(LUT_DL_HOOKSHOT_SPIKE);
-        hookshot.GoTo(VROM_ARMS_HOOK + 0xA32);
-        hookshot.Lo32(LUT_DL_HOOKSHOT_SPIKE);
-        // FPS Glitch Fix (Thanks Fkualol!)
-        code.GoTo(VROM_CODE + 0x11A7E4);
-        code.Write32(LUT_DL_DF_COMMAND);
-
-        // Swordless fix    (Thanks Nick!)
-        code.GoTo(VROM_CODE + 0x11A5E4);
-        code.Write32(LUT_DL_DF_COMMAND);                   // Sheathed Sword + Shield
-        code.GoTo(VROM_CODE + 0x11A5BC);
-        code.Write32(LUT_DL_DF_COMMAND);                   // Sheathed Sword
-
-        // Unknown Pointers (?)
-        code.GoTo(VROM_CODE + 0x11A594);
-        code.Write32(LUT_DL_DF_COMMAND);
-        code.GoTo(VROM_CODE + 0x11A598);
-        code.Write32(LUT_DL_DF_COMMAND);
-        code.GoTo(VROM_CODE + 0x11A5C0);
-        code.Write32(LUT_DL_DF_COMMAND);
-        code.GoTo(VROM_CODE + 0x11A5E8);
-        code.Write32(LUT_DL_DF_COMMAND);
-        //
-        code.GoTo(VROM_CODE + HIERARCHY_CODE);
-        code.Write32(LUT_HIERARCHY);
-
-        tools.recompressFileIntoRom(rom, 31, code.buf);
-        tools.recompressFileIntoRom(rom, 83, hookshot.buf);
-        tools.recompressFileIntoRom(rom, 38, player.buf);
-        return buf;
+  
+    @EventHandler(MMOnlineEvents.CUSTOM_MODEL_APPLIED_ANIMATIONS)
+    onCustomModel3(file: string) {
+      this.customModelFileAnims = file;
     }
-
-    private adultHeightFix(code: ManifestBuffer, player: ManifestBuffer): ManifestBuffer {
-        code.GoTo(0x11A378);
-        code.HexString("00C803E8012C02BC0226010E02BC012C007803200258FF9C0258024E02EE007D00C80082");
-        code.GoTo(0x2E318);
-
-        return code;
+  
+    @EventHandler(MMOnlineEvents.CUSTOM_MODEL_APPLIED_ICON_ADULT)
+    onCustomModel4(file: string) {
+      this.customModelFileAdultIcon = file;
     }
-
-    @EventHandler(ModLoaderEvents.ON_ROM_PATCHED_POST)
-    onRomPatched(evt: any) {
-        if (this.container.hasChildModel()) {
-            evt.rom = this.injectChildModel(evt.rom, this.container.childFile);
+  
+    @EventHandler(MMOnlineEvents.CUSTOM_MODEL_APPLIED_ICON_CHILD)
+    onCustomModel5(file: string) {
+      this.customModelFileChildIcon = file;
+    }
+  
+    @EventHandler(MMOnlineEvents.CUSTOM_MODEL_OVERRIDE_ADULT)
+    onOverrideAdult(evt: any){
+      this.customModelFileAdult = evt.p;
+    }
+  
+    @EventHandler(MMOnlineEvents.CUSTOM_MODEL_OVERRIDE_CHILD)
+    onOverrideChild(evt: any){
+      this.customModelFileChild = evt.p;
+    }
+  
+    loadAdultModel(evt: any, file: string) {
+/*       let tools: Z64RomTools = new Z64RomTools(this.ModLoader, global.ModLoader.isDebugRom ? Z64LibSupportedGames.DEBUG_OF_TIME : Z64LibSupportedGames.MAJORAS_MASK);
+      let model: Buffer = fs.readFileSync(file);
+      let manifest: OOTAdultManifest = new OOTAdultManifest();
+      if (manifest.repoint(this.ModLoader, evt.rom, model)) {
+        manifest.inject(this.ModLoader, evt.rom, model);
+        let code_file: Buffer = tools.decompressDMAFileFromRom(evt.rom, 27);
+        let offset: number = 0xE65A0;
+        model.writeUInt32BE(code_file.readUInt32BE(offset), 0x500c);
+        this.clientStorage.adultModel = model;
+      } */
+    }
+  
+    loadChildModel(evt: any, file: string) {
+      let tools: Z64RomTools = new Z64RomTools(this.ModLoader, Z64LibSupportedGames.MAJORAS_MASK);
+      let model: Buffer = fs.readFileSync(file);
+      let manifest: MMChildManifest = new MMChildManifest();
+      if (manifest.repoint(this.ModLoader, evt.rom, model)) {
+        manifest.inject(this.ModLoader, evt.rom, model);
+        let code_file: Buffer = tools.decompressDMAFileFromRom(evt.rom, 0x1F);
+        let offset: number = 0x11A350;
+        model.writeUInt32BE(code_file.readUInt32BE(offset), 0x500c);
+        this.clientStorage.childModel = model;
+      }
+    }
+  
+    setupPuppetModels(evt: any) {
+      /* if (!fs.existsSync(this.cacheDir)) {
+        fs.mkdirSync(this.cacheDir);
+      }
+      let child_path: string = path.join(this.cacheDir, "child.zobj");
+      let adult_path: string = path.join(this.cacheDir, "adult.zobj");
+  
+      let puppet_child: Buffer = Buffer.alloc(1);
+      let puppet_adult: Buffer = Buffer.alloc(1);
+  
+      if (fs.existsSync(child_path) && fs.existsSync(adult_path)) {
+        puppet_child = fs.readFileSync(child_path);
+        puppet_adult = fs.readFileSync(adult_path);
+      } else {
+        let tools: Z64RomTools = new Z64RomTools(this.ModLoader, global.ModLoader.isDebugRom ? Z64LibSupportedGames.DEBUG_OF_TIME : Z64LibSupportedGames.MAJORAS_MASK);
+        this.ModLoader.logger.info("Setting up puppet models...");
+        puppet_child = Buffer.alloc(0x37800);
+        //tools.decompressObjectFileFromRom(evt.rom, 0x0014).copy(puppet_child);
+        tools.decompressDMAFileFromRom(evt.rom, 503).copy(puppet_child);
+        puppet_adult = Buffer.alloc(0x37800);
+        //tools.decompressObjectFileFromRom(evt.rom, 0x0015).copy(puppet_adult);
+        tools.decompressDMAFileFromRom(evt.rom, 502).copy(puppet_adult);
+        if (!global.ModLoader.isDebugRom) {
+          puppet_child = PatchTypes.get(".bps")!.patch(puppet_child, fs.readFileSync(path.join(__dirname, "zobjs", "ChildLink.bps")));
+          puppet_adult = PatchTypes.get(".bps")!.patch(puppet_adult, fs.readFileSync(path.join(__dirname, "zobjs", "AdultLink.bps")));
+        } else if (this.core.rom_header!.id === "NZL") {
+          puppet_child = PatchTypes.get(".bps")!.patch(puppet_child, fs.readFileSync(path.join(__dirname, "zobjs", "ChildLinkDebug.bps")));
+          puppet_adult = PatchTypes.get(".bps")!.patch(puppet_adult, fs.readFileSync(path.join(__dirname, "zobjs", "AdultLinkDebug.bps")));
         }
+        fs.writeFileSync(child_path, trimBuffer(puppet_child));
+        fs.writeFileSync(adult_path, trimBuffer(puppet_adult));
+      }
+  
+      let a = new ModelPlayer("Adult");
+      a.model.adult = new ModelObject(trimBuffer(new zzstatic(Z64LibSupportedGames.MAJORAS_MASK).doRepoint(puppet_adult, 0)));
+      let c = new ModelPlayer("Child");
+      c.model.child = new ModelObject(trimBuffer(new zzstatic(Z64LibSupportedGames.MAJORAS_MASK).doRepoint(puppet_child, 1)));
+      this.allocationManager.models[0] = a;
+      this.allocationManager.models[1] = c; */
     }
-}
-
-// zzplayas stuff. Leave alone.
-const LUT_DL_WAIST: number = 0x5110;
-const LUT_DL_RTHIGH: number = 0x5118;
-const LUT_DL_RSHIN: number = 0x5120;
-const LUT_DL_RFOOT: number = 0x5128;
-const LUT_DL_LTHIGH: number = 0x5130;
-const LUT_DL_LSHIN: number = 0x5138;
-const LUT_DL_LFOOT: number = 0x5140;
-const LUT_DL_HEAD: number = 0x5148;
-const LUT_DL_HAT: number = 0x5150;
-const LUT_DL_COLLAR: number = 0x5158;
-const LUT_DL_LSHOULDER: number = 0x5160;
-const LUT_DL_LFOREARM: number = 0x5168;
-const LUT_DL_RSHOULDER: number = 0x5170;
-const LUT_DL_RFOREARM: number = 0x5178;
-const LUT_DL_TORSO: number = 0x5180;
-const LUT_DL_LHAND: number = 0x5188;
-const LUT_DL_LFIST: number = 0x5190;
-const LUT_DL_LHAND_BOTTLE: number = 0x5198;
-const LUT_DL_RHAND: number = 0x51A0;
-const LUT_DL_RFIST: number = 0x51A8;
-const LUT_DL_SHIELD_MIRROR_FACE: number = 0x51B0;
-const LUT_DL_SHIELD_MIRROR: number = 0x51B8;
-const LUT_DL_BLADE_GFSWORD: number = 0x51C0;
-const LUT_DL_SHEATH_GILDED: number = 0x51C8;
-const LUT_DL_HILT_GILDED: number = 0x51D0;
-const LUT_DL_BLADE_GILDED: number = 0x51D8;
-const LUT_DL_SHEATH_RAZOR: number = 0x51E0;
-const LUT_DL_SHIELD_HERO: number = 0x51E8;
-const LUT_DL_SHEATH_KOKIRI: number = 0x51F0;
-const LUT_DL_HOOKSHOT: number = 0x51F8;
-const LUT_DL_BOW: number = 0x5200;
-const LUT_DL_HOOKSHOT_SPIKE: number = 0x5208;
-const LUT_DL_OCARINA_TIME: number = 0x5210;
-const LUT_DL_FPS_RIGHT_ARM: number = 0x5218;
-const LUT_DL_BOW_STRING: number = 0x5220;
-const DL_SHIELD_HERO_BACK: number = 0x5228;
-const LUT_DL_SHIELD_HERO_BACK: number = 0x5238;
-const DL_SHIELD_MIRROR_COMBINED: number = 0x5240;
-const LUT_DL_SHIELD_MIRROR_COMBINED: number = 0x5250;
-const DL_SHIELD_MIRROR_BACK: number = 0x5258;
-const LUT_DL_SHIELD_MIRROR_BACK: number = 0x5268;
-const DL_SWORD_KOKIRI_SHEATHED: number = 0x5270;
-const LUT_DL_SWORD_KOKIRI_SHEATHED: number = 0x5290;
-const DL_SWORD_RAZOR_SHEATHED: number = 0x5298;
-const LUT_DL_SWORD_RAZOR_SHEATHED: number = 0x52B8;
-const DL_SWORD_GILDED_SHEATHED: number = 0x52C0;
-const LUT_DL_SWORD_GILDED_SHEATHED: number = 0x52E0;
-const DL_LFIST_KOKIRI_SWORD: number = 0x52E8;
-const LUT_DL_LFIST_KOKIRI_SWORD: number = 0x5300;
-const DL_LFIST_RAZOR_SWORD: number = 0x5308;
-const LUT_DL_LFIST_RAZOR_SWORD: number = 0x5320;
-const DL_LFIST_GILDED_SWORD: number = 0x5328;
-const LUT_DL_LFIST_GILDED_SWORD: number = 0x5340;
-const DL_LFIST_GFSWORD_SWORD: number = 0x5348;
-const LUT_DL_LFIST_GFSWORD_SWORD: number = 0x5358;
-//const LUT_DL_BLADE_GFSWORD: number = 0x5360;
-const DL_RFIST_SHIELD_HERO: number = 0x5368;
-const LUT_DL_RFIST_SHIELD_HERO: number = 0x5378;
-const DL_RFIST_SHIELD_MIRROR: number = 0x5380;
-const LUT_DL_RFIST_SHIELD_MIRROR: number = 0x5390;
-const DL_RFIST_HOOKSHOT: number = 0x5398;
-const LUT_DL_RFIST_HOOKSHOT: number = 0x53A8;
-const DL_RFIST_BOW: number = 0x53B0;
-const LUT_DL_RFIST_BOW: number = 0x53C0;
-const DL_RHAND_OCARINA_TIME: number = 0x53C8;
-const LUT_DL_RHAND_OCARINA_TIME: number = 0x53D8;
-const DL_FPS_RARM_HOOKSHOT: number = 0x53E0;
-const LUT_DL_FPS_RARM_HOOKSHOT: number = 0x53F0;
-const DL_FPS_RARM_BOW: number = 0x53F8;
-const LUT_DL_FPS_RARM_BOW: number = 0x5408;
-const DL_DF_COMMAND: number = 0x5410;
-const LUT_DL_DF_COMMAND: number = 0x5418;
-const VROM_CODE: number = 0;
-const VROM_ARMS_HOOK = 0;
-const HIERARCHY_CODE = 0x11A350;
-const LUT_HIERARCHY = 0x5420;
+  
+    @EventHandler(ModLoaderEvents.ON_ROM_PATCHED_PRE)
+    onRomPatchedPre(evt: any) {
+      this.setupPuppetModels(evt);
+    }
+  
+    @EventHandler(ModLoaderEvents.ON_ROM_PATCHED)
+    onRomPatched(evt: any) {
+      let patch: MMRomPatches = new MMRomPatches();
+      patch.patch(evt.rom);
+      let tools: Z64RomTools = new Z64RomTools(this.ModLoader, Z64LibSupportedGames.MAJORAS_MASK);
+      this.ModLoader.logger.info('Starting custom model setup...');
+      let anim = 7;
+  
+      if (this.customModelFileAdult !== '') {
+        this.loadAdultModel(evt, this.customModelFileAdult);
+        let def = zlib.deflateSync(this.clientStorage.adultModel);
+        this.ModLoader.clientSide.sendPacket(
+          new MMO_AllocateModelPacket(
+            def,
+            MMForms.FD,
+            this.ModLoader.clientLobby,
+            this.ModLoader.utils.hashBuffer(def)
+          )
+        );
+      }
+  
+      if (this.customModelFileChild !== '') {
+        this.loadChildModel(evt, this.customModelFileChild);
+        let def = zlib.deflateSync(this.clientStorage.childModel);
+        this.ModLoader.clientSide.sendPacket(
+          new MMO_AllocateModelPacket(
+            def,
+            MMForms.HUMAN,
+            this.ModLoader.clientLobby,
+            this.ModLoader.utils.hashBuffer(def)
+          )
+        );
+      }
+  
+      if (this.customModelFileAnims !== '') {
+        this.ModLoader.logger.info('Loading new animations...');
+        let anim_file: Buffer = fs.readFileSync(this.customModelFileAnims);
+        let anim_zobj: Buffer = tools.decompressDMAFileFromRom(evt.rom, anim);
+        if (anim_zobj.byteLength === anim_file.byteLength) {
+          this.ModLoader.utils.clearBuffer(anim_zobj);
+          anim_file.copy(anim_zobj);
+        }
+        tools.recompressDMAFileIntoRom(evt.rom, anim, anim_zobj);
+      }
+  
+      if (this.customModelFileAdultIcon !== '') {
+        this.ModLoader.logger.info('Loading custom map icon (Adult) ...');
+        this.clientStorage.childModel = fs.readFileSync(
+          this.customModelFileAdultIcon
+        );
+        let def = zlib.deflateSync(this.clientStorage.childModel);
+        this.ModLoader.clientSide.sendPacket(
+          new MMO_IconAllocatePacket(
+            def,
+            MMForms.FD,
+            this.ModLoader.clientLobby,
+            this.ModLoader.utils.hashBuffer(def)
+          )
+        );
+      }
+  
+      if (this.customModelFileChildIcon !== '') {
+        this.ModLoader.logger.info('Loading custom map icon (Child) ...');
+        this.clientStorage.childIcon = fs.readFileSync(
+          this.customModelFileChildIcon
+        );
+        let def = zlib.deflateSync(this.clientStorage.childIcon);
+        this.ModLoader.clientSide.sendPacket(
+          new MMO_IconAllocatePacket(
+            def,
+            MMForms.HUMAN,
+            this.ModLoader.clientLobby,
+            this.ModLoader.utils.hashBuffer(def)
+          )
+        );
+      }
+  
+      this.ModLoader.logger.info('Done.');
+    }
+  
+    @NetworkHandler('MMO_AllocateModelPacket')
+    onModelAllocate_client(packet: MMO_AllocateModelPacket) {
+      if (
+        !this.clientStorage.playerModelCache.hasOwnProperty(packet.player.uuid)
+      ) {
+        this.clientStorage.playerModelCache[packet.player.uuid] = new ModelPlayer(packet.player.uuid);
+      }
+      if (packet.form === MMForms.HUMAN) {
+        (this.clientStorage.playerModelCache[packet.player.uuid] as ModelPlayer).model.setChild(zlib.inflateSync(packet.model));
+        if (this.isThreaded) {
+          let thread: ModelThread = new ModelThread(
+            (this.clientStorage.playerModelCache[packet.player.uuid] as ModelPlayer).model.child.zobj,
+            this.ModLoader
+          );
+          thread.startThread(Z64LibSupportedGames.MAJORAS_MASK);
+        }
+        this.ModLoader.logger.info(
+          'client: Saving custom child model for player ' +
+          packet.player.nickname +
+          '.'
+        );
+      } else if (packet.form === MMForms.FD) {
+        (this.clientStorage.playerModelCache[packet.player.uuid] as ModelPlayer).model.setAdult(zlib.inflateSync(packet.model));
+        if (this.isThreaded) {
+          let thread: ModelThread = new ModelThread(
+            (this.clientStorage.playerModelCache[packet.player.uuid] as ModelPlayer).model.adult.zobj,
+            this.ModLoader
+          );
+          thread.startThread(Z64LibSupportedGames.MAJORAS_MASK);
+        }
+        this.ModLoader.logger.info(
+          'client: Saving custom adult model for player ' +
+          packet.player.nickname +
+          '.'
+        );
+      } else if (packet.form === 0x69) {
+        (this.clientStorage.playerModelCache[packet.player.uuid] as ModelPlayer).model.setEquipment(zlib.inflateSync(packet.model));
+        let thread: ModelThread = new ModelThread(
+          (this.clientStorage.playerModelCache[packet.player.uuid] as ModelPlayer).model.equipment.zobj,
+          this.ModLoader
+        );
+        thread.startThread(Z64LibSupportedGames.MAJORAS_MASK);
+        this.ModLoader.logger.info(
+          'client: Saving custom equipment model(s) for player ' +
+          packet.player.nickname +
+          '.'
+        );
+      }
+    }
+  
+    @NetworkHandler('MMO_ModifyModelPacket')
+    onModelMod(packet: MMO_ModifyModelPacket) {
+      console.log(packet.mod.byteLength);
+      if (!this.allocationManager.isPlayerAllocated(packet.player)) {
+        return;
+      }
+      if (packet.form === MMForms.HUMAN) {
+        this.ModLoader.logger.info("Getting model for player " + packet.player.nickname + "...");
+        let model: ModelPlayer = this.allocationManager.getPlayerAllocation(
+          packet.player
+        );
+        let index: number = this.allocationManager.getModelIndex(model);
+        this.ModLoader.logger.info("This model is assigned to model block " + index + ".");
+        let allocation_size = 0x37800;
+        let addr: number = 0x800000 + allocation_size * index;
+        this.ModLoader.logger.info("Model block " + index + " starts at address 0x" + addr.toString(16) + ".");
+        let pos: number = 0;
+        while(pos < packet.mod.byteLength){
+          let offset: number = packet.mod.readUInt16BE(pos);
+          pos+=2;
+          let length: number = packet.mod.readUInt16BE(pos);
+          pos+=2;
+          let data: Buffer = packet.mod.slice(pos, pos + length);
+          pos+=data.byteLength;
+          this.ModLoader.emulator.rdramWriteBuffer(addr + packet.offset + offset, data);
+        }
+      }
+    }
+  
+    @NetworkHandler('MMO_IconAllocatePacket')
+    onIconAllocateClient(packet: MMO_IconAllocatePacket) {
+      if (
+        !this.clientStorage.playerModelCache.hasOwnProperty(packet.player.uuid)
+      ) {
+        this.clientStorage.playerModelCache[packet.player.uuid] = new ModelPlayer(packet.player.uuid);
+      }
+      if (packet.form === MMForms.FD) {
+        (this.clientStorage.playerModelCache[
+          packet.player.uuid
+        ] as ModelPlayer).customIconAdult = zlib.inflateSync(packet.icon);
+        this.ModLoader.logger.info(
+          'client: Saving custom icon for (Adult) player ' +
+          packet.player.nickname +
+          '.'
+        );
+      }
+      if (packet.form === MMForms.HUMAN) {
+        (this.clientStorage.playerModelCache[
+          packet.player.uuid
+        ] as ModelPlayer).customIconChild = zlib.inflateSync(packet.icon);
+        this.ModLoader.logger.info(
+          'client: Saving custom icon for (Child) player ' +
+          packet.player.nickname +
+          '.'
+        );
+      }
+    }
+  
+    @EventHandler(EventsClient.ON_PLAYER_LEAVE)
+    onPlayerLeft(player: INetworkPlayer) {
+      delete this.clientStorage.playerModelCache[player.uuid];
+      if (this.allocationManager.isPlayerAllocated(player)) {
+        this.allocationManager.deallocateSlot(
+          this.allocationManager.getModelIndex(
+            this.allocationManager.getPlayerAllocation(player)
+          )
+        );
+      }
+      this.ModLoader.logger.info(this.allocationManager.getAvailableSlots() + " model blocks left!");
+    }
+  
+    @NetworkHandler("MMO_GiveModelPacket")
+    onPlayerJoin_client(packet: MMO_GiveModelPacket) {
+      if (packet.target.uuid !== this.ModLoader.me.uuid) {
+        if (this.clientStorage.adultModel.byteLength > 1) {
+          let def = zlib.deflateSync(this.clientStorage.adultModel);
+          this.ModLoader.clientSide.sendPacketToSpecificPlayer(
+            new MMO_AllocateModelPacket(
+              def,
+              MMForms.FD,
+              this.ModLoader.clientLobby,
+              this.ModLoader.utils.hashBuffer(def)
+            ), packet.target
+          );
+        }
+  
+        if (this.clientStorage.childModel.byteLength > 1) {
+          let def = zlib.deflateSync(this.clientStorage.childModel);
+          this.ModLoader.clientSide.sendPacketToSpecificPlayer(
+            new MMO_AllocateModelPacket(
+              def,
+              MMForms.HUMAN,
+              this.ModLoader.clientLobby,
+              this.ModLoader.utils.hashBuffer(def)
+            ),
+            packet.target
+          );
+        }
+  
+        if (this.clientStorage.childModel.byteLength > 1) {
+          let def = zlib.deflateSync(this.clientStorage.childModel);
+          this.ModLoader.clientSide.sendPacketToSpecificPlayer(
+            new MMO_IconAllocatePacket(
+              def,
+              MMForms.FD,
+              this.ModLoader.clientLobby,
+              this.ModLoader.utils.hashBuffer(def)
+            ),
+            packet.target
+          );
+        }
+  
+        if (this.clientStorage.childIcon.byteLength > 1) {
+          let def = zlib.deflateSync(this.clientStorage.childModel);
+          this.ModLoader.clientSide.sendPacketToSpecificPlayer(
+            new MMO_IconAllocatePacket(
+              def,
+              MMForms.HUMAN,
+              this.ModLoader.clientLobby,
+              this.ModLoader.utils.hashBuffer(def)
+            ),
+            packet.target
+          );
+        }
+      }
+    }
+  
+    @EventHandler("MMOnline:WriteDefaultPuppetZobjs")
+    onWriteRequest(evt: any) {
+      this.ModLoader.logger.debug("Writing default models...");
+      this.ModLoader.emulator.rdramWriteBuffer(
+        0x800000,
+        this.allocationManager.getModelInSlot(0).model.adult.zobj
+      );
+      this.ModLoader.emulator.rdramWriteBuffer(
+        0x837800,
+        this.allocationManager.getModelInSlot(1).model.child.zobj
+      );
+    }
+  
+    @EventHandler(MMOnlineEvents.PLAYER_PUPPET_PRESPAWN)
+    onPuppetPreSpawn(puppet: Puppet) {
+      let puppet_spawn_params_ptr: number = 0x80800000;
+      let puppet_spawn_variable_offset: number = 0xE;
+      this.ModLoader.emulator.rdramWritePtr16(puppet_spawn_params_ptr, puppet_spawn_variable_offset, puppet.form);
+      if (
+        !this.clientStorage.playerModelCache.hasOwnProperty(puppet.player.uuid)
+      ) {
+        return;
+      }
+      if (!this.allocationManager.isPlayerAllocated(puppet.player)) {
+        let slot = this.allocationManager.allocateSlot((this.clientStorage.playerModelCache[puppet.player.uuid] as ModelPlayer));
+        this.ModLoader.logger.info("Trying to allocate model block " + slot + ".");
+        this.ModLoader.logger.info(this.allocationManager.getAvailableSlots() + " model blocks left!");
+      }
+      this.ModLoader.logger.info("Getting model for player " + puppet.player.nickname + "...");
+      let model: ModelPlayer = this.allocationManager.getPlayerAllocation(
+        puppet.player
+      );
+      let index: number = this.allocationManager.getModelIndex(model);
+      this.ModLoader.logger.info("This model is assigned to model block " + index + ".");
+      let allocation_size = 0x37800;
+      let addr: number = 0x950000 + allocation_size * index;
+      this.ModLoader.logger.info("Model block " + index + " starts at address 0x" + addr.toString(16) + ".");
+      let zobj_size: number = allocation_size;
+      let passed: boolean = false;
+      if (puppet.form === MMForms.FD && model.model.adult !== undefined) {
+        if (model.model.adult.zobj.byteLength > 1) {
+          this.ModLoader.logger.info("Writing adult model into model block " + index + ".");
+          this.ModLoader.emulator.rdramWriteBuffer(
+            addr,
+            new zzstatic(Z64LibSupportedGames.MAJORAS_MASK).doRepoint(this.ModLoader.utils.cloneBuffer(model.model.adult.zobj), index)
+          );
+          zobj_size = model.model.adult.zobj.byteLength;
+          passed = true;
+        }
+      }
+      if (puppet.form === MMForms.HUMAN && model.model.child !== undefined) {
+        if (model.model.child.zobj.byteLength > 1) {
+          this.ModLoader.logger.info("Writing child model into model block " + index + ".");
+          this.ModLoader.emulator.rdramWriteBuffer(
+            addr,
+            new zzstatic(Z64LibSupportedGames.MAJORAS_MASK).doRepoint(this.ModLoader.utils.cloneBuffer(model.model.child.zobj), index)
+          );
+          zobj_size = model.model.child.zobj.byteLength;
+          passed = true;
+        }
+      }
+      if (passed) {
+        this.ModLoader.emulator.rdramWritePtr16(puppet_spawn_params_ptr, puppet_spawn_variable_offset, index);
+      }
+    }
+  
+    @EventHandler(OotEvents.ON_SCENE_CHANGE)
+    onSceneChange(scene: number) {
+    }
+  
+    @EventHandler(EventsClient.ON_INJECT_FINISHED)
+    onLoaded(evt: any) {
+    }
+  }

@@ -11,7 +11,7 @@ import fs from 'fs';
 import path from 'path';
 
 import { IMMCore , MMForms, MMEvents} from 'MajorasMask/API/MMAPI';
-import { Z64RomTools } from '@MMOnline/Z64Lib/API/Z64RomTools';
+import { Z64RomTools } from 'Z64Lib/API/Z64RomTools';
 import MMOnline from '@MMOnline/MMOnline';
 
 

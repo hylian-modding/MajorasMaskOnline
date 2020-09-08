@@ -25,7 +25,9 @@ export enum MMOnlineEvents {
   ON_INVENTORY_UPDATE = 'MMOnline:OnInventoryUpdate',
   ON_EXTERNAL_ACTOR_SYNC_LOAD = 'MMOnline:OnExternalActorSyncLoad',
   ON_REGISTER_EMOTE = 'MMOnline:OnRegisterEmote',
-  ON_PLAYER_TIME_UPDATE = "MMOnline:OnPlayerTimeUpdate"
+  ON_PLAYER_TIME_UPDATE = "MMOnline:OnPlayerTimeUpdate",
+  CUSTOM_MODEL_OVERRIDE_ADULT = 'MMOnline:OverrideCustomModelAdult',
+  CUSTOM_MODEL_OVERRIDE_CHILD = 'MMOnline:OverrideCustomModelChild'
 }
 
 export class MMOnline_PlayerScene {
