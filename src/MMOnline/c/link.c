@@ -23,7 +23,7 @@ typedef struct
 	z64_skelanime_t skelanime;
 	z64_collider_cylinder_main_t collider;
 	vec3s_t dt_rot[(LIMB_TOTAL + 1)];
-    vec3s_t dt_pos[(LIMB_TOTAL + 1)];
+	vec3s_t dt_pos[(LIMB_TOTAL + 1)];
 	uint8_t action_param_1;
 	uint8_t action_param_2;
 	uint8_t save_sword_equip;
@@ -42,8 +42,6 @@ typedef struct
 	, MM_ZZ_PUPPET_DLIST(DL_SHIELD_HERO)
 	, MM_ZZ_PUPPET_DLIST(DL_SHIELD_MIRROR)
 };*/
-
-
 
 z64_collider_cylinder_init_t collider_init =
 	{
@@ -72,17 +70,17 @@ static void init(entity_t *en, z64_global_t *gl);
 static void destroy(entity_t *en, z64_global_t *gl);
 static void play(entity_t *en, z64_global_t *gl);
 static void draw(entity_t *en, z64_global_t *gl);
-static void callback_animate_face(z64_global_t *gl, int32_t limb, uint32_t dlist, vec3s_t *rotation, void* _en);
-static int32_t callback_set_limb(z64_global_t *gl, int32_t limb, uint32_t *dl, vec3f_t *pos, vec3s_t *rot, void* _en);
+static void callback_animate_face(z64_global_t *gl, int32_t limb, uint32_t dlist, vec3s_t *rotation, void *_en);
+static int32_t callback_set_limb(z64_global_t *gl, int32_t limb, uint32_t *dl, vec3f_t *pos, vec3s_t *rot, void *_en);
 //static int32_t load_mask_object(uint8_t id, void* vRam);
-static void load_masks(entity_t* en, void* vRam);
+static void load_masks(entity_t *en, void *vRam);
 static rgb8_t bottle_handler(int32_t action_param);
 
 // External Functions
-extern void func_801309F4(z64_global_t* gl, uint32_t segment, char* tile_settings);
+extern void func_801309F4(z64_global_t *gl, uint32_t segment, char *tile_settings);
 asm("func_801309F4 = 0x801309F4");
 
-extern void func_8013178C(z64_global_t* gl, char* header);
+extern void func_8013178C(z64_global_t *gl, char *header);
 asm("func_8013178C = 0x8013178C");
 
 static void init(entity_t *en, z64_global_t *gl)
@@ -93,46 +91,43 @@ static void init(entity_t *en, z64_global_t *gl)
 	//char* _debug = "nowMask: 0x%08X; 0x%02X";
 	//printf(_debug, _nowMask - _inst, (en->puppet).item.nowMask);
 
-	load_masks(en, (void*)0x80958700);
+	load_masks(en, (void *)0x80958700);
 
 	if ((en->actor).variable < 0xFFFF)
 	{
 		(en->puppet).form = (en->actor).variable;
 		(en->puppet).playas.isZZ = true;
 		uint32_t base = 0x80900000;
-		switch ((en->puppet).form)
+		if (en->puppet.form <= 4)
 		{
-		case FORM_DEITY:
+			switch ((en->puppet).form)
+			{
+			case FORM_DEITY:
+				(en->puppet).playas.init = (puppet_init_t){base + (en->puppet.form * 0x37800), 0x0, 0x0010, 0x0003, 1.50f};
+				break;
+			case FORM_GORON:
+				(en->puppet).playas.init = (puppet_init_t){base + (en->puppet.form * 0x37800), 0x0, 0x0020, 0x0025, 0.75f};
+				break;
+			case FORM_ZORA:
+				(en->puppet).playas.init = (puppet_init_t){base + (en->puppet.form * 0x37800), 0x0, 0x0009, 0x0023, 1.0f};
+				break;
+			case FORM_DEKU:
+				(en->puppet).playas.init = (puppet_init_t){base + (en->puppet.form * 0x37800), 0x0, 0x0005, 0x0015, 0.30f};
+				break;
+			case FORM_HUMAN:
+				(en->puppet).playas.init = (puppet_init_t){base + (en->puppet.form * 0x37800), 0x0, 0x0005, 0x0002, 0.65f};
+				break;
+			}
+		}else{
 			(en->puppet).playas.init = (puppet_init_t){base + (en->puppet.form * 0x37800), 0x0, 0x0010, 0x0003, 1.50f};
-			break;
-		case FORM_GORON:
-			(en->puppet).playas.init = (puppet_init_t){base + (en->puppet.form * 0x37800), 0x0, 0x0020, 0x0025, 0.75f};
-			break;
-		case FORM_ZORA:
-			(en->puppet).playas.init = (puppet_init_t){base + (en->puppet.form * 0x37800), 0x0, 0x0009, 0x0023, 1.0f};
-			break;
-		case FORM_DEKU:
-			(en->puppet).playas.init = (puppet_init_t){base + (en->puppet.form * 0x37800), 0x0, 0x0005, 0x0015, 0.30f};
-			break;
-		case FORM_HUMAN:
-			(en->puppet).playas.init = (puppet_init_t){base + (en->puppet.form * 0x37800), 0x0, 0x0005, 0x0002, 0.65f};
-			break;
 		}
 
 		(en->puppet).playas.init.skeleton = AVAL((en->puppet).playas.init.base, uint32_t, 0x500C);
 	}
-	
+
 	/* Initialize Skelanime Structure */
-    z_skelanime_init_ext(
-        gl
-		, 1
-		, &en->skelanime
-		, (en->puppet).playas.init.skeleton
-		, 0
-		, en->dt_rot
-		, en->dt_pos
-		, (LIMB_TOTAL + 1)
-	);
+	z_skelanime_init_ext(
+		gl, 1, &en->skelanime, (en->puppet).playas.init.skeleton, 0, en->dt_rot, en->dt_pos, (LIMB_TOTAL + 1));
 
 	z_actor_set_scale(&en->actor, 0.01f);
 	z_collider_cylinder_init(gl, &en->collider, &en->actor, &collider_init);
@@ -181,10 +176,7 @@ static void play(entity_t *en, z64_global_t *gl)
 	if ((en->puppet).playas.isZZ)
 	{
 		const uint32_t eyes[3] = {
-			(en->puppet).playas.init.base + 0x00000000
-			, (en->puppet).playas.init.base + 0x00000800
-			, (en->puppet).playas.init.base + 0x00001000
-		};
+			(en->puppet).playas.init.base + 0x00000000, (en->puppet).playas.init.base + 0x00000800, (en->puppet).playas.init.base + 0x00001000};
 		(en->puppet).playas.eye_texture = eyes[helper_eye_blink(&(en->puppet).playas.eye_index)];
 	}
 
@@ -195,18 +187,12 @@ static void play(entity_t *en, z64_global_t *gl)
 static void draw(entity_t *en, z64_global_t *gl)
 {
 	z_skelanime_draw(
-		gl
-		, 0x12
-		, en
-		, &en->skelanime
-		, callback_set_limb
-		, callback_animate_face
-	);
+		gl, 0x12, en, &en->skelanime, callback_set_limb, callback_animate_face);
 }
 
-static void callback_animate_face(z64_global_t* gl, int32_t limb, uint32_t dlist, vec3s_t* rotation, void* _en)
+static void callback_animate_face(z64_global_t *gl, int32_t limb, uint32_t dlist, vec3s_t *rotation, void *_en)
 {
-	entity_t* en = _en;
+	entity_t *en = _en;
 	z64_disp_buf_t *opa = &ZQDL(gl, poly_opa);
 
 	if ((en->puppet).playas.isZZ)
@@ -221,23 +207,23 @@ static void callback_animate_face(z64_global_t* gl, int32_t limb, uint32_t dlist
 	}
 }
 
-static int32_t callback_set_limb(z64_global_t* gl, int32_t limb, uint32_t* dl, vec3f_t* pos, vec3s_t* rot, void* _en)
+static int32_t callback_set_limb(z64_global_t *gl, int32_t limb, uint32_t *dl, vec3f_t *pos, vec3s_t *rot, void *_en)
 {
-	entity_t* en = _en;
-	z64_disp_buf_t* opa = &ZQDL(gl, poly_opa);
-	z64_disp_buf_t* xlu = &ZQDL(gl, poly_xlu);
+	entity_t *en = _en;
+	z64_disp_buf_t *opa = &ZQDL(gl, poly_opa);
+	z64_disp_buf_t *xlu = &ZQDL(gl, poly_xlu);
 
 	limb -= 1;
 
 	// Set Animation Frame
 	if (!limb)
 	{
-		vec3s_t* frame_translation = (vec3s_t*)en->current_frame_data;
+		vec3s_t *frame_translation = (vec3s_t *)en->current_frame_data;
 		pos->x += frame_translation->x;
 		pos->y += frame_translation->y * (en->puppet).playas.init.rise;
 		pos->z += frame_translation->z;
 	}
-	vec3s_t* frame_limb_rotation = (vec3s_t*)AADDR(en->current_frame_data, sizeof(vec3s_t) + (sizeof(vec3s_t) * limb));
+	vec3s_t *frame_limb_rotation = (vec3s_t *)AADDR(en->current_frame_data, sizeof(vec3s_t) + (sizeof(vec3s_t) * limb));
 	rot->x += frame_limb_rotation->x;
 	rot->y += frame_limb_rotation->y;
 	rot->z += frame_limb_rotation->z;
@@ -256,7 +242,7 @@ static int32_t callback_set_limb(z64_global_t* gl, int32_t limb, uint32_t* dl, v
 			if ((en->actor).xz_speed > 2.0f)
 			{
 				*dl = MM_ZZ_PUPPET_DLIST(DL_HUMAN_FIST_R);
-			}	
+			}
 			else
 			{
 				*dl = MM_ZZ_PUPPET_DLIST(DL_HUMAN_HAND_R);
@@ -265,31 +251,31 @@ static int32_t callback_set_limb(z64_global_t* gl, int32_t limb, uint32_t* dl, v
 			if (en->action_param_2 == 0xFF)
 			{
 				*dl = MM_ZZ_PUPPET_DLIST(DL_HUMAN_FIST_R);
-				switch((en->puppet).item.nowShield)
+				switch ((en->puppet).item.nowShield)
 				{
-					case 1:
-						z_cheap_proc_draw_opa(gl, MM_ZZ_PUPPET_DLIST(DL_SHIELD_HERO));
-						break;
-					case 2:
-						z_cheap_proc_draw_opa(gl, MM_ZZ_PUPPET_DLIST(DL_SHIELD_MIRROR));
-						break;
+				case 1:
+					z_cheap_proc_draw_opa(gl, MM_ZZ_PUPPET_DLIST(DL_SHIELD_HERO));
+					break;
+				case 2:
+					z_cheap_proc_draw_opa(gl, MM_ZZ_PUPPET_DLIST(DL_SHIELD_MIRROR));
+					break;
 				}
 			}
 			else if (en->action_param_2 > (ACTION_SWORD_KOKIRI - 1) && en->action_param_2 < ACTION_SWORD_FAIRY)
 			{
 				*dl = MM_ZZ_PUPPET_DLIST(DL_HUMAN_FIST_R);
-				switch((en->puppet).item.nowShield)
+				switch ((en->puppet).item.nowShield)
 				{
-					case 1:
-						z_cheap_proc_draw_opa(gl, MM_ZZ_PUPPET_DLIST(DL_SHIELD_HERO));
-						break;
-					case 2:
-						z_cheap_proc_draw_opa(gl, MM_ZZ_PUPPET_DLIST(DL_SHIELD_MIRROR));
-						break;
+				case 1:
+					z_cheap_proc_draw_opa(gl, MM_ZZ_PUPPET_DLIST(DL_SHIELD_HERO));
+					break;
+				case 2:
+					z_cheap_proc_draw_opa(gl, MM_ZZ_PUPPET_DLIST(DL_SHIELD_MIRROR));
+					break;
 				}
 			}
 
-			matrix_pop();	
+			matrix_pop();
 		}
 
 		// Left Hand
@@ -303,7 +289,7 @@ static int32_t callback_set_limb(z64_global_t* gl, int32_t limb, uint32_t* dl, v
 			if ((en->actor).xz_speed > 2.0f)
 			{
 				*dl = MM_ZZ_PUPPET_DLIST(DL_HUMAN_FIST_L);
-			}	
+			}
 			else
 			{
 				*dl = MM_ZZ_PUPPET_DLIST(DL_HUMAN_HAND_L);
@@ -313,33 +299,33 @@ static int32_t callback_set_limb(z64_global_t* gl, int32_t limb, uint32_t* dl, v
 			{
 				*dl = MM_ZZ_PUPPET_DLIST(DL_HUMAN_FIST_L);
 
-				switch(en->action_param_1)
+				switch (en->action_param_1)
 				{
-					case ACTION_SWORD_KOKIRI:
-						z_cheap_proc_draw_opa(gl, MM_ZZ_PUPPET_DLIST(DL_SWORD_KOKIRI));
-						break;
-					case ACTION_SWORD_RAZOR:
-						z_cheap_proc_draw_opa(gl, MM_ZZ_PUPPET_DLIST(DL_SWORD_RAZOR));
-						break;
-					case ACTION_SWORD_GILDED:
-						z_cheap_proc_draw_opa(gl, MM_ZZ_PUPPET_DLIST(DL_SWORD_GILDED_HILT));
-						z_cheap_proc_draw_opa(gl, MM_ZZ_PUPPET_DLIST(DL_SWORD_GILDED_BLADE));
-						break;
-					case ACTION_SWORD_FAIRY:
-						z_cheap_proc_draw_opa(gl, MM_ZZ_PUPPET_DLIST(DL_SWORD_FAIRY));
-						break;
-					case ACTION_DEKU_STICK:
-						matrix_push();
-						z_matrix_translate_3f(-428.26f, 267.20f, -33.82f, 1);
-						z_matrix_rotate_3s(ROT16(-180), ROT16(0), ROT16(90), 1);
-						z_matrix_scale_3f(1.0f, en->deku_stick_length, 1.0f, 1);
-						z_cheap_proc_draw_opa(gl, DL_DEKU_STICK);
-						matrix_pop();
-						break;
+				case ACTION_SWORD_KOKIRI:
+					z_cheap_proc_draw_opa(gl, MM_ZZ_PUPPET_DLIST(DL_SWORD_KOKIRI));
+					break;
+				case ACTION_SWORD_RAZOR:
+					z_cheap_proc_draw_opa(gl, MM_ZZ_PUPPET_DLIST(DL_SWORD_RAZOR));
+					break;
+				case ACTION_SWORD_GILDED:
+					z_cheap_proc_draw_opa(gl, MM_ZZ_PUPPET_DLIST(DL_SWORD_GILDED_HILT));
+					z_cheap_proc_draw_opa(gl, MM_ZZ_PUPPET_DLIST(DL_SWORD_GILDED_BLADE));
+					break;
+				case ACTION_SWORD_FAIRY:
+					z_cheap_proc_draw_opa(gl, MM_ZZ_PUPPET_DLIST(DL_SWORD_FAIRY));
+					break;
+				case ACTION_DEKU_STICK:
+					matrix_push();
+					z_matrix_translate_3f(-428.26f, 267.20f, -33.82f, 1);
+					z_matrix_rotate_3s(ROT16(-180), ROT16(0), ROT16(90), 1);
+					z_matrix_scale_3f(1.0f, en->deku_stick_length, 1.0f, 1);
+					z_cheap_proc_draw_opa(gl, DL_DEKU_STICK);
+					matrix_pop();
+					break;
 				}
 			}
 
-			if	(en->action_param_2 > 0)
+			if (en->action_param_2 > 0)
 			{
 				// Bottle
 				if (en->action_param_2 > (ACTION_BOTTLE_EMPTY - 1) && en->action_param_2 < (ACTION_BOTTLE_FAIRY + 1))
@@ -366,32 +352,32 @@ static int32_t callback_set_limb(z64_global_t* gl, int32_t limb, uint32_t* dl, v
 			{
 				if (en->action_param_1 > 2 && en->action_param_1 < 6)
 				{
-					switch(en->save_sword_equip)
+					switch (en->save_sword_equip)
 					{
-						case 0x4D:
-							*dl = MM_ZZ_PUPPET_DLIST(DL_SHEATH_KOKIRI);
-							break;
-						case 0x4E:
-							*dl = MM_ZZ_PUPPET_DLIST(DL_SHEATH_RAZOR);
-							break;
-						case 0x4F:
-							*dl = MM_ZZ_PUPPET_DLIST(DL_SHEATH_GILDED);
-							break;
+					case 0x4D:
+						*dl = MM_ZZ_PUPPET_DLIST(DL_SHEATH_KOKIRI);
+						break;
+					case 0x4E:
+						*dl = MM_ZZ_PUPPET_DLIST(DL_SHEATH_RAZOR);
+						break;
+					case 0x4F:
+						*dl = MM_ZZ_PUPPET_DLIST(DL_SHEATH_GILDED);
+						break;
 					}
 				}
 				else
 				{
-					switch(en->save_sword_equip)
+					switch (en->save_sword_equip)
 					{
-						case 0x4D:
-							*dl = MM_ZZ_PUPPET_DLIST(DL_SHEATHED_KOKIRI);
-							break;
-						case 0x4E:
-							*dl = MM_ZZ_PUPPET_DLIST(DL_SHEATHED_RAZOR);
-							break;
-						case 0x4F:
-							*dl = MM_ZZ_PUPPET_DLIST(DL_SHEATHED_GILDED);
-							break;
+					case 0x4D:
+						*dl = MM_ZZ_PUPPET_DLIST(DL_SHEATHED_KOKIRI);
+						break;
+					case 0x4E:
+						*dl = MM_ZZ_PUPPET_DLIST(DL_SHEATHED_RAZOR);
+						break;
+					case 0x4F:
+						*dl = MM_ZZ_PUPPET_DLIST(DL_SHEATHED_GILDED);
+						break;
 					}
 				}
 			}
@@ -403,14 +389,14 @@ static int32_t callback_set_limb(z64_global_t* gl, int32_t limb, uint32_t* dl, v
 			// Sword put away, not shielding.
 			if ((en->action_param_1 < ACTION_SWORD_KOKIRI || en->action_param_1 > ACTION_SWORD_GILDED) && en->action_param_2 != 0xFF)
 			{
-				switch((en->puppet).item.nowShield)
+				switch ((en->puppet).item.nowShield)
 				{
-					case 1:
-						z_cheap_proc_draw_opa(gl, MM_ZZ_PUPPET_DLIST(DL_SHIELD_HERO_ROTATED));
-						break;
-					case 2:
-						z_cheap_proc_draw_opa(gl, MM_ZZ_PUPPET_DLIST(DL_SHIELD_MIRROR_ROTATED));
-						break;
+				case 1:
+					z_cheap_proc_draw_opa(gl, MM_ZZ_PUPPET_DLIST(DL_SHIELD_HERO_ROTATED));
+					break;
+				case 2:
+					z_cheap_proc_draw_opa(gl, MM_ZZ_PUPPET_DLIST(DL_SHIELD_MIRROR_ROTATED));
+					break;
 				}
 			}
 
@@ -423,7 +409,7 @@ static int32_t callback_set_limb(z64_global_t* gl, int32_t limb, uint32_t* dl, v
 		}
 
 		if (limb == LIMB_HEAD)
-		{	
+		{
 			matrix_push();
 			z_matrix_translate_3f(pos->x, pos->y, pos->z, 1);
 			z_matrix_rotate_3s(rot->x, rot->y, rot->z, 1);
@@ -431,29 +417,27 @@ static int32_t callback_set_limb(z64_global_t* gl, int32_t limb, uint32_t* dl, v
 			if ((en->puppet).item.nowMask > 0)
 			{
 				uint32_t mask_dlists[] = {
-					DL_MASK_OF_TRUTH, DL_MASK_KAFEI, DL_MASK_ALL_NIGHT, DL_MASK_BUNNY
-					, DL_MASK_KEATON, DL_MASK_GARO, DL_MASK_ROMANI, DL_MASK_CIRCUS
-					, DL_MASK_POSTMAN, DL_MASK_COUPLES, DL_MASK_FAIRY, DL_MASK_GIBDO
-					, DL_MASK_DON_GERO, DL_MASK_KAMARO, DL_MASK_CAPTAIN, DL_MASK_STONE
-					, DL_MASK_BREMEN, DL_MASK_BLAST, DL_MASK_OF_SCENTS, DL_MASK_GIANT
-					, DL_MASK_DEITY, DL_MASK_GORON, DL_MASK_ZORA, DL_MASK_DEKU
-				};
+					DL_MASK_OF_TRUTH, DL_MASK_KAFEI, DL_MASK_ALL_NIGHT, DL_MASK_BUNNY, DL_MASK_KEATON, DL_MASK_GARO, DL_MASK_ROMANI, DL_MASK_CIRCUS, DL_MASK_POSTMAN, DL_MASK_COUPLES, DL_MASK_FAIRY, DL_MASK_GIBDO, DL_MASK_DON_GERO, DL_MASK_KAMARO, DL_MASK_CAPTAIN, DL_MASK_STONE, DL_MASK_BREMEN, DL_MASK_BLAST, DL_MASK_OF_SCENTS, DL_MASK_GIANT, DL_MASK_DEITY, DL_MASK_GORON, DL_MASK_ZORA, DL_MASK_DEKU};
 				uint32_t mask_id = (en->puppet).item.nowMask - 1;
 				gSPSegment(opa->p++, 0x0A, en->mask_ram_addresses[mask_id]);
 				if ((en->puppet).item.nowMask == MASK_BUNNY)
-				{	
-					Mtx* ear_mtx = graph_alloc((gl->common).gfx_ctxt, 0x80);
-					vec3s_t* r = &(en->mask_props).bunny_hood.rot;
+				{
+					Mtx *ear_mtx = graph_alloc((gl->common).gfx_ctxt, 0x80);
+					vec3s_t *r = &(en->mask_props).bunny_hood.rot;
 					vec3s_t ear;
 					gSPSegment(opa->p++, 0x0B, ear_mtx);
 
 					// Right Ear
-					ear.x = r->y + 0x03E2; ear.y = r->z + 0x0D8E; ear.z = r->x + 0xCB76;
+					ear.x = r->y + 0x03E2;
+					ear.y = r->z + 0x0D8E;
+					ear.z = r->x + 0xCB76;
 					z_matrix_translate_3f_800D1694(97.0f, -1203.0f, -240.0f, &ear);
 					z_matrix_top_to_fixed(ear_mtx, 0, 0);
 
 					// Left Ear
-					ear.x = r->y + 0xFC1E; ear.y = 0xF242 - r->z; ear.z = r->x + 0xCB76;
+					ear.x = r->y + 0xFC1E;
+					ear.y = 0xF242 - r->z;
+					ear.z = r->x + 0xCB76;
 					z_matrix_translate_3f_800D1694(97.0f, -1203.0f, 240.0f, &ear);
 					z_matrix_top_to_fixed(ear_mtx + 1, 0, 0);
 				}
@@ -547,7 +531,7 @@ static int32_t callback_set_limb(z64_global_t* gl, int32_t limb, uint32_t* dl, v
 					// TODO: Eyes break when the mask is worn because segment 0x08 is reassigned.
 					// ! Puppet client crashes, despite the mask drawing perfectly well.
 
-					func_8013178C(gl, (char*)zh_seg2ram(DL_MASK_COUPLES_SETTILE));
+					func_8013178C(gl, (char *)zh_seg2ram(DL_MASK_COUPLES_SETTILE));
 				}
 				else if ((en->puppet).item.nowMask == MASK_FAIRY)
 				{
@@ -574,7 +558,7 @@ static int32_t callback_set_limb(z64_global_t* gl, int32_t limb, uint32_t* dl, v
 					}
 					else
 					{
-						func_8013178C(gl, (char*)zh_seg2ram(DL_MASK_BLAST_SETTILE)); // Segment 0x08
+						func_8013178C(gl, (char *)zh_seg2ram(DL_MASK_BLAST_SETTILE)); // Segment 0x08
 
 						if (en->blast_mask_timer < 11)
 						{
@@ -608,16 +592,10 @@ static int32_t callback_set_limb(z64_global_t* gl, int32_t limb, uint32_t* dl, v
 	return 0;
 }
 
-static void load_masks(entity_t* en, void* vRam)
+static void load_masks(entity_t *en, void *vRam)
 {
 	uint16_t mask_objects[24] = {
-		0x01DE, 0x01FF, 0x025D, 0x01DB
-	  , 0x01DA, 0x01FE, 0x0219, 0x024C
-	  , 0x0221, 0x025E, 0x0200, 0x01FD
-	  , 0x025C, 0x025F, 0x01DC, 0x024E
-	  , 0x0252, 0x01DD, 0x01D9, 0x0214
-	  , 0x01E4, 0x01E1, 0x01E2, 0x01E3
-	};
+		0x01DE, 0x01FF, 0x025D, 0x01DB, 0x01DA, 0x01FE, 0x0219, 0x024C, 0x0221, 0x025E, 0x0200, 0x01FD, 0x025C, 0x025F, 0x01DC, 0x024E, 0x0252, 0x01DD, 0x01D9, 0x0214, 0x01E4, 0x01E1, 0x01E2, 0x01E3};
 
 	struct objtable
 	{
@@ -627,8 +605,8 @@ static void load_masks(entity_t* en, void* vRam)
 
 	uint32_t vStart, vEnd, vSize;
 	int32_t r;
-	struct objtable* table = (void*)(0x801C2738 + 8);
-	void* vRam_Start = vRam;
+	struct objtable *table = (void *)(0x801C2738 + 8);
+	void *vRam_Start = vRam;
 	for (int id = 0; id < 24; id++)
 	{
 		vRam_Start += vSize;
@@ -636,43 +614,63 @@ static void load_masks(entity_t* en, void* vRam)
 		vEnd = table[mask_objects[id]].end;
 		vSize = vEnd - vStart;
 		en->mask_ram_addresses[id] = (uint32_t)(vRam_Start);
-		r = load_data_from_rom(vRam_Start, (void*)vStart, vSize, "");
+		r = load_data_from_rom(vRam_Start, (void *)vStart, vSize, "");
 		//printf("Wrote (0x%08X - 0x%08X) at 0x%08X.\n", vStart, vEnd, vRam_Start);
 	}
 }
 
 static rgb8_t bottle_handler(int32_t action_param)
 {
-  int32_t bottle_id = (action_param - ACTION_BOTTLE_EMPTY);
-  rgb8_t bottle_colors[] = {
+	int32_t bottle_id = (action_param - ACTION_BOTTLE_EMPTY);
+	rgb8_t bottle_colors[] = {
 		{0xFF, 0xFF, 0xFF} /* Empty Bottle */
-		, {0x50, 0x50, 0xFF} /* Fish */
-		, {0x88, 0xC0, 0xFF} /* Spring Water */
-		, {0x88, 0xC0, 0xFF} /* Hot Spring Water */
-		, {0xB8, 0xE8, 0xE8} /* Zora Egg */
-		, {0xF8, 0xC8, 0x00} /* Deku Princess */
-		, {0xFF, 0xB4, 0x00} /* Gold Dust*/
-		, {0x00, 0x80, 0x00} /* Unused */
-		, {0xFC, 0xEE, 0x00} /* Seahorse */
-		, {0x83, 0x00, 0xAE} /* Magic Mushroom */
-		, {0x40, 0x40, 0x20} /* Hylian Loach */
-		, {0x00, 0x00, 0xFF} /* Bug */
-		, {0xFF, 0x00, 0xFF} /* Poe */
-		, {0xFF, 0x00, 0xFF} /* Big Poe */
-		, {0xFF, 0x00, 0x00} /* Red Potion */
-		, {0x00, 0x00, 0xFF} /* Blue Potion */
-		, {0x00, 0xC8, 0x00} /* Green Potion */
-		, {0xFF, 0xFF, 0xFF} /* Milk */
-		, {0xFF, 0xFF, 0xFF} /* Milk (Half) */
-		, {0xFF, 0xFF, 0xFF} /* Chateau Romani */
-		, {0x50, 0x50, 0xFF} /* Fairy */
+		,
+		{0x50, 0x50, 0xFF} /* Fish */
+		,
+		{0x88, 0xC0, 0xFF} /* Spring Water */
+		,
+		{0x88, 0xC0, 0xFF} /* Hot Spring Water */
+		,
+		{0xB8, 0xE8, 0xE8} /* Zora Egg */
+		,
+		{0xF8, 0xC8, 0x00} /* Deku Princess */
+		,
+		{0xFF, 0xB4, 0x00} /* Gold Dust*/
+		,
+		{0x00, 0x80, 0x00} /* Unused */
+		,
+		{0xFC, 0xEE, 0x00} /* Seahorse */
+		,
+		{0x83, 0x00, 0xAE} /* Magic Mushroom */
+		,
+		{0x40, 0x40, 0x20} /* Hylian Loach */
+		,
+		{0x00, 0x00, 0xFF} /* Bug */
+		,
+		{0xFF, 0x00, 0xFF} /* Poe */
+		,
+		{0xFF, 0x00, 0xFF} /* Big Poe */
+		,
+		{0xFF, 0x00, 0x00} /* Red Potion */
+		,
+		{0x00, 0x00, 0xFF} /* Blue Potion */
+		,
+		{0x00, 0xC8, 0x00} /* Green Potion */
+		,
+		{0xFF, 0xFF, 0xFF} /* Milk */
+		,
+		{0xFF, 0xFF, 0xFF} /* Milk (Half) */
+		,
+		{0xFF, 0xFF, 0xFF} /* Chateau Romani */
+		,
+		{0x50, 0x50, 0xFF} /* Fairy */
 	};
 
-  if ((-1 < bottle_id) && (bottle_id < ACTION_BOTTLE_EMPTY))
-  {
-    return bottle_colors[bottle_id];
-  }
-  return bottle_colors[0];
+	if ((-1 < bottle_id) && (bottle_id < ACTION_BOTTLE_EMPTY))
+	{
+		return bottle_colors[bottle_id];
+	}
+	return bottle_colors[0];
 }
 
 /* .data */

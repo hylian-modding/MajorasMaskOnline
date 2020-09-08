@@ -425,22 +425,13 @@ import {MMRomPatches} from 'Z64Lib/API/MM/MMRomPatches';
   
     @EventHandler("MMOnline:WriteDefaultPuppetZobjs")
     onWriteRequest(evt: any) {
-      this.ModLoader.logger.debug("Writing default models...");
-      this.ModLoader.emulator.rdramWriteBuffer(
-        0x800000,
-        this.allocationManager.getModelInSlot(0).model.adult.zobj
-      );
-      this.ModLoader.emulator.rdramWriteBuffer(
-        0x837800,
-        this.allocationManager.getModelInSlot(1).model.child.zobj
-      );
     }
   
     @EventHandler(MMOnlineEvents.PLAYER_PUPPET_PRESPAWN)
     onPuppetPreSpawn(puppet: Puppet) {
-      let puppet_spawn_params_ptr: number = 0x80800000;
+      let puppet_spawn_params: number = 0x80800000;
       let puppet_spawn_variable_offset: number = 0xE;
-      this.ModLoader.emulator.rdramWritePtr16(puppet_spawn_params_ptr, puppet_spawn_variable_offset, puppet.form);
+      this.ModLoader.emulator.rdramWrite16(puppet_spawn_params + puppet_spawn_variable_offset, puppet.form);
       if (
         !this.clientStorage.playerModelCache.hasOwnProperty(puppet.player.uuid)
       ) {
@@ -473,6 +464,8 @@ import {MMRomPatches} from 'Z64Lib/API/MM/MMRomPatches';
           passed = true;
         }
       }
+      console.log(puppet.form);
+      console.log(model.model.child);
       if (puppet.form === MMForms.HUMAN && model.model.child !== undefined) {
         if (model.model.child.zobj.byteLength > 1) {
           this.ModLoader.logger.info("Writing child model into model block " + index + ".");
@@ -485,7 +478,7 @@ import {MMRomPatches} from 'Z64Lib/API/MM/MMRomPatches';
         }
       }
       if (passed) {
-        this.ModLoader.emulator.rdramWritePtr16(puppet_spawn_params_ptr, puppet_spawn_variable_offset, index);
+        this.ModLoader.emulator.rdramWrite16(puppet_spawn_params + puppet_spawn_variable_offset, index);
       }
     }
   
