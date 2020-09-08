@@ -1,5 +1,5 @@
-#include <z64ovl\mm\u10.h>
-#include <z64ovl\mm\helpers.h>
+#include "D:\Modding\OoT_Modding\Code\CAT\gcc\mips64\include\z64ovl_may14/mm/u10.h"
+#include "D:\Modding\OoT_Modding\Code\CAT\gcc\mips64\include\z64ovl_may14/mm/helpers.h"
 #include "defines_limbs.h"
 #include "defines_mm.h"
 #include "structs.h"
@@ -106,16 +106,16 @@ static void init(entity_t *en, z64_global_t *gl)
 			(en->puppet).playas.init = (puppet_init_t){base + (en->puppet.form * 0x37800), 0x0, 0x0010, 0x0003, 1.50f};
 			break;
 		case FORM_GORON:
-			(en->puppet).playas.init = (puppet_init_t){base + (en->puppet.form * 0x37800, 0x0, 0x0020, 0x0025, 0.75f};
+			(en->puppet).playas.init = (puppet_init_t){base + (en->puppet.form * 0x37800), 0x0, 0x0020, 0x0025, 0.75f};
 			break;
 		case FORM_ZORA:
-			(en->puppet).playas.init = (puppet_init_t){base + (en->puppet.form * 0x37800, 0x0, 0x0009, 0x0023, 1.0f};
+			(en->puppet).playas.init = (puppet_init_t){base + (en->puppet.form * 0x37800), 0x0, 0x0009, 0x0023, 1.0f};
 			break;
 		case FORM_DEKU:
-			(en->puppet).playas.init = (puppet_init_t){base + (en->puppet.form * 0x37800, 0x0, 0x0005, 0x0015, 0.30f};
+			(en->puppet).playas.init = (puppet_init_t){base + (en->puppet.form * 0x37800), 0x0, 0x0005, 0x0015, 0.30f};
 			break;
 		case FORM_HUMAN:
-			(en->puppet).playas.init = (puppet_init_t){base + (en->puppet.form * 0x37800, 0x0, 0x0005, 0x0002, 0.65f};
+			(en->puppet).playas.init = (puppet_init_t){base + (en->puppet.form * 0x37800), 0x0, 0x0005, 0x0002, 0.65f};
 			break;
 		}
 
