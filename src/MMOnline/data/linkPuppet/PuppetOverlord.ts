@@ -7,8 +7,8 @@ import { ModLoaderAPIInject } from 'modloader64_api/ModLoaderAPIInjector';
 import { InjectCore } from 'modloader64_api/CoreInjection';
 import { IPuppetOverlord } from '../../MMOAPI/IPuppetOverlord';
 import { Postinit, onTick } from 'modloader64_api/PluginLifecycle';
-import { EventHandler, EventsClient } from 'modloader64_api/EventHandler';
-import { IMMOnlineHelpers, MMOnlineEvents } from '../../MMOAPI/MMOAPI';
+import { bus, EventHandler, EventsClient } from 'modloader64_api/EventHandler';
+import { IMMOnlineHelpers, MMOnlineEvents, RemoteSoundPlayRequest } from '../../MMOAPI/MMOAPI';
 import { HorseData } from './HorseData';
 import { IMMCore, MMForms, MMEvents } from 'MajorasMask/API/MMAPI';
 import { IActor } from 'MajorasMask/API/IActor';
@@ -37,7 +37,7 @@ export class PuppetOverlord implements IPuppetOverlord {
   @InjectCore()
   private core!: IMMCore;
   clientStorage!: MMOnlineStorageClient;
-  
+
   constructor(parent: IMMOnlineHelpers, core: IMMCore, clientStorage: MMOnlineStorageClient) {
     this.parent = parent;
     this.core = core;
@@ -81,7 +81,7 @@ export class PuppetOverlord implements IPuppetOverlord {
       'Player ' + player.nickname + ' awaiting puppet assignment.'
     );
     this.playersAwaitingPuppets.push(player);
-  }  
+  }
 
   unregisterPuppet(player: INetworkPlayer) {
     if (this.puppets.has(player.uuid)) {
@@ -196,18 +196,18 @@ export class PuppetOverlord implements IPuppetOverlord {
 
       if (this.clientStorage.syncMode !== 2) scene = puppet.scene
       else {
-        if (Math.abs(puppet.data.time - get_linear_time(this.core.save.day_time, this.core.save.current_day)) <= 135 
+        if (Math.abs(puppet.data.time - get_linear_time(this.core.save.day_time, this.core.save.current_day)) <= 135
           || this.clientStorage.schedules[puppet.player.uuid].schedule_data[index] === undefined) scene = puppet.scene;
         else scene = this.clientStorage.schedules[puppet.player.uuid].schedule_data[index].scene;
       }
-    
+
       if (scene === this.fakeClientPuppet.scene) {
         if (!puppet.isSpawned && this.awaiting_spawn.indexOf(puppet) === -1) {
           this.awaiting_spawn.push(puppet);
         }
         check = true;
       }
-  
+
       if (scene !== this.fakeClientPuppet.scene && puppet.isSpawned && !puppet.isShoveled) {
         puppet.shovel();
       }
@@ -249,9 +249,11 @@ export class PuppetOverlord implements IPuppetOverlord {
       //this.ModLoader.logger.debug("Updated schedule for " + packet.player.uuid + " at index " + scaled_time.toString())
 
       //if ((this.clientStorage.syncMode === 2 && Math.abs(scaled_time - linear_time) > 135) || this.clientStorage.syncMode !== 2) puppet.processIncomingPuppetData(actualPacket.data);
-      puppet.processIncomingPuppetData(actualPacket.data);
+      let e = new RemoteSoundPlayRequest(packet.player, actualPacket.data, actualPacket.data.sound);
+      bus.emit(MMOnlineEvents.ON_REMOTE_PLAY_SOUND, e);
+      puppet.processIncomingPuppetData(actualPacket.data, e);
       //if (actualPacket.horse_data !== undefined) {
-        /*         puppet.processIncomingHorseData(actualPacket.horse_data); */
+      /*         puppet.processIncomingHorseData(actualPacket.horse_data); */
       //}
     }
   }
@@ -329,9 +331,9 @@ export class PuppetOverlord implements IPuppetOverlord {
     this.sendPuppetPacket();
   }
 
-  
 
-  
+
+
   @EventHandler(EventsClient.ON_PLAYER_JOIN)
   onPlayerJoin(player: INetworkPlayer) {
     this.registerPuppet(player);
@@ -434,8 +436,8 @@ export class PuppetOverlord implements IPuppetOverlord {
   }
 
   @EventHandler(ModLoaderEvents.ON_ROM_PATCHED)
-    onRom(evt: any) {
-      this.rom = evt.rom;
-    }
+  onRom(evt: any) {
+    this.rom = evt.rom;
+  }
 
 }

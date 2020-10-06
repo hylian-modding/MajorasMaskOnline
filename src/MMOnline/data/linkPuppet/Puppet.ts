@@ -2,7 +2,7 @@ import { PuppetData } from './PuppetData';
 import { INetworkPlayer } from 'modloader64_api/NetworkHandler';
 import { Command } from 'modloader64_api/OOT/ICommandBuffer';
 import { bus, EventHandler } from 'modloader64_api/EventHandler';
-import { MMOnlineEvents, IMMOnlineHelpers } from '../../MMOAPI/MMOAPI';
+import { MMOnlineEvents, IMMOnlineHelpers, RemoteSoundPlayRequest } from '../../MMOAPI/MMOAPI';
 import { IModLoaderAPI, ModLoaderEvents } from 'modloader64_api/IModLoaderAPI';
 import { IPuppet } from '../../MMOAPI/IPuppet';
 import Vector3 from 'modloader64_api/math/Vector3';
@@ -10,7 +10,7 @@ import { HorseData } from './HorseData';
 import fs from 'fs';
 import path from 'path';
 
-import { IMMCore , MMForms, MMEvents} from 'MajorasMask/API/MMAPI';
+import { IMMCore, MMForms, MMEvents } from 'MajorasMask/API/MMAPI';
 import { Z64RomTools } from 'Z64Lib/API/Z64RomTools';
 import MMOnline from '@MMOnline/MMOnline';
 
@@ -95,10 +95,16 @@ export class Puppet implements IPuppet {
     }
   }
 
-  processIncomingPuppetData(data: PuppetData) {
+  processIncomingPuppetData(data: PuppetData, remote: RemoteSoundPlayRequest) {
     if (this.isSpawned && !this.isShoveled) {
       Object.keys(data).forEach((key: string) => {
-        (this.data as any)[key] = (data as any)[key];
+        if (key === "sound") {
+          if (!remote.isCanceled) {
+            (this.data as any)[key] = (data as any)[key];
+          }
+        } else {
+          (this.data as any)[key] = (data as any)[key];
+        }
       });
     }
   }
@@ -155,13 +161,12 @@ export class Puppet implements IPuppet {
     return false;
   }
 
-  applyColor(pointer: number)
-  {
-      this.ModLoader.logger.debug("Previous puppet tunic color: " + this.ModLoader.emulator.rdramRead32(pointer + 0x530)); 
-      this.ModLoader.logger.debug('Setting tunic color for your puppet: ' + this.tunic_color);
-      this.ModLoader.emulator.rdramWrite32(pointer + 0x530, this.tunic_color);
-      this.ModLoader.logger.debug("Puppet Pointer: " + pointer);
-      this.makeRamDump();
+  applyColor(pointer: number) {
+    this.ModLoader.logger.debug("Previous puppet tunic color: " + this.ModLoader.emulator.rdramRead32(pointer + 0x530));
+    this.ModLoader.logger.debug('Setting tunic color for your puppet: ' + this.tunic_color);
+    this.ModLoader.emulator.rdramWrite32(pointer + 0x530, this.tunic_color);
+    this.ModLoader.logger.debug("Puppet Pointer: " + pointer);
+    this.makeRamDump();
   }
 
   makeRamDump() {

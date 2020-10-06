@@ -30,6 +30,7 @@ import { MMOnlineStorage } from './MMOnlineStorage';
 import { RECORD_TICK_MODULO, NUM_SCHEDULE_TICKS, NUM_TICKS_PER_DAY, NUM_SCHEDULE_RECORD_TICKS, NUM_RECORD_TICKS_PER_DAY, get_scaled_time, PlayerScheduleData, PlayerSchedule } from './data/MMOPlayerSchedule'
 import { SaveContext } from 'MajorasMask/src/Imports';
 import { ModelManagerClient } from './data/models/ModelManager';
+import { SoundManagerClient } from './data/sound/SoundManager';
 
 export let TIME_SYNC_TRIGGERED: boolean = false;
 
@@ -46,6 +47,8 @@ export class MMOnlineClient {
 
     @SidedProxy(ProxySide.CLIENT, ModelManagerClient)
     modelManager!: ModelManagerClient;
+    @SidedProxy(ProxySide.CLIENT, SoundManagerClient)
+    soundManager!: SoundManagerClient;
 
     /*
     @SidedProxy(ProxySide.CLIENT, UtilityActorHelper)

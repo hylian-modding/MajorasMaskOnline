@@ -27,7 +27,10 @@ export enum MMOnlineEvents {
   ON_REGISTER_EMOTE = 'MMOnline:OnRegisterEmote',
   ON_PLAYER_TIME_UPDATE = "MMOnline:OnPlayerTimeUpdate",
   CUSTOM_MODEL_OVERRIDE_ADULT = 'MMOnline:OverrideCustomModelAdult',
-  CUSTOM_MODEL_OVERRIDE_CHILD = 'MMOnline:OverrideCustomModelChild'
+  CUSTOM_MODEL_OVERRIDE_CHILD = 'MMOnline:OverrideCustomModelChild',
+  ON_LOAD_SOUND_PACK = "OotOnline:OnLoadSoundPack",
+  ON_REMOTE_SOUND_PACK = "OotOnline:OnRemoteSoundPack",
+  ON_REMOTE_PLAY_SOUND = "OotOnline:OnRemotePlaySound",
 }
 
 export class MMOnline_PlayerScene {
@@ -60,4 +63,18 @@ export class MMO_CHILD_MODEL_EVENT{
 export interface ICustomEquipment {
   zobj: string;
   txt: string;
+}
+
+export class RemoteSoundPlayRequest{
+
+  player: INetworkPlayer;
+  puppet: any;
+  sound_id: number;
+  isCanceled: boolean = false;
+
+  constructor(player: INetworkPlayer, puppet: any, sound_id: number){
+    this.player = player;
+    this.puppet = puppet;
+    this.sound_id = sound_id;
+  }
 }
