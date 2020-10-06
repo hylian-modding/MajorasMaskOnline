@@ -1,7 +1,7 @@
 import * as API from 'MajorasMask/API/Imports';
 import { bus, setupEventHandlers } from 'modloader64_api/EventHandler';
 import { MMOnlineEvents } from '../MMOAPI/MMOAPI';
-import { ISwords, IShields, ISaveContext, InventorySlots } from 'MajorasMask/API/Imports';
+import { ISwords, IShields, ISaveContext, InventorySlots, Shield, Sword } from 'MajorasMask/API/Imports';
 import { MMOnlineClient } from '@MMOnline/MMOnlineClient';
 import { Interface } from 'readline';
 import { MMOnlineConfigCategory } from '@MMOnline/MMOnline';
@@ -770,33 +770,19 @@ export function mergeEquipmentData(
   incoming: IEquipmentSave
 ) {
   // Swords
-  if (incoming.kokiriSword) {
-    save.kokiriSword = true;
+  if (incoming.swordLevel > save.swordLevel){
+    save.swordLevel = incoming.swordLevel;
   }
-  if (incoming.gilded) {
-    save.gilded = true;
-  }
-  if (incoming.razorSword) {
-    save.razorSword = true;
-  }
-
   // Shields
-  if (incoming.heroesShield) {
-    save.heroesShield = false;
-  }
-  if (incoming.mirrorShield) {
-    save.mirrorShield = true;
+  if (incoming.shieldLevel > save.shieldLevel){
+    save.shieldLevel = incoming.shieldLevel;
   }
 }
 
 export function createEquipmentFromContext(save: API.ISaveContext) {
   let data = new EquipmentSave();
-  data.kokiriSword = save.swords.kokiriSword;
-  data.razorSword = (save.swords.kokiriSword && save.swords.gilded) ? true : false;
-  data.gilded = save.swords.gilded;
-
-  data.heroesShield = save.shields.heroesShield;
-  data.mirrorShield = save.shields.mirrorShield;
+  data.swordLevel = save.swords.swordLevel;
+  data.shieldLevel = save.shields.shieldLevel;
   return data;
 }
 
@@ -804,23 +790,16 @@ export function applyEquipmentToContext(
   data: IEquipmentSave,
   save: API.ISaveContext
 ) {
-  save.swords.kokiriSword = data.kokiriSword;
-  save.swords.razorSword = data.razorSword;
-  save.swords.gilded = data.gilded;
-
-  save.shields.heroesShield = data.heroesShield;
-  save.shields.mirrorShield = data.mirrorShield;
+  save.swords.swordLevel = data.swordLevel;
+  save.shields.shieldLevel = data.shieldLevel;
 }
 
 // Combine the four API interfaces into one.
 export interface IEquipmentSave extends API.ISwords, API.IShields { }
 
 export class EquipmentSave implements IEquipmentSave {
-  kokiriSword = false;
-  razorSword = false;
-  gilded = false;
-  heroesShield = false;
-  mirrorShield = false;
+  swordLevel: API.Sword = Sword.NONE;
+  shieldLevel: API.Shield = Shield.NONE;
 }
 
 // Add heart containers here, it makes sense to put them with the heart pieces.
