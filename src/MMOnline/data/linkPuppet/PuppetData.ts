@@ -121,6 +121,14 @@ export class PuppetData implements IPuppetData {
     return this.ModLoader.emulator.rdramRead8(offsets.link_instance + (0x144 + 0x11));
   }
 
+  set sound(id: number){
+  }
+
+  get sound(): number{
+    // TODO
+    return 0;
+  }
+
   set lastMask(lastMask: number) {
     this.ModLoader.emulator.rdramWrite8(this.pointer + 0x3A0, lastMask);
   }
