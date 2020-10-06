@@ -23,7 +23,7 @@
         "libs\\MajorasMask/*"
       ],
       "Z64Lib/*": [
-        "libs\\Z64Lib/*"
+        "./libs/Z64Lib/*"
       ]
     }
   },
@@ -33,7 +33,8 @@
     "mods/**/*.ts",
     "cores/**/*.ts",
     "bin/paker.ts",
-    "tools/**/*.ts"
+    "tools/**/*.ts",
+    "src/modloader/consoles/mupen/resources/test.js"
   ],
   "exclude": [
     "node_modules",

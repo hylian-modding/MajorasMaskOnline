@@ -112,12 +112,8 @@ import {MMRomPatches} from 'Z64Lib/API/MM/MMRomPatches';
       let manifest: MMChildManifest = new MMChildManifest();
       if (manifest.repoint(this.ModLoader, evt.rom, model)) {
         manifest.inject(this.ModLoader, evt.rom, model);
-        let code_file: Buffer = tools.decompressDMAFileFromRom(evt.rom, 0x1F);
-        let offset: number = 0x11A350;
-        model.writeUInt32BE(code_file.readUInt32BE(offset), 0x500c);
         this.clientStorage.childModel = model;
       }
-      tools.fixLinkObjectTableEntry(evt.rom, Z64LibSupportedGames.MAJORAS_MASK);
     }
   
     setupPuppetModels(evt: any) {
@@ -168,9 +164,11 @@ import {MMRomPatches} from 'Z64Lib/API/MM/MMRomPatches';
   
     @EventHandler(ModLoaderEvents.ON_ROM_PATCHED)
     onRomPatched(evt: any) {
+      
       let patch: MMRomPatches = new MMRomPatches();
       patch.patch(evt.rom);
       let tools: Z64RomTools = new Z64RomTools(this.ModLoader, Z64LibSupportedGames.MAJORAS_MASK);
+
       this.ModLoader.logger.info('Starting custom model setup...');
       let anim = 7;
   
@@ -244,6 +242,7 @@ import {MMRomPatches} from 'Z64Lib/API/MM/MMRomPatches';
       }
   
       this.ModLoader.logger.info('Done.');
+      fs.writeFileSync(global.ModLoader.startdir + "/rom.z64", evt.rom);
     }
   
     @NetworkHandler('MMO_AllocateModelPacket')

@@ -14,7 +14,6 @@ import { IMMCore , MMForms, MMEvents} from 'MajorasMask/API/MMAPI';
 import { Z64RomTools } from 'Z64Lib/API/Z64RomTools';
 import MMOnline from '@MMOnline/MMOnline';
 
-
 const DEADBEEF_OFFSET: number = 0x288;
 
 export class Puppet implements IPuppet {
@@ -76,7 +75,6 @@ export class Puppet implements IPuppet {
       this.isSpawning = true;
       this.data.pointer = 0x0;
       (this.parent as any)["writeModel"]();
-      fs.writeFileSync(global.ModLoader.startdir + "/ram.bin", this.ModLoader.emulator.rdramReadBuffer(0x0, (16 * 1024 * 1024)));
       this.core.commandBuffer.runCommand(Command.SPAWN_ACTOR, 0x80800000, (success: boolean, result: number) => {
         if (success) {
           this.data.pointer = result & 0x00ffffff;
@@ -87,11 +85,11 @@ export class Puppet implements IPuppet {
             this.doNotDespawnMe(horse);
             //this.horse = new HorseData(this.core.link, this, this.core);
           }
-
           this.void = this.ModLoader.math.rdramReadV3(this.data.pointer + 0x24);
           this.isSpawned = true;
           this.isSpawning = false;
           bus.emit(MMOnlineEvents.PLAYER_PUPPET_SPAWNED, this);
+          fs.writeFileSync(global.ModLoader.startdir + "/" + Date.now().toString() + ".bin", this.ModLoader.emulator.rdramReadBuffer(this.data.pointer, 0x1000));
         }
       });
     }
