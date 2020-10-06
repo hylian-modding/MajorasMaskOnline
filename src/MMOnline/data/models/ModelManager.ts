@@ -242,7 +242,6 @@ import {MMRomPatches} from 'Z64Lib/API/MM/MMRomPatches';
       }
   
       this.ModLoader.logger.info('Done.');
-      fs.writeFileSync(global.ModLoader.startdir + "/rom.z64", evt.rom);
     }
   
     @NetworkHandler('MMO_AllocateModelPacket')
