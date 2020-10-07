@@ -89,7 +89,6 @@ export class Puppet implements IPuppet {
           this.isSpawned = true;
           this.isSpawning = false;
           bus.emit(MMOnlineEvents.PLAYER_PUPPET_SPAWNED, this);
-          fs.writeFileSync(global.ModLoader.startdir + "/" + Date.now().toString() + ".bin", this.ModLoader.emulator.rdramReadBuffer(this.data.pointer, 0x1000));
         }
       });
     }

@@ -112,6 +112,7 @@ export class PuppetOverlord implements IPuppetOverlord {
 
       if (this.clientStorage.syncMode !== 2) {
         puppet.scene = entering_scene;
+        console.log(form);
         puppet.form = form;
         this.ModLoader.logger.info(
           'Puppet ' + puppet.id + ' moved to scene ' + puppet.scene

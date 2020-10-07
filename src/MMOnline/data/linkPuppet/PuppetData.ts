@@ -32,7 +32,7 @@ export class PuppetData implements IPuppetData {
     this.copyFields.push('anim');
     this.copyFields.push('xzSpeed');
     this.copyFields.push('nowShield');
-    this.copyFields.push('nowMask');
+    //this.copyFields.push('nowMask');
     this.copyFields.push('actionParam1');
     this.copyFields.push('actionParam2');
     this.copyFields.push('equipSword');
@@ -40,9 +40,9 @@ export class PuppetData implements IPuppetData {
     this.copyFields.push('shieldRot');
     this.copyFields.push('dekuStickLength');
     this.copyFields.push('nowAnim');
-    this.copyFields.push('lastMask');
-    this.copyFields.push('blastMaskTimer');
-    this.copyFields.push('maskProps');
+    //this.copyFields.push('lastMask');
+    //this.copyFields.push('blastMaskTimer');
+    //this.copyFields.push('maskProps');
     this.copyFields.push('time');
   }
   

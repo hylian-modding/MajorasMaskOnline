@@ -1,6 +1,6 @@
 {
   "name": "MMOnline",
-  "version": "2.0.108",
+  "version": "2.0.110",
   "description": "",
   "main": "MMOnline.js",
   "author": "Psi-Hate, Denoflions, Drahsid",
@@ -11,5 +11,10 @@
   "devUrl": "",
   "modloader64_deps": {
     "MajorasMask": "https://github.com/hylian-modding/Core-MajorasMask.git"
+  },
+  "modloader64_aliases": {
+    "Z64Lib": [
+      "libs/Z64Lib"
+    ]
   }
 }

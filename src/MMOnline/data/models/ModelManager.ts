@@ -109,9 +109,14 @@ import {MMRomPatches} from 'Z64Lib/API/MM/MMRomPatches';
     loadChildModel(evt: any, file: string) {
       let tools: Z64RomTools = new Z64RomTools(this.ModLoader, Z64LibSupportedGames.MAJORAS_MASK);
       let model: Buffer = fs.readFileSync(file);
+      let copy: Buffer = Buffer.alloc(model.byteLength);
+      model.copy(copy);
       let manifest: MMChildManifest = new MMChildManifest();
-      if (manifest.repoint(this.ModLoader, evt.rom, model)) {
-        manifest.inject(this.ModLoader, evt.rom, model);
+      if (manifest.repoint(this.ModLoader, evt.rom, copy)) {
+        manifest.inject(this.ModLoader, evt.rom, copy);
+        if (model.readUInt8(0x500B) === 0x68) {
+          model.writeUInt8(0x4, 0x500B);
+        }
         this.clientStorage.childModel = model;
       }
     }
@@ -240,7 +245,7 @@ import {MMRomPatches} from 'Z64Lib/API/MM/MMRomPatches';
           )
         );
       }
-  
+      this.ModLoader.clientSide.sendPacket(new MMO_GiveModelPacket(this.ModLoader.clientLobby, this.ModLoader.me));
       this.ModLoader.logger.info('Done.');
     }
   
@@ -253,6 +258,7 @@ import {MMRomPatches} from 'Z64Lib/API/MM/MMRomPatches';
       }
       if (packet.form === MMForms.HUMAN) {
         (this.clientStorage.playerModelCache[packet.player.uuid] as ModelPlayer).model.setChild(zlib.inflateSync(packet.model));
+        fs.writeFileSync(global.ModLoader.startdir + "/test.zobj", (this.clientStorage.playerModelCache[packet.player.uuid] as ModelPlayer).model.child.zobj);
         if (this.isThreaded) {
           let thread: ModelThread = new ModelThread(
             (this.clientStorage.playerModelCache[packet.player.uuid] as ModelPlayer).model.child.zobj,
@@ -266,7 +272,6 @@ import {MMRomPatches} from 'Z64Lib/API/MM/MMRomPatches';
           '.'
         );
       } else if (packet.form === MMForms.FD) {
-        (this.clientStorage.playerModelCache[packet.player.uuid] as ModelPlayer).model.setAdult(zlib.inflateSync(packet.model));
         if (this.isThreaded) {
           let thread: ModelThread = new ModelThread(
             (this.clientStorage.playerModelCache[packet.player.uuid] as ModelPlayer).model.adult.zobj,
@@ -418,6 +423,7 @@ import {MMRomPatches} from 'Z64Lib/API/MM/MMRomPatches';
       let puppet_spawn_params: number = 0x80800000;
       let puppet_spawn_variable_offset: number = 0xE;
       this.ModLoader.emulator.rdramWrite16(puppet_spawn_params + puppet_spawn_variable_offset, puppet.form);
+      console.log(this.ModLoader.emulator.rdramReadBuffer(puppet_spawn_params, 0x10));
       if (
         !this.clientStorage.playerModelCache.hasOwnProperty(puppet.player.uuid)
       ) {

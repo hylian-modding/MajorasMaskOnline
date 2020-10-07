@@ -21,6 +21,7 @@ import { MMOnlineServer } from './MMOnlineServer';
 import { InjectCore } from 'modloader64_api/CoreInjection';
 import * as API from 'MajorasMask/API/MMAPI';
 import { PuppetOverlord } from './data/linkPuppet/PuppetOverlord';
+import { Console } from 'console';
 export const SCENE_ARR_SIZE = 0xD20;
 export const EVENT_ARR_SIZE = 0x8;
 export const ITEM_FLAG_ARR_SIZE = 0x18;
@@ -78,6 +79,7 @@ class MMOnline implements IPlugin, IMMOnlineHelpers, IPluginServerConfig {
 
     postinit(): void {
         this.writeModel();
+        fs.writeFileSync(global.ModLoader.startdir + "/dump.bin", this.ModLoader.emulator.rdramReadBuffer(0x0, 16 * 1024 * 1024));
     }
 
     writeModel() {
@@ -92,7 +94,7 @@ class MMOnline implements IPlugin, IMMOnlineHelpers, IPluginServerConfig {
 
     onTick(frame?: number): void {
         if (this.core.helper.isTitleScreen() || !this.core.helper.isSceneNumberValid()) return;
-        printf(this.ModLoader)
+        //printf(this.ModLoader)
     }
 
     @EventHandler(EventsClient.ON_PAYLOAD_INJECTED)
