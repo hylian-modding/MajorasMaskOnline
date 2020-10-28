@@ -5,7 +5,7 @@ import * as API from 'MajorasMask/API/MMAPI'
 import { MMOnlineEvents, MMOnline_PlayerScene } from './MMOAPI/MMOAPI';
 //import { ActorHookingManagerClient } from './data/ActorHookingSystem';
 import { createEquipmentFromContext, createInventoryFromContext, createQuestSaveFromContext, mergeEquipmentData, mergeInventoryData, mergeQuestSaveData, createDungeonItemDataFromContext, mergeDungeonItemData, InventorySave, applyInventoryToContext, applyBottleToContext, applyEquipmentToContext, applyQuestSaveToContext, applyDungeonItemDataToContext, EquipmentSave, QuestSave, MMODungeonItemContext, IDungeonItemSave, MMO_SceneStruct, createPhotoFromContext, mergePhotoData, PhotoSave, applyPhotoToContext, createBottleFromContext, mergeBottleData, mergeBottleDataTime, applyBottleToContextTime, createTradeFromContext, mergeInventoryTrade, applyTradeToContext, IQuestSave } from './data/MMOSaveData';
-import { MMO_ClientFlagUpdate, MMO_ClientSceneContextUpdate, MMO_DownloadRequestPacket, MMO_SubscreenSyncPacket, MMO_BottleUpdatePacket, MMO_SceneGUIPacket, MMO_BankSyncPacket, MMO_ScenePacket, MMO_SceneRequestPacket, MMO_DownloadResponsePacket, MMO_DownloadResponsePacket2, MMO_ServerFlagUpdate, MMO_ClientSceneContextUpdateTime, MMO_TimePacket } from './data/MMOPackets';
+import { MMO_ClientFlagUpdate, MMO_ClientSceneContextUpdate, MMO_DownloadRequestPacket, MMO_SubscreenSyncPacket, MMO_BottleUpdatePacket, MMO_SceneGUIPacket, MMO_BankSyncPacket, MMO_ScenePacket, MMO_SceneRequestPacket, MMO_DownloadResponsePacket, MMO_DownloadResponsePacket2, MMO_ServerFlagUpdate, MMO_ClientSceneContextUpdateTime, MMO_TimePacket, MMO_PictoboxPacket } from './data/MMOPackets';
 import path from 'path';
 import { GUITunnelPacket } from 'modloader64_api/GUITunnel';
 import fs from 'fs';
@@ -31,6 +31,7 @@ import { RECORD_TICK_MODULO, NUM_SCHEDULE_TICKS, NUM_TICKS_PER_DAY, NUM_SCHEDULE
 import { SaveContext } from 'MajorasMask/src/Imports';
 import { ModelManagerClient } from './data/models/ModelManager';
 import { SoundManagerClient } from './data/sound/SoundManager';
+import { addToKillFeedQueue } from 'modloader64_api/Announcements';
 
 export let TIME_SYNC_TRIGGERED: boolean = false;
 
@@ -127,9 +128,6 @@ export class MMOnlineClient {
         //this.ModLoader.logger.debug('onItemSync_client() createQuestSaveFromContext() heartPieceCount: ' + quest.heartPieceCount);
         //let di = createDungeonItemDataFromContext(this.core.save.dungeonItemManager);
 
-        let photo = createPhotoFromContext(this.core.save.photo);
-        mergePhotoData(this.clientStorage.photoStorage, photo);
-
         mergeInventoryData(this.clientStorage.inventoryStorage, inventory);
         
         if(this.clientStorage.syncMode === 1) {
@@ -152,8 +150,7 @@ export class MMOnlineClient {
             new MMO_SubscreenSyncPacket(this.clientStorage.inventoryStorage, 
                 this.clientStorage.equipmentStorage, 
                 this.clientStorage.questStorage, 
-                this.clientStorage.dungeonItemStorage, 
-                this.clientStorage.photoStorage, 
+                this.clientStorage.dungeonItemStorage,  
                 this.clientStorage.bottleStorage, 
                 this.clientStorage.tradeStorage, 
                 this.ModLoader.clientLobby
@@ -570,7 +567,11 @@ export class MMOnlineClient {
         //this.core.link.sword = API.Sword.NONE;
         //this.core.link.shield = API.Shield.NONE;
         this.ModLoader.logger.info('MMO_DownloadResponsePacket() applyPhotoToContext() Start');
-        applyPhotoToContext(packet.subscreen.photo, this.core.save.photo);
+        let temp = new PhotoSave();
+        temp.fromPhoto(packet.photo.photo);
+        temp.decompressPhoto();
+        mergePhotoData(this.clientStorage.photoStorage, temp);
+        applyPhotoToContext(this.clientStorage.photoStorage, this.core.save.photo);
         this.ModLoader.logger.info('MMO_DownloadResponsePacket() applyPhotoToContext() End');
         applyInventoryToContext(packet.subscreen.inventory, this.core.save, true);
 
@@ -639,12 +640,7 @@ export class MMOnlineClient {
         /*let dungeonItems: MMODungeonItemContext = createDungeonItemDataFromContext(
             this.core.save.dungeonItemManager
         ) as IDungeonItemSave;*/
-        let photo: PhotoSave = createPhotoFromContext(
-            this.core.save.photo
-        ) as PhotoSave;
         
-        mergePhotoData(this.clientStorage.photoStorage, photo);
-
         mergeInventoryData(this.clientStorage.inventoryStorage, inventory);
         if(this.clientStorage.syncMode === 1) {
             mergeBottleDataTime(this.clientStorage.bottleStorage, inventoryBottle);
@@ -661,7 +657,7 @@ export class MMOnlineClient {
         mergeQuestSaveData(this.clientStorage.questStorage, quest);
         //this.ModLoader.logger.debug('onItemSync_client() mergeQuestSaveData() heartPieceCount: ' + quest.heartPieceCount);
         //mergeDungeonItemData(this.clientStorage.dungeonItemStorage, dungeonItems);
-        mergePhotoData(this.clientStorage.photoStorage, packet.photo);
+        //mergePhotoData(this.clientStorage.photoStorage, packet.photo);
         mergeInventoryData(this.clientStorage.inventoryStorage, packet.inventory);
         mergeQuestSaveData(this.clientStorage.questStorage, packet.quest);
         
@@ -696,7 +692,6 @@ export class MMOnlineClient {
         //this.ModLoader.logger.debug('onItemSync_client() applyEquipmentToContext() Gilded Sword: ' + this.clientStorage.equipmentStorage.gilded);
         //this.ModLoader.logger.debug('onItemSync_client() applyEquipmentToContext() Heroes Shield: ' + this.clientStorage.equipmentStorage.heroesShield);
         //this.ModLoader.logger.debug('onItemSync_client() applyEquipmentToContext() Mirror Shield: ' + this.clientStorage.equipmentStorage.mirrorShield);
-        applyPhotoToContext(this.clientStorage.photoStorage, this.core.save.photo)
         applyQuestSaveToContext(this.clientStorage.questStorage, this.core.save);
         //this.ModLoader.logger.debug('onItemSync_client() applyQuestSaveToContext() heartPieceCount: ' + this.clientStorage.questStorage.heartPieceCount);
         /*applyDungeonItemDataToContext(this.clientStorage.dungeonItemStorage, this.core.save.dungeonItemManager);*/
@@ -998,6 +993,26 @@ export class MMOnlineClient {
         }
     }*/
 
+    updatePictobox(){
+        let photo = createPhotoFromContext(this.ModLoader, this.core.save.photo);
+        if (photo.hash !== this.clientStorage.photoStorage.hash){
+            console.log("Photo taken");
+            mergePhotoData(this.clientStorage.photoStorage, photo);
+            this.clientStorage.photoStorage.compressPhoto();
+            this.ModLoader.clientSide.sendPacket(new MMO_PictoboxPacket(this.clientStorage.photoStorage, this.ModLoader.clientLobby));
+        }
+    }
+
+    @NetworkHandler('MMO_PictoboxPacket')
+    onPictobox(packet: MMO_PictoboxPacket){
+        let photo = new PhotoSave();
+        photo.fromPhoto(packet.photo);
+        photo.decompressPhoto();
+        mergePhotoData(this.clientStorage.photoStorage, photo);
+        applyPhotoToContext(photo, this.core.save.photo);
+        addToKillFeedQueue("Received photo!");
+    }
+
     @onTick()
     onTick() {
         if (
@@ -1026,6 +1041,8 @@ export class MMOnlineClient {
                     if (this.LobbyConfig.key_syncing) {
                         //this.keys.update();
                     }
+
+                    this.updatePictobox();
 
                     let state = this.core.link.state;
                     if ((this.core.global.scene_framecount % 400) === 0) this.clientStorage.needs_update = true;

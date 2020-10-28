@@ -5,13 +5,13 @@ import {
 } from 'modloader64_api/ModLoaderDefaultImpls';
 import { PuppetData } from './linkPuppet/PuppetData';
 //import { HorseData } from './linkPuppet/HorseData';
-import { InventorySave, IEquipmentSave, IQuestSave, IDungeonItemSave } from './MMOSaveData';
+import { InventorySave, IEquipmentSave, IQuestSave, IDungeonItemSave, PhotoSave } from './MMOSaveData';
 import * as API from 'MajorasMask/API/Imports';
 import { IPhoto, MMForms } from 'MajorasMask/API/Imports';
 import { INetworkPlayer } from 'modloader64_api/NetworkHandler';
 
 
-export class MMO_PuppetPacket{
+export class MMO_PuppetPacket {
   data: PuppetData;
   //horse_data!: HorseData;
 
@@ -24,58 +24,59 @@ export class MMO_PuppetPacket{
   }*/
 }
 
-  export class MMO_SubscreenSyncPacket extends Packet {
-    inventory: InventorySave;
-    equipment: IEquipmentSave;
-    quest: IQuestSave;
-    dungeonItems: IDungeonItemSave;
-    photo: IPhoto;
-    bottle: InventorySave;
-    trade: InventorySave;
-    constructor(
-      save: InventorySave,
-      equipment: IEquipmentSave,
-      quest: IQuestSave,
-      dungeonItems: IDungeonItemSave,
-      photo: IPhoto,
-      bottle: InventorySave,
-      trade: InventorySave,
-      lobby: string
-    ) {
-      super('MMO_SubscreenSyncPacket', 'MMOnline', lobby, false);
-      this.inventory = save;
-      this.equipment = equipment;
-      this.quest = quest;
-      this.dungeonItems = dungeonItems;
-      this.photo = photo;
-      this.bottle = bottle;
-      this.trade = trade;
-    }
+export class MMO_SubscreenSyncPacket extends Packet {
+  inventory: InventorySave;
+  equipment: IEquipmentSave;
+  quest: IQuestSave;
+  dungeonItems: IDungeonItemSave;
+  bottle: InventorySave;
+  trade: InventorySave;
+  constructor(
+    save: InventorySave,
+    equipment: IEquipmentSave,
+    quest: IQuestSave,
+    dungeonItems: IDungeonItemSave,
+    bottle: InventorySave,
+    trade: InventorySave,
+    lobby: string
+  ) {
+    super('MMO_SubscreenSyncPacket', 'MMOnline', lobby, false);
+    this.inventory = save;
+    this.equipment = equipment;
+    this.quest = quest;
+    this.dungeonItems = dungeonItems;
+    this.bottle = bottle;
+    this.trade = trade;
   }
+}
 
-  
-  export class MMO_DownloadResponsePacket extends Packet {
-    subscreen: MMO_SubscreenSyncPacket;
-    flags: MMO_ServerFlagUpdate;
-    bank: MMO_BankSyncPacket;
-    
-    constructor(
-      subscreen: MMO_SubscreenSyncPacket,
-      scenes: MMO_ServerFlagUpdate,
-      bank: MMO_BankSyncPacket,
-      lobby: string
-    ) {
-      super('MMO_DownloadResponsePacket', 'MMOnline', lobby, false);
-      this.subscreen = subscreen;
-      this.flags = scenes;
-      this.bank = bank;
-      packetHelper.cloneDestination(this, this.subscreen);
-      packetHelper.cloneDestination(this, this.flags);
-      packetHelper.cloneDestination(this, this.bank);
-    }
+
+export class MMO_DownloadResponsePacket extends Packet {
+  subscreen: MMO_SubscreenSyncPacket;
+  flags: MMO_ServerFlagUpdate;
+  bank: MMO_BankSyncPacket;
+  photo: MMO_PictoboxPacket;
+
+  constructor(
+    subscreen: MMO_SubscreenSyncPacket,
+    scenes: MMO_ServerFlagUpdate,
+    bank: MMO_BankSyncPacket,
+    photo: MMO_PictoboxPacket,
+    lobby: string
+  ) {
+    super('MMO_DownloadResponsePacket', 'MMOnline', lobby, false);
+    this.subscreen = subscreen;
+    this.flags = scenes;
+    this.bank = bank;
+    this.photo = photo;
+    packetHelper.cloneDestination(this, this.subscreen);
+    packetHelper.cloneDestination(this, this.flags);
+    packetHelper.cloneDestination(this, this.bank);
+    packetHelper.cloneDestination(this, this.photo);
   }
+}
 
-export class MMO_PuppetWrapperPacket extends UDPPacket{
+export class MMO_PuppetWrapperPacket extends UDPPacket {
 
   data: string;
 
@@ -102,10 +103,10 @@ export class MMO_SceneRequestPacket extends Packet {
   }
 }
 
-export class MMO_BankSyncPacket extends Packet{
+export class MMO_BankSyncPacket extends Packet {
   savings: number;
 
-  constructor(saving: number, lobby: string){
+  constructor(saving: number, lobby: string) {
     super('MMO_BankSyncPacket', 'MMOnline', lobby, true);
     this.savings = saving;
   }
@@ -291,12 +292,12 @@ export class MMO_SceneGUIPacket extends Packet {
   }
 }
 
-export class MMO_ModifyModelPacket extends Packet{
+export class MMO_ModifyModelPacket extends Packet {
   mod: Buffer;
   offset: number;
   form: MMForms;
 
-  constructor(lobby: string, mod: Buffer, offset: number, form: MMForms){
+  constructor(lobby: string, mod: Buffer, offset: number, form: MMForms) {
     super('MMO_ModifyModelPacket', 'MMOnline', lobby, false);
     this.mod = mod;
     this.offset = offset;
@@ -337,5 +338,14 @@ export class MMO_IconAllocatePacket extends Packet {
     this.icon = buf;
     this.form = form;
     this.hash = hash;
+  }
+}
+
+export class MMO_PictoboxPacket extends Packet {
+  photo: PhotoSave;
+
+  constructor(photo: PhotoSave, lobby: string) {
+    super('MMO_PictoboxPacket', 'MMOnline', lobby, false);
+    this.photo = photo;
   }
 }

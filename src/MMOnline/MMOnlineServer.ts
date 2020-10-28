@@ -7,9 +7,9 @@ import MMOnline from './MMOnline';
 import { IModLoaderAPI, ModLoaderEvents } from 'modloader64_api/IModLoaderAPI';
 import { ServerNetworkHandler, IPacketHeader } from 'modloader64_api/NetworkHandler';
 import { MMOnline_PlayerScene, MMOnlineEvents } from './MMOAPI/MMOAPI';
-import { MMO_ScenePacket, MMO_BottleUpdatePacket, MMO_DownloadRequestPacket, MMO_DownloadResponsePacket, MMO_SubscreenSyncPacket, MMO_ServerFlagUpdate, MMO_BankSyncPacket, MMO_DownloadResponsePacket2, MMO_ClientFlagUpdate, MMO_ClientSceneContextUpdate, MMO_TimePacket } from './data/MMOPackets';
+import { MMO_ScenePacket, MMO_BottleUpdatePacket, MMO_DownloadRequestPacket, MMO_DownloadResponsePacket, MMO_SubscreenSyncPacket, MMO_ServerFlagUpdate, MMO_BankSyncPacket, MMO_DownloadResponsePacket2, MMO_ClientFlagUpdate, MMO_ClientSceneContextUpdate, MMO_TimePacket, MMO_PictoboxPacket } from './data/MMOPackets';
 //import { MMO_KeyRebuildPacket, KeyLogManagerServer } from './data/keys/KeyLogManager';
-import { mergeInventoryData, mergeEquipmentData, mergeQuestSaveData, mergeDungeonItemData, MMO_SceneStruct, mergePhotoData, mergeBottleData, mergeBottleDataTime } from './data/MMOSaveData';
+import { mergeInventoryData, mergeEquipmentData, mergeQuestSaveData, mergeDungeonItemData, MMO_SceneStruct, mergePhotoData, mergeBottleData, mergeBottleDataTime, PhotoSave } from './data/MMOSaveData';
 import { PuppetOverlord } from './data/linkPuppet/PuppetOverlord';
 import { InjectCore } from 'modloader64_api/CoreInjection';
 import * as API from 'MajorasMask/API/MMAPI';
@@ -40,12 +40,12 @@ export class MMOnlineServer {
             }
             Object.keys(storage.players).forEach((key: string) => {
                 //if (storage.players[key] === storage.players[packet.player.uuid]) {
-                    if (storage.networkPlayerInstances[key].uuid !== packet.player.uuid) {
-                        this.ModLoader.serverSide.sendPacketToSpecificPlayer(
-                            packet,
-                            storage.networkPlayerInstances[key]
-                        );
-                    }
+                if (storage.networkPlayerInstances[key].uuid !== packet.player.uuid) {
+                    this.ModLoader.serverSide.sendPacketToSpecificPlayer(
+                        packet,
+                        storage.networkPlayerInstances[key]
+                    );
+                }
                 //}
             });
         } catch (err) { }
@@ -155,13 +155,13 @@ export class MMOnlineServer {
     //         if (storage === null) {
     //             return;
     //         }
-            
+
     //         let return_data: PlayerScheduleData[] = [];
     //         let schedule: PlayerScheduleData;
     //         let time = storage.schedules[packet.player.uuid].current_time;
     //         let day = storage.schedules[packet.player.uuid].current_day;
     //         let scene = storage.schedules[packet.player.uuid].current_scene;
-            
+
 
     //         Object.keys(storage.players).forEach((key: string) => {
     //             if (storage.networkPlayerInstances[key].uuid !== packet.player.uuid) {
@@ -174,7 +174,7 @@ export class MMOnlineServer {
     //     }
     //     catch(err) {}
     // }
-    
+
     //------------------------------
     // Subscreen Syncing
     //------------------------------
@@ -199,7 +199,7 @@ export class MMOnlineServer {
                 //storage.inventoryStorage.FIELD_BOTTLE3 = packet.contents;
                 break;
             case 3:
-               // storage.inventoryStorage.FIELD_BOTTLE4 = packet.contents;
+                // storage.inventoryStorage.FIELD_BOTTLE4 = packet.contents;
                 break;
         }
     }
@@ -224,7 +224,6 @@ export class MMOnlineServer {
                         storage.equipmentStorage,
                         storage.questStorage,
                         storage.dungeonItemStorage,
-                        storage.photoStorage,
                         storage.bottleStorage,
                         storage.tradeStorage,
                         packet.lobby
@@ -238,6 +237,7 @@ export class MMOnlineServer {
                         packet.lobby
                     ),
                     new MMO_BankSyncPacket(storage.bank, packet.lobby),
+                    new MMO_PictoboxPacket(storage.photoStorage, packet.lobby),
                     packet.lobby
                 ),
                 packet.player
@@ -261,9 +261,8 @@ export class MMOnlineServer {
         if (storage === null) {
             return;
         }
-        mergePhotoData(storage.photoStorage, packet.photo);
         mergeInventoryData(storage.inventoryStorage, packet.inventory);
-        if(this.clientStorage.syncMode === 1) mergeBottleDataTime(storage.bottleStorage, packet.bottle);
+        if (this.clientStorage.syncMode === 1) mergeBottleDataTime(storage.bottleStorage, packet.bottle);
         else mergeBottleData(storage.bottleStorage, packet.bottle);
         mergeEquipmentData(storage.equipmentStorage, packet.equipment);
         mergeQuestSaveData(storage.questStorage, packet.quest);
@@ -275,7 +274,6 @@ export class MMOnlineServer {
                 storage.equipmentStorage,
                 storage.questStorage,
                 storage.dungeonItemStorage,
-                storage.photoStorage,
                 storage.bottleStorage,
                 storage.tradeStorage,
                 packet.lobby
@@ -387,6 +385,23 @@ export class MMOnlineServer {
             return;
         }
         storage.bank = packet.savings;
+    }
+
+    @ServerNetworkHandler('MMO_PictoboxPacket')
+    onPictobox(packet: MMO_PictoboxPacket) {
+        let storage: MMOnlineStorage = this.ModLoader.lobbyManager.getLobbyStorage(
+            packet.lobby,
+            this.parent
+        ) as MMOnlineStorage;
+        if (storage === null) {
+            return;
+        }
+        let image = new PhotoSave();
+        image.fromPhoto(packet.photo);
+        if (storage.photoStorage.timestamp < image.timestamp) {
+            mergePhotoData(storage.photoStorage, image);
+            this.ModLoader.serverSide.sendPacket(packet);
+        }
     }
 
     @EventHandler(ModLoaderEvents.ON_RECEIVED_CRASH_LOG)

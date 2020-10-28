@@ -7,6 +7,8 @@ import { Interface } from 'readline';
 import { MMOnlineConfigCategory } from '@MMOnline/MMOnline';
 import { config } from 'process';
 import { setActorBehavior } from 'MajorasMask/src/Actor';
+import { IModLoaderAPI } from 'modloader64_api/IModLoaderAPI';
+import zlib from 'zlib';
 
 
 
@@ -707,24 +709,48 @@ export class InventorySave implements API.IInventoryFields {
 
 
 export interface IPhotoSave extends API.IPhoto {
-
 }
+
 export class PhotoSave implements IPhotoSave {
-  pictograph_photoChunk1!: Buffer;
-  pictograph_photoChunk2!: Buffer;
+  pictograph_photoChunk!: Buffer;
   pictograph_spec = 0x0;
   pictograph_quality = 0x0;
   pictograph_unk = 0x0;
+  timestamp: number = Date.now();
+  hash: string = "";
+  pictograph_used: boolean = false;
+
+  compressPhoto(): void {
+    console.log("Original Size: " + this.pictograph_photoChunk.byteLength);
+    this.pictograph_photoChunk = zlib.deflateSync(this.pictograph_photoChunk);
+    console.log("New  Size: " + this.pictograph_photoChunk.byteLength);
+  }
+
+  decompressPhoto(): void {
+    this.pictograph_photoChunk = zlib.inflateSync(this.pictograph_photoChunk);
+  }
+
+  fromPhoto(photo: PhotoSave) {
+    this.pictograph_photoChunk = photo.pictograph_photoChunk;
+    this.pictograph_spec = photo.pictograph_spec;
+    this.pictograph_quality = photo.pictograph_quality;
+    this.pictograph_unk = photo.pictograph_unk;
+    this.timestamp = photo.timestamp;
+    this.hash = photo.hash;
+    this.pictograph_used = photo.pictograph_used;
+  }
 }
 
-export function createPhotoFromContext(save: API.IPhoto) {
+export function createPhotoFromContext(ModLoader: IModLoaderAPI, save: API.IPhoto) {
   let data = new PhotoSave();
-  data.pictograph_photoChunk1 = save.pictograph_photoChunk1;
-  data.pictograph_photoChunk2 = save.pictograph_photoChunk2;
+  data.pictograph_photoChunk = save.pictograph_photoChunk;
 
   data.pictograph_quality = save.pictograph_quality;
   data.pictograph_spec = save.pictograph_spec;
-  data.pictograph_unk = save.pictograph_spec;
+  data.pictograph_unk = save.pictograph_unk;
+  data.pictograph_used = save.pictograph_used;
+
+  data.hash = ModLoader.utils.hashBuffer(data.pictograph_photoChunk);
   return data;
 }
 
@@ -732,32 +758,37 @@ export function applyPhotoToContext(
   data: PhotoSave,
   save: API.IPhoto
 ) {
-  save.pictograph_photoChunk1 = data.pictograph_photoChunk1;
-  save.pictograph_photoChunk2 = data.pictograph_photoChunk2;
-
+  save.pictograph_photoChunk = data.pictograph_photoChunk;
   save.pictograph_quality = data.pictograph_quality;
   save.pictograph_spec = data.pictograph_spec;
-  save.pictograph_unk = data.pictograph_spec;
+  save.pictograph_unk = data.pictograph_unk;
+  save.pictograph_used = data.pictograph_used;
 }
 
 export function mergePhotoData(
   save: PhotoSave,
   incoming: PhotoSave
 ) {
-  if (incoming.pictograph_photoChunk1 != save.pictograph_photoChunk1) {
-    save.pictograph_photoChunk1 = incoming.pictograph_photoChunk1;
+  if (incoming.pictograph_photoChunk !== save.pictograph_photoChunk) {
+    save.pictograph_photoChunk = incoming.pictograph_photoChunk;
   }
-  if (incoming.pictograph_photoChunk2 != save.pictograph_photoChunk2) {
-    save.pictograph_photoChunk2 = incoming.pictograph_photoChunk2;
-  }
-  if (incoming.pictograph_quality != save.pictograph_quality) {
+  if (incoming.pictograph_quality !== save.pictograph_quality) {
     save.pictograph_quality = incoming.pictograph_quality;
   }
-  if (incoming.pictograph_spec != save.pictograph_spec) {
+  if (incoming.pictograph_spec !== save.pictograph_spec) {
     save.pictograph_spec = incoming.pictograph_spec;
   }
-  if (incoming.pictograph_unk != save.pictograph_unk) {
+  if (incoming.pictograph_unk !== save.pictograph_unk) {
     save.pictograph_unk = incoming.pictograph_unk;
+  }
+  if (incoming.timestamp !== save.timestamp) {
+    save.timestamp = incoming.timestamp;
+  }
+  if (incoming.hash !== save.hash) {
+    save.hash = incoming.hash;
+  }
+  if (incoming.pictograph_used !== save.pictograph_used) {
+    save.pictograph_used = incoming.pictograph_used;
   }
 
 }
@@ -770,11 +801,11 @@ export function mergeEquipmentData(
   incoming: IEquipmentSave
 ) {
   // Swords
-  if (incoming.swordLevel > save.swordLevel){
+  if (incoming.swordLevel > save.swordLevel) {
     save.swordLevel = incoming.swordLevel;
   }
   // Shields
-  if (incoming.shieldLevel > save.shieldLevel){
+  if (incoming.shieldLevel > save.shieldLevel) {
     save.shieldLevel = incoming.shieldLevel;
   }
 }
