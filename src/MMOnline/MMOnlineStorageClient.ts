@@ -1,6 +1,8 @@
 import { MMOnlineStorageBase } from './MMOnlineStorageBase';
 import * as API from 'MajorasMask/API/MMAPI';
 import PlayerSchedule from './data/MMOPlayerSchedule';
+import { Texture } from 'modloader64_api/Sylvain/Gfx';
+import { rgba, vec2, vec4, xy } from 'modloader64_api/Sylvain/vec';
 
 export class MMOnlineStorageClient extends MMOnlineStorageBase {
   autoSaveHash = '!';
@@ -28,4 +30,17 @@ export class MMOnlineStorageClient extends MMOnlineStorageBase {
   syncMode = 0;
   last_time = 0;
   last_day = 0;
+  pictoboxAlert: PictoboxPreview = new PictoboxPreview(xy(0, 0));
+}
+
+export class PictoboxPreview{
+  buf: Buffer | undefined;
+  image: Texture | undefined;
+  pos: vec2;
+  size: vec2 = xy(160, 112);
+  opacity: number = 255;
+
+  constructor(pos: vec2){
+    this.pos = pos;
+  }
 }

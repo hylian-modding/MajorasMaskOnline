@@ -14,7 +14,7 @@ import { DiscordStatus } from 'modloader64_api/Discord';
 //import { UtilityActorHelper } from './data/utilityActorHelper';
 //import { ModelManagerClient } from './data/models/ModelManager';
 import { ModLoaderAPIInject } from 'modloader64_api/ModLoaderAPIInjector';
-import { Init, Preinit, Postinit, onTick } from 'modloader64_api/PluginLifecycle';
+import { Init, Preinit, Postinit, onTick, onViUpdate } from 'modloader64_api/PluginLifecycle';
 import { parseFlagChanges } from './parseFlagChanges';
 import { IMMOnlineLobbyConfig, MMOnlineConfigCategory } from './MMOnline';
 import { IModLoaderAPI, ModLoaderEvents } from 'modloader64_api/IModLoaderAPI';
@@ -32,8 +32,35 @@ import { SaveContext } from 'MajorasMask/src/Imports';
 import { ModelManagerClient } from './data/models/ModelManager';
 import { SoundManagerClient } from './data/sound/SoundManager';
 import { addToKillFeedQueue } from 'modloader64_api/Announcements';
+import { SmartBuffer } from 'smart-buffer';
+import { rgba, xy, xywh } from 'modloader64_api/Sylvain/vec';
+import { FlipFlags } from 'modloader64_api/Sylvain/Gfx';
+import bitwise from 'bitwise';
 
 export let TIME_SYNC_TRIGGERED: boolean = false;
+
+function RGBA32ToA5(rgba: Buffer) {
+    let i, k, data
+    let picto: Buffer = Buffer.alloc(0x2bc0)
+
+    for (i = 0; i < 0x2bc0; i += 5) {
+        data = 0
+        for (k = 0; k < 8; ++k) {
+            // get average color from all channels
+            //let color = (((rgba[i] << 24) & 0xFF) + ((rgba[i] << 16) & 0xFF) + ((rgba[i] << 8) & 0xFF) + (rgba[i] & 0xFF)) / 0x3FC
+            let color = (rgba[i] << 24) & 0xFF
+            color = (color * 31) & 0x1F;
+
+            data |= (color >> (5 * (7 - k)));
+
+            //data >> (5n * (7n - k)) = color;
+        }
+
+        picto.writeBigInt64BE(BigInt(data), i)
+    }
+
+    return picto
+}
 
 export class MMOnlineClient {
     @InjectCore()
@@ -72,12 +99,12 @@ export class MMOnlineClient {
             }
             Object.keys(storage.players).forEach((key: string) => {
                 //if (storage.players[key] === storage.players[packet.player.uuid]) {
-                    if (storage.networkPlayerInstances[key].uuid !== packet.player.uuid) {
-                        this.ModLoader.serverSide.sendPacketToSpecificPlayer(
-                            packet,
-                            storage.networkPlayerInstances[key]
-                        );
-                    }
+                if (storage.networkPlayerInstances[key].uuid !== packet.player.uuid) {
+                    this.ModLoader.serverSide.sendPacketToSpecificPlayer(
+                        packet,
+                        storage.networkPlayerInstances[key]
+                    );
+                }
                 //}
             });
         } catch (err) { }
@@ -89,7 +116,7 @@ export class MMOnlineClient {
         this.ModLoader.config.setData("MMOnline", "mapTracker", false);
         this.ModLoader.config.setData("MMOnline", "keySync", true);
         this.ModLoader.config.setData("MMOnline", "syncMode", 0); // 0 is default, 1 is time sync, 2 is groundhog's-day sync
-        
+
     }
 
     @Init()
@@ -129,13 +156,13 @@ export class MMOnlineClient {
         //let di = createDungeonItemDataFromContext(this.core.save.dungeonItemManager);
 
         mergeInventoryData(this.clientStorage.inventoryStorage, inventory);
-        
-        if(this.clientStorage.syncMode === 1) {
+
+        if (this.clientStorage.syncMode === 1) {
             mergeBottleDataTime(this.clientStorage.bottleStorage, inventoryBottle);
             mergeInventoryTrade(this.clientStorage.tradeStorage, inventoryTrade);
         }
         else mergeBottleData(this.clientStorage.bottleStorage, inventoryBottle);
-        
+
         mergeEquipmentData(this.clientStorage.equipmentStorage, equipment);
         //this.ModLoader.logger.debug('updateInventory() mergeEquipmentData() Kokiri Sword: ' + equipment.kokiriSword);
         //this.ModLoader.logger.debug('updateInventory() mergeEquipmentData() Razor Sword: ' + equipment.razorSword);
@@ -147,19 +174,19 @@ export class MMOnlineClient {
         //this.ModLoader.logger.debug('onItemSync_client() mergeQuestSaveData() heartPieceCount: ' + quest.heartPieceCount);
         //mergeDungeonItemData(this.clientStorage.dungeonItemStorage, di);
         this.ModLoader.clientSide.sendPacket(
-            new MMO_SubscreenSyncPacket(this.clientStorage.inventoryStorage, 
-                this.clientStorage.equipmentStorage, 
-                this.clientStorage.questStorage, 
-                this.clientStorage.dungeonItemStorage,  
-                this.clientStorage.bottleStorage, 
-                this.clientStorage.tradeStorage, 
+            new MMO_SubscreenSyncPacket(this.clientStorage.inventoryStorage,
+                this.clientStorage.equipmentStorage,
+                this.clientStorage.questStorage,
+                this.clientStorage.dungeonItemStorage,
+                this.clientStorage.bottleStorage,
+                this.clientStorage.tradeStorage,
                 this.ModLoader.clientLobby
-                ));
+            ));
         if (this.clientStorage.bank !== this.ModLoader.emulator.rdramRead16(0x801F054E)) {
             this.clientStorage.bank = this.ModLoader.emulator.rdramRead16(0x801F054E);
             this.ModLoader.clientSide.sendPacket(new MMO_BankSyncPacket(this.clientStorage.bank, this.ModLoader.clientLobby));
         }
-        if(this.core.save.deku_b_state !== 0x091EF6C8) this.core.save.deku_b_state = 0x091EF6C8;
+        if (this.core.save.deku_b_state !== 0x091EF6C8) this.core.save.deku_b_state = 0x091EF6C8;
         this.clientStorage.needs_update = false;
     }
 
@@ -304,8 +331,7 @@ export class MMOnlineClient {
         let last_day = this.clientStorage.last_day;
         let current_day = this.core.save.current_day;
 
-        if((current_time - last_time) > RECORD_TICK_MODULO)
-        {
+        if ((current_time - last_time) > RECORD_TICK_MODULO) {
             //this.ModLoader.clientSide.sendPacket(new MMO_TimePacket(current_time, time_speed, current_day, this.ModLoader.clientLobby));
 
             let num = Math.floor(current_time - last_time / RECORD_TICK_MODULO)
@@ -341,7 +367,7 @@ export class MMOnlineClient {
         }*/
     }
 
-     @EventHandler(API.MMEvents.ON_SAVE_LOADED)
+    @EventHandler(API.MMEvents.ON_SAVE_LOADED)
     onSaveLoaded(evt: any) {
         this.ModLoader.logger.debug("On_Save_Loaded");
         setTimeout(() => {
@@ -575,7 +601,7 @@ export class MMOnlineClient {
         this.ModLoader.logger.info('MMO_DownloadResponsePacket() applyPhotoToContext() End');
         applyInventoryToContext(packet.subscreen.inventory, this.core.save, true);
 
-        if(this.clientStorage.syncMode === 1) applyBottleToContextTime(packet.subscreen.bottle, this.core.save);
+        if (this.clientStorage.syncMode === 1) applyBottleToContextTime(packet.subscreen.bottle, this.core.save);
         else applyBottleToContext(packet.subscreen.bottle, this.core.save);
 
         applyEquipmentToContext(packet.subscreen.equipment, this.core.save);
@@ -610,7 +636,7 @@ export class MMOnlineClient {
 
         this.clientStorage.needs_update = true;
 
-        if(this.clientStorage.syncMode === 1) this.updateBottlesTime(true);
+        if (this.clientStorage.syncMode === 1) this.updateBottlesTime(true);
         this.ModLoader.logger.debug("onDownPacket2_client() End");
     }
 
@@ -640,14 +666,14 @@ export class MMOnlineClient {
         /*let dungeonItems: MMODungeonItemContext = createDungeonItemDataFromContext(
             this.core.save.dungeonItemManager
         ) as IDungeonItemSave;*/
-        
+
         mergeInventoryData(this.clientStorage.inventoryStorage, inventory);
-        if(this.clientStorage.syncMode === 1) {
+        if (this.clientStorage.syncMode === 1) {
             mergeBottleDataTime(this.clientStorage.bottleStorage, inventoryBottle);
             mergeInventoryTrade(this.clientStorage.tradeStorage, inventoryTrade);
         }
         else mergeBottleData(this.clientStorage.bottleStorage, inventoryBottle);
-        
+
         mergeEquipmentData(this.clientStorage.equipmentStorage, equipment);
         //this.ModLoader.logger.debug('onItemSync_client() mergeEquipmentData() Kokiri Sword: ' + equipment.kokiriSword);
         //this.ModLoader.logger.debug('onItemSync_client() mergeEquipmentData() Razor Sword: ' + equipment.razorSword);
@@ -660,27 +686,27 @@ export class MMOnlineClient {
         //mergePhotoData(this.clientStorage.photoStorage, packet.photo);
         mergeInventoryData(this.clientStorage.inventoryStorage, packet.inventory);
         mergeQuestSaveData(this.clientStorage.questStorage, packet.quest);
-        
-        if(this.clientStorage.syncMode === 1) {
+
+        if (this.clientStorage.syncMode === 1) {
             mergeBottleDataTime(this.clientStorage.bottleStorage, packet.bottle);
             mergeInventoryTrade(this.clientStorage.tradeStorage, packet.trade);
         }
         else mergeBottleData(this.clientStorage.bottleStorage, packet.bottle);
-        
+
         mergeEquipmentData(this.clientStorage.equipmentStorage, packet.equipment);
         //this.ModLoader.logger.debug('onItemSync_client() mergeEquipmentData()2 Kokiri Sword: ' + packet.equipment.kokiriSword);
         //this.ModLoader.logger.debug('onItemSync_client() mergeEquipmentData()2 Razor Sword: ' + packet.equipment.razorSword);
         //this.ModLoader.logger.debug('onItemSync_client() mergeEquipmentData()2 Gilded Sword: ' + packet.equipment.gilded);
         //this.ModLoader.logger.debug('onItemSync_client() mergeEquipmentData()2 Heroes Shield: ' + packet.equipment.heroesShield);
         //this.ModLoader.logger.debug('onItemSync_client() mergeEquipmentData()2 Mirror Shield: ' + packet.equipment.mirrorShield);
-        
+
         /*mergeDungeonItemData(
             this.clientStorage.dungeonItemStorage,
             packet.dungeonItems
         );*/
         applyInventoryToContext(this.clientStorage.inventoryStorage, this.core.save);
 
-        if(this.clientStorage.syncMode === 1) {
+        if (this.clientStorage.syncMode === 1) {
             applyBottleToContextTime(this.clientStorage.bottleStorage, this.core.save);
             applyTradeToContext(this.clientStorage.tradeStorage, this.core.save);
         }
@@ -695,7 +721,7 @@ export class MMOnlineClient {
         applyQuestSaveToContext(this.clientStorage.questStorage, this.core.save);
         //this.ModLoader.logger.debug('onItemSync_client() applyQuestSaveToContext() heartPieceCount: ' + this.clientStorage.questStorage.heartPieceCount);
         /*applyDungeonItemDataToContext(this.clientStorage.dungeonItemStorage, this.core.save.dungeonItemManager);*/
-        
+
         this.ModLoader.gui.tunnel.send('MMOnline:onSubscreenPacket', new GUITunnelPacket('MMOnline', 'MMOnline:onSubscreenPacket', packet));
         this.ModLoader.logger.debug("onItemSync_client() End");
     }
@@ -820,7 +846,7 @@ export class MMOnlineClient {
 
     @NetworkHandler('MMO_ClientSceneContextUpdateTime')
     onSceneContextSyncTime_client(packet: MMO_ClientSceneContextUpdateTime) {
-        if (this.core.helper.isTitleScreen() ||!this.core.helper.isSceneNumberValid() || this.core.helper.isLinkEnteringLoadingZone()) return;
+        if (this.core.helper.isTitleScreen() || !this.core.helper.isSceneNumberValid() || this.core.helper.isLinkEnteringLoadingZone()) return;
         if (this.core.global.current_scene !== packet.scene) return;
 
         let buf: Buffer = this.core.global.liveSceneData_chests;
@@ -886,7 +912,7 @@ export class MMOnlineClient {
         if (this.modelManager.clientStorage.childIcon.byteLength > 1) {
             gui_p.setChildIcon(this.modelManager.clientStorage.childIcon);
         }*/
-        if(this.core.save.form === API.MMForms.DEKU) this.core.save.deku_b_state = 0x091EF6C8;
+        if (this.core.save.form === API.MMForms.DEKU) this.core.save.deku_b_state = 0x091EF6C8;
         this.ModLoader.gui.tunnel.send('MMOnline:onAgeChange', new GUITunnelPacket('MMOnline', 'MMOnline:onAgeChange', gui_p));
         this.ModLoader.clientSide.sendPacket(new MMO_ScenePacket(this.ModLoader.clientLobby, this.core.global.current_scene, form));
     }
@@ -993,9 +1019,9 @@ export class MMOnlineClient {
         }
     }*/
 
-    updatePictobox(){
+    updatePictobox() {
         let photo = createPhotoFromContext(this.ModLoader, this.core.save.photo);
-        if (photo.hash !== this.clientStorage.photoStorage.hash){
+        if (photo.hash !== this.clientStorage.photoStorage.hash) {
             console.log("Photo taken");
             mergePhotoData(this.clientStorage.photoStorage, photo);
             this.clientStorage.photoStorage.compressPhoto();
@@ -1004,13 +1030,49 @@ export class MMOnlineClient {
     }
 
     @NetworkHandler('MMO_PictoboxPacket')
-    onPictobox(packet: MMO_PictoboxPacket){
+    onPictobox(packet: MMO_PictoboxPacket) {
+        if (packet.player.uuid === this.ModLoader.me.uuid) {
+            return;
+        }
         let photo = new PhotoSave();
         photo.fromPhoto(packet.photo);
         photo.decompressPhoto();
         mergePhotoData(this.clientStorage.photoStorage, photo);
         applyPhotoToContext(photo, this.core.save.photo);
-        addToKillFeedQueue("Received photo!");
+        let sb = new SmartBuffer();
+        let buf = Buffer.alloc(photo.pictograph_photoChunk.byteLength + 0x10);
+        photo.pictograph_photoChunk.copy(buf);
+        for (let i = 0; i < 0x2bc0; i += 5) {
+            let data = buf.readBigUInt64BE(i) >> 24n;
+
+            for (let k = 0n; k < 8n; ++k) {
+                let pixel = (data >> (5n * (7n - k))) & 0x1Fn;
+                let i8f = Number(pixel) / 31.0 * 255.0;
+
+                sb.writeUInt8(Math.floor(i8f * 1.0));
+                sb.writeUInt8(Math.floor(i8f * 0.65));
+                sb.writeUInt8(Math.floor(i8f * 0.65));
+                sb.writeUInt8(0xFF);
+            }
+        }
+        this.clientStorage.pictoboxAlert.buf = buf;
+    }
+
+    @onViUpdate()
+    onVi() {
+        if (this.clientStorage.pictoboxAlert.image !== undefined) {
+            this.ModLoader.Gfx.addSprite(this.ModLoader.ImGui.getWindowDrawList(), this.clientStorage.pictoboxAlert.image, xywh(0, 0, 160, 112), xywh(this.clientStorage.pictoboxAlert.pos.x, this.clientStorage.pictoboxAlert.pos.y, this.clientStorage.pictoboxAlert.size.x, this.clientStorage.pictoboxAlert.size.y), rgba(255, 255, 255, this.clientStorage.pictoboxAlert.opacity), FlipFlags.None);
+            if (this.clientStorage.pictoboxAlert.opacity > 0) {
+                this.clientStorage.pictoboxAlert.opacity--;
+            }
+        }
+        if (this.clientStorage.pictoboxAlert.buf !== undefined) {
+            this.clientStorage.pictoboxAlert.image = this.ModLoader.Gfx.createTexture();
+            this.clientStorage.pictoboxAlert.image.loadFromMemoryRGBA32(160, 112, this.clientStorage.pictoboxAlert.buf);
+            this.clientStorage.pictoboxAlert.buf = undefined;
+            this.clientStorage.pictoboxAlert.pos = xy(this.ModLoader.ImGui.getWindowWidth() - this.clientStorage.pictoboxAlert.size.x, this.ModLoader.ImGui.getWindowHeight() - this.clientStorage.pictoboxAlert.size.y);
+            this.clientStorage.pictoboxAlert.opacity = 255;
+        }
     }
 
     @onTick()
@@ -1029,8 +1091,7 @@ export class MMOnlineClient {
                     // this.actorHooks.tick();
                 }
                 if (this.LobbyConfig.data_syncing) {
-                    if (this.clientStorage.syncMode === 1) 
-                    {
+                    if (this.clientStorage.syncMode === 1) {
                         this.autosaveSceneDataTime();
                         this.updateBottlesTime();
                     }
@@ -1051,16 +1112,15 @@ export class MMOnlineClient {
                         state === API.LinkState.GETTING_ITEM ||
                         state === API.LinkState.TALKING ||
                         state === API.LinkState.CAMERA
-                    ) 
-                    {
+                    ) {
                         this.clientStorage.needs_update = true;
                     }
                     else if (state === API.LinkState.STANDING && this.clientStorage.needs_update && this.LobbyConfig.data_syncing) {
                         this.updateInventory();
-                        if (this.clientStorage.syncMode=== 1) this.updateFlags();
+                        if (this.clientStorage.syncMode === 1) this.updateFlags();
                         this.clientStorage.needs_update = false;
                     }
-                }   
+                }
             }
         }
     }
