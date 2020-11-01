@@ -356,9 +356,11 @@ export class MMO_PictoboxPacket extends Packet {
 
 export class MMO_PermFlagsPacket extends Packet{
   flags: Buffer;
+  eventFlags: Buffer;
 
-  constructor(flags: Buffer, lobby: string){
+  constructor(flags: Buffer, eventFlags: Buffer, lobby: string){
     super('MMO_PermFlagsPacket', 'MMOnline', lobby, false);
     this.flags = flags;
+    this.eventFlags = eventFlags;
   }
 }

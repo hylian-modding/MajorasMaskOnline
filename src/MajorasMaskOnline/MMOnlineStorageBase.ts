@@ -29,4 +29,5 @@ export class MMOnlineStorageBase {
   tradeStorage: InventorySave = new InventorySave();
   bank: number = 0;
   permFlags: Buffer = Buffer.alloc(0x8C);
+  permEvents: Buffer = Buffer.alloc(152);
 }

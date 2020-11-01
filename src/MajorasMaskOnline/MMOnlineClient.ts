@@ -80,6 +80,7 @@ export class MMOnlineClient {
     soundManager!: SoundManagerClient;
     teleportDest: string_ref = [""];
     cutsceneDest: string_ref = [""];
+    permFlagBits: Array<number> = [];
 
     /*
     @SidedProxy(ProxySide.CLIENT, UtilityActorHelper)
@@ -141,6 +142,19 @@ export class MMOnlineClient {
         status.partyMax = 30;
         status.partySize = 1;
         this.ModLoader.gui.setDiscordStatus(status);
+        // Flag shit
+        for (let bit in API.EventFlags) {
+            try {
+                if (typeof(bit) === 'string'){
+                    let _b = API.EventFlags[bit];
+                    if (bit.startsWith("PERM")) {
+                        this.permFlagBits.push(parseInt(_b));
+                    }
+                }
+            } catch (err) { 
+                console.log(err);
+            }
+        }
     }
 
     updateInventory() {
@@ -429,7 +443,7 @@ export class MMOnlineClient {
                 this.core.save.form
             )
         );
-        this.ModLoader.logger.info('client: I moved to scene ' + scene + '.');
+        this.ModLoader.logger.info('client: I moved to scene ' + this.clientStorage.scene_keys[scene] + '.');
         let gui_p: MMO_SceneGUIPacket = new MMO_SceneGUIPacket(
             scene,
             this.core.save.form,
@@ -450,9 +464,7 @@ export class MMOnlineClient {
                 new DiscordStatus(
                     'Playing MMOnline',
                     'In ' +
-                    this.clientStorage.localization[
                     this.clientStorage.scene_keys[scene]
-                    ]
                 )
             );
         }
@@ -473,9 +485,7 @@ export class MMOnlineClient {
             'client receive: Player ' +
             packet.player.nickname +
             ' moved to scene ' +
-            this.clientStorage.localization[
-            this.clientStorage.scene_keys[packet.scene]
-            ] +
+            this.clientStorage.scene_keys[packet.scene] +
             '.'
         );
         bus.emit(
@@ -1098,7 +1108,20 @@ export class MMOnlineClient {
 
     updatePermFlags() {
         parseFlagChanges(this.core.save.permFlags.slice(0, 0x8C), this.clientStorage.permFlags);
-        this.ModLoader.clientSide.sendPacket(new MMO_PermFlagsPacket(this.clientStorage.permFlags, this.ModLoader.clientLobby));
+        let bits = this.ModLoader.emulator.rdramReadBitsBuffer(0x801F0568, 99);
+        let buf = Buffer.alloc(this.permFlagBits.length);
+        for (let i = 0; i < this.permFlagBits.length; i++){
+            buf.writeUInt8(bits.readUInt8(this.permFlagBits[i]), i);
+        }
+        let flips = parseFlagChanges(buf, this.clientStorage.permEvents);
+        Object.keys(flips).forEach((key: string) => {
+            let bit = parseInt(key);
+            let value = flips[key];
+            if (value > 0) {
+                this.ModLoader.logger.info(API.EventFlags[this.permFlagBits[bit]]);
+            }
+        });
+        this.ModLoader.clientSide.sendPacket(new MMO_PermFlagsPacket(this.clientStorage.permFlags, this.clientStorage.permEvents, this.ModLoader.clientLobby));
     }
 
     @NetworkHandler('MMO_PermFlagsPacket')
@@ -1107,6 +1130,12 @@ export class MMOnlineClient {
         let flags = this.core.save.permFlags.slice(0, 0x8C);
         parseFlagChanges(this.clientStorage.permFlags, flags);
         this.core.save.permFlags = flags;
+        parseFlagChanges(packet.eventFlags, this.clientStorage.permEvents);
+        let bits = this.ModLoader.emulator.rdramReadBitsBuffer(0x801F0568, 99);
+        for (let i = 0; i < this.permFlagBits.length; i++){
+            bits.writeUInt8(this.clientStorage.permEvents.readUInt8(i), this.permFlagBits[i]);
+        }
+        this.ModLoader.emulator.rdramWriteBitsBuffer(0x801F0568, bits);
     }
 
     @onTick()

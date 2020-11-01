@@ -239,7 +239,7 @@ export class MMOnlineServer {
                     ),
                     new MMO_BankSyncPacket(storage.bank, packet.lobby),
                     new MMO_PictoboxPacket(storage.photoStorage, packet.lobby),
-                    new MMO_PermFlagsPacket(storage.permFlags, packet.lobby),
+                    new MMO_PermFlagsPacket(storage.permFlags, storage.permEvents, packet.lobby),
                     packet.lobby
                 ),
                 packet.player
@@ -416,7 +416,8 @@ export class MMOnlineServer {
             return;
         }
         parseFlagChanges(packet.flags, storage.permFlags);
-        this.ModLoader.serverSide.sendPacket(new MMO_PermFlagsPacket(storage.permFlags, packet.lobby));
+        parseFlagChanges(packet.eventFlags, storage.permEvents);
+        this.ModLoader.serverSide.sendPacket(new MMO_PermFlagsPacket(storage.permFlags, storage.permEvents, packet.lobby));
     }
 
     @EventHandler(ModLoaderEvents.ON_RECEIVED_CRASH_LOG)
