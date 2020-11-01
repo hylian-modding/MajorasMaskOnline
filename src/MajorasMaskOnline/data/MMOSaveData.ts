@@ -2,9 +2,9 @@ import * as API from 'MajorasMask/API/Imports';
 import { bus, setupEventHandlers } from 'modloader64_api/EventHandler';
 import { MMOnlineEvents } from '../MMOAPI/MMOAPI';
 import { ISwords, IShields, ISaveContext, InventorySlots, Shield, Sword } from 'MajorasMask/API/Imports';
-import { MMOnlineClient } from '@MMOnline/MMOnlineClient';
+import { MMOnlineClient } from '../MMOnlineClient';
 import { Interface } from 'readline';
-import { MMOnlineConfigCategory } from '@MMOnline/MMOnline';
+import { MMOnlineConfigCategory } from '../MMOnline';
 import { config } from 'process';
 import { setActorBehavior } from 'MajorasMask/src/Actor';
 import { IModLoaderAPI } from 'modloader64_api/IModLoaderAPI';
@@ -911,7 +911,6 @@ export function createQuestSaveFromContext(save: API.ISaveContext): IQuestSave {
   data.heart_containers = save.heart_containers;
   data.magic_meter_size = save.magic_meter_size;
   data.double_defense = save.double_defense;
-
   data.owl_statues = save.owl_statues;
   data.map_visited = save.map_visited;
   data.map_visible = save.map_visible;

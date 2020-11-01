@@ -133,7 +133,7 @@ export class MMOnlineClient {
         if (this.config.mapTracker) {
             this.ModLoader.gui.openWindow(698, 795, path.resolve(path.join(__dirname, 'gui', 'map.html')));
         }
-        //this.clientStorage.scene_keys = JSON.parse(fs.readFileSync(__dirname + '/data/scene_numbers.json').toString());
+        this.clientStorage.scene_keys = JSON.parse(fs.readFileSync(__dirname + '/data/scene_numbers.json').toString());
         //this.clientStorage.localization = JSON.parse(fs.readFileSync(__dirname + '/data/en_US.json').toString());
         let status: DiscordStatus = new DiscordStatus('Playing MMOnline', 'On the title screen');
         status.smallImageKey = 'MMO';
@@ -206,12 +206,12 @@ export class MMOnlineClient {
         //this.ModLoader.utils.clearBuffer(this.clientStorage.infStorage);
         //this.ModLoader.utils.clearBuffer(this.clientStorage.skulltulaStorage);
         let scene_data = this.core.save.scene_flags;
-        let event_data = this.core.save.event_flags;
+        //let event_data = this.core.save.event_flags;
         //let item_data = this.core.save.item_Flags;
         //let inf_data = this.core.save.infTable;
         //let skulltula_data = this.core.save.skulltulaFlags;
         let scenes: any = parseFlagChanges(scene_data, this.clientStorage.sceneStorage);
-        let events: any = parseFlagChanges(event_data, this.clientStorage.eventStorage);
+        //let events: any = parseFlagChanges(event_data, this.clientStorage.eventStorage);
         //let items: any = parseFlagChanges(item_data, this.clientStorage.itemFlagStorage);
         //let inf: any = parseFlagChanges(inf_data, this.clientStorage.infStorage);
         //let skulltulas: any = parseFlagChanges(skulltula_data, this.clientStorage.skulltulaStorage);
@@ -475,7 +475,7 @@ export class MMOnlineClient {
             ' moved to scene ' +
             //this.clientStorage.localization[
             //this.clientStorage.scene_keys[packet.scene]
-            //] 
+            //]
             packet.scene
             +
             '.'
@@ -758,7 +758,7 @@ export class MMOnlineClient {
             let struct = new MMO_SceneStruct(packet.scenes.slice(i, i + 0x1C));
             let cur = new MMO_SceneStruct(this.clientStorage.sceneStorage.slice(i, i + 0x1C));
             let j;
-            
+
             for (j = 0; j < struct.chests.byteLength; j++) {
                 if (struct.chests[j] !== cur.chests[i]) {
                     cur.chests[j] |= struct.chests[j];
@@ -835,7 +835,7 @@ export class MMOnlineClient {
         //this.core.save.itemFlags = this.clientStorage.itemFlagStorage;
         //this.core.save.infTable = this.clientStorage.infStorage;
         //this.core.save.skulltulaFlags = this.clientStorage.skulltulaStorage;
-        
+
         this.ModLoader.logger.debug("onSceneFlagSync_client() End");
     }*/
 
@@ -914,7 +914,7 @@ export class MMOnlineClient {
         /*if (this.modelManager.clientStorage.adultIcon.byteLength > 1) {
             gui_p.setAdultIcon(this.modelManager.clientStorage.adultIcon);
         }
-        
+
         if (this.modelManager.clientStorage.childIcon.byteLength > 1) {
             gui_p.setChildIcon(this.modelManager.clientStorage.childIcon);
         }*/
@@ -936,7 +936,7 @@ export class MMOnlineClient {
         if (buf[0x4] !== API.InventoryItem.NONE && raw_inventory[buf[0x4]] !== API.InventoryItem.NONE) {
             buf[0x1] = raw_inventory[buf[0x4]];
             this.ModLoader.emulator.rdramWriteBuffer(addr, buf);
-            
+
             this.core.commandBuffer.runCommand(
                 Command.UPDATE_C_BUTTON_ICON,
                 0x00000001,
@@ -947,7 +947,7 @@ export class MMOnlineClient {
         if (buf[0x5] !== API.InventoryItem.NONE && raw_inventory[buf[0x5]] !== API.InventoryItem.NONE) {
             buf[0x2] = raw_inventory[buf[0x5]];
             this.ModLoader.emulator.rdramWriteBuffer(addr, buf);
-            
+
             this.core.commandBuffer.runCommand(
                 Command.UPDATE_C_BUTTON_ICON,
                 0x00000002,
@@ -958,7 +958,7 @@ export class MMOnlineClient {
         if (buf[0x6] !== API.InventoryItem.NONE && raw_inventory[buf[0x6]] !== API.InventoryItem.NONE) {
             buf[0x3] = raw_inventory[buf[0x6]];
             this.ModLoader.emulator.rdramWriteBuffer(addr, buf);
-            
+
             this.core.commandBuffer.runCommand(
                 Command.UPDATE_C_BUTTON_ICON,
                 0x00000003,

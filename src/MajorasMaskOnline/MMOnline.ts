@@ -42,7 +42,7 @@ export class MMOnlineConfigCategory {
 }
 
 class MMOnline implements IPlugin, IMMOnlineHelpers, IPluginServerConfig {
-    
+
     ModLoader!: IModLoaderAPI;
     @InjectCore()
     core!: API.IMMCore;
@@ -65,12 +65,12 @@ class MMOnline implements IPlugin, IMMOnlineHelpers, IPluginServerConfig {
         if (this.server !== undefined) {
           this.server.sendPacketToPlayersInScene(packet);
         }
-      }  
+      }
 
     getClientStorage(): MMOnlineStorageClient | null {
         return this.client !== undefined ? this.client.clientStorage : null;
     }
-    
+
     preinit(): void {
         if (this.client !== undefined) this.client.clientStorage = this.clientStorage;
     }

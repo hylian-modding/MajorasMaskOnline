@@ -1,5 +1,5 @@
-#include "D:\Modding\OoT_Modding\Code\CAT\gcc\mips64\include\z64ovl_may14/mm/u10.h"
-#include "D:\Modding\OoT_Modding\Code\CAT\gcc\mips64\include\z64ovl_may14/mm/helpers.h"
+#include "C:/Users/Diana/Desktop/Modding/Zelda64/Tools/CAT/gcc/mips64/include/z64ovl-may-10/mm/u10.h"
+#include "C:/Users/Diana/Desktop/Modding/Zelda64/Tools/CAT/gcc/mips64/include/z64ovl-may-10/mm/helpers.h"
 #include "defines_limbs.h"
 #include "defines_mm.h"
 #include "structs.h"

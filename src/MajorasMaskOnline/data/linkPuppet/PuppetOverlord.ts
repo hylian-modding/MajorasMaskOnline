@@ -13,10 +13,10 @@ import { HorseData } from './HorseData';
 import { IMMCore, MMForms, MMEvents } from 'MajorasMask/API/MMAPI';
 import { IActor } from 'MajorasMask/API/IActor';
 import { Z64RomTools } from 'Z64Lib/API/Z64RomTools';
-import { MMOnlineClient } from '@MMOnline/MMOnlineClient';
+import { MMOnlineClient } from '../../MMOnlineClient';
 import { PlayerSchedule, get_scaled_time, PlayerScheduleData, RECORD_TICK_MODULO, get_scaled_time_floor, get_schedule_data_index_at_time, get_linear_time } from '../MMOPlayerSchedule';
-import { MMOnlineStorageClient } from '@MMOnline/MMOnlineStorageClient';
-import MMOnline from '@MMOnline/MMOnline';
+import { MMOnlineStorageClient } from '../../MMOnlineStorageClient';
+import MMOnline from '../../MMOnline';
 
 export class PuppetOverlord implements IPuppetOverlord {
   private puppets: Map<string, Puppet> = new Map<string, Puppet>();

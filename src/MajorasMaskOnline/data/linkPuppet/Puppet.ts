@@ -12,7 +12,7 @@ import path from 'path';
 
 import { IMMCore, MMForms, MMEvents } from 'MajorasMask/API/MMAPI';
 import { Z64RomTools } from 'Z64Lib/API/Z64RomTools';
-import MMOnline from '@MMOnline/MMOnline';
+import MMOnline from '../../MMOnline';
 
 const DEADBEEF_OFFSET: number = 0x288;
 

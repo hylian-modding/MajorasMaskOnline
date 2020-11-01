@@ -7,7 +7,7 @@ import zlib from 'zlib';
 import Vector3 from "modloader64_api/math/Vector3";
 import { Postinit } from 'modloader64_api/PluginLifecycle';
 import * as sf from 'modloader64_api/Sound/sfml_audio';
-import { MMOnlineEvents, RemoteSoundPlayRequest } from "@MMOnline/MMOAPI/MMOAPI";
+import { MMOnlineEvents, RemoteSoundPlayRequest } from "../../MMOAPI/MMOAPI";
 
 export class OotO_SoundPackLoadPacket extends Packet {
     totalSize: number;
