@@ -134,7 +134,7 @@ export class MMOnlineClient {
             this.ModLoader.gui.openWindow(698, 795, path.resolve(path.join(__dirname, 'gui', 'map.html')));
         }
         this.clientStorage.scene_keys = JSON.parse(fs.readFileSync(__dirname + '/data/scene_numbers.json').toString());
-        //this.clientStorage.localization = JSON.parse(fs.readFileSync(__dirname + '/data/en_US.json').toString());
+        this.clientStorage.localization = JSON.parse(fs.readFileSync(__dirname + '/data/en_US.json').toString());
         let status: DiscordStatus = new DiscordStatus('Playing MMOnline', 'On the title screen');
         status.smallImageKey = 'MMO';
         status.partyId = this.ModLoader.clientLobby;
@@ -473,11 +473,9 @@ export class MMOnlineClient {
             'client receive: Player ' +
             packet.player.nickname +
             ' moved to scene ' +
-            //this.clientStorage.localization[
-            //this.clientStorage.scene_keys[packet.scene]
-            //]
-            packet.scene
-            +
+            this.clientStorage.localization[
+            this.clientStorage.scene_keys[packet.scene]
+            ] +
             '.'
         );
         bus.emit(
