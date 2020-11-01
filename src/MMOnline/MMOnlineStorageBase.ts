@@ -28,4 +28,5 @@ export class MMOnlineStorageBase {
   questStorage: QuestSave = new QuestSave();
   tradeStorage: InventorySave = new InventorySave();
   bank: number = 0;
+  permFlags: Buffer = Buffer.alloc(0x8C);
 }

@@ -165,11 +165,11 @@ export class Puppet implements IPuppet {
     this.ModLoader.logger.debug('Setting tunic color for your puppet: ' + this.tunic_color);
     this.ModLoader.emulator.rdramWrite32(pointer + 0x530, this.tunic_color);
     this.ModLoader.logger.debug("Puppet Pointer: " + pointer);
-    this.makeRamDump();
+    //this.makeRamDump();
   }
 
   makeRamDump() {
-    //fs.writeFileSync(global.ModLoader["startdir"] + "/ram_dump.bin", this.ModLoader.emulator.rdramReadBuffer(0x0, (16 * 1024 * 1024)));
+    fs.writeFileSync(global.ModLoader["startdir"] + "/ram_dump.bin", this.ModLoader.emulator.rdramReadBuffer(0x0, (16 * 1024 * 1024)));
   }
 
   //@EventHandler(ModLoaderEvents.ON_ROM_PATCHED)

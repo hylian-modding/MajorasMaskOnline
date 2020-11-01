@@ -7,13 +7,14 @@ import MMOnline from './MMOnline';
 import { IModLoaderAPI, ModLoaderEvents } from 'modloader64_api/IModLoaderAPI';
 import { ServerNetworkHandler, IPacketHeader } from 'modloader64_api/NetworkHandler';
 import { MMOnline_PlayerScene, MMOnlineEvents } from './MMOAPI/MMOAPI';
-import { MMO_ScenePacket, MMO_BottleUpdatePacket, MMO_DownloadRequestPacket, MMO_DownloadResponsePacket, MMO_SubscreenSyncPacket, MMO_ServerFlagUpdate, MMO_BankSyncPacket, MMO_DownloadResponsePacket2, MMO_ClientFlagUpdate, MMO_ClientSceneContextUpdate, MMO_TimePacket, MMO_PictoboxPacket } from './data/MMOPackets';
+import { MMO_ScenePacket, MMO_BottleUpdatePacket, MMO_DownloadRequestPacket, MMO_DownloadResponsePacket, MMO_SubscreenSyncPacket, MMO_ServerFlagUpdate, MMO_BankSyncPacket, MMO_DownloadResponsePacket2, MMO_ClientFlagUpdate, MMO_ClientSceneContextUpdate, MMO_TimePacket, MMO_PictoboxPacket, MMO_PermFlagsPacket } from './data/MMOPackets';
 //import { MMO_KeyRebuildPacket, KeyLogManagerServer } from './data/keys/KeyLogManager';
 import { mergeInventoryData, mergeEquipmentData, mergeQuestSaveData, mergeDungeonItemData, MMO_SceneStruct, mergePhotoData, mergeBottleData, mergeBottleDataTime, PhotoSave } from './data/MMOSaveData';
 import { PuppetOverlord } from './data/linkPuppet/PuppetOverlord';
 import { InjectCore } from 'modloader64_api/CoreInjection';
 import * as API from 'MajorasMask/API/MMAPI';
 import { MMOnlineStorageClient } from './MMOnlineStorageClient';
+import { parseFlagChanges } from './parseFlagChanges';
 
 export class MMOnlineServer {
     @ModLoaderAPIInject()
@@ -238,6 +239,7 @@ export class MMOnlineServer {
                     ),
                     new MMO_BankSyncPacket(storage.bank, packet.lobby),
                     new MMO_PictoboxPacket(storage.photoStorage, packet.lobby),
+                    new MMO_PermFlagsPacket(storage.permFlags, packet.lobby),
                     packet.lobby
                 ),
                 packet.player
@@ -402,6 +404,19 @@ export class MMOnlineServer {
             mergePhotoData(storage.photoStorage, image);
             this.ModLoader.serverSide.sendPacket(packet);
         }
+    }
+
+    @ServerNetworkHandler('MMO_PermFlagsPacket')
+    onPermFlags(packet: MMO_PermFlagsPacket){
+        let storage: MMOnlineStorage = this.ModLoader.lobbyManager.getLobbyStorage(
+            packet.lobby,
+            this.parent
+        ) as MMOnlineStorage;
+        if (storage === null) {
+            return;
+        }
+        parseFlagChanges(packet.flags, storage.permFlags);
+        this.ModLoader.serverSide.sendPacket(new MMO_PermFlagsPacket(storage.permFlags, packet.lobby));
     }
 
     @EventHandler(ModLoaderEvents.ON_RECEIVED_CRASH_LOG)

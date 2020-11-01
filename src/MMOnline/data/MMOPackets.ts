@@ -56,12 +56,14 @@ export class MMO_DownloadResponsePacket extends Packet {
   flags: MMO_ServerFlagUpdate;
   bank: MMO_BankSyncPacket;
   photo: MMO_PictoboxPacket;
+  permFlags: MMO_PermFlagsPacket
 
   constructor(
     subscreen: MMO_SubscreenSyncPacket,
     scenes: MMO_ServerFlagUpdate,
     bank: MMO_BankSyncPacket,
     photo: MMO_PictoboxPacket,
+    permFlags: MMO_PermFlagsPacket,
     lobby: string
   ) {
     super('MMO_DownloadResponsePacket', 'MMOnline', lobby, false);
@@ -69,10 +71,12 @@ export class MMO_DownloadResponsePacket extends Packet {
     this.flags = scenes;
     this.bank = bank;
     this.photo = photo;
+    this.permFlags = permFlags;
     packetHelper.cloneDestination(this, this.subscreen);
     packetHelper.cloneDestination(this, this.flags);
     packetHelper.cloneDestination(this, this.bank);
     packetHelper.cloneDestination(this, this.photo);
+    packetHelper.cloneDestination(this, this.permFlags);
   }
 }
 
@@ -347,5 +351,14 @@ export class MMO_PictoboxPacket extends Packet {
   constructor(photo: PhotoSave, lobby: string) {
     super('MMO_PictoboxPacket', 'MMOnline', lobby, false);
     this.photo = photo;
+  }
+}
+
+export class MMO_PermFlagsPacket extends Packet{
+  flags: Buffer;
+
+  constructor(flags: Buffer, lobby: string){
+    super('MMO_PermFlagsPacket', 'MMOnline', lobby, false);
+    this.flags = flags;
   }
 }

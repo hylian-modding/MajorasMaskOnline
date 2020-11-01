@@ -5,7 +5,7 @@ import * as API from 'MajorasMask/API/MMAPI'
 import { MMOnlineEvents, MMOnline_PlayerScene } from './MMOAPI/MMOAPI';
 //import { ActorHookingManagerClient } from './data/ActorHookingSystem';
 import { createEquipmentFromContext, createInventoryFromContext, createQuestSaveFromContext, mergeEquipmentData, mergeInventoryData, mergeQuestSaveData, createDungeonItemDataFromContext, mergeDungeonItemData, InventorySave, applyInventoryToContext, applyBottleToContext, applyEquipmentToContext, applyQuestSaveToContext, applyDungeonItemDataToContext, EquipmentSave, QuestSave, MMODungeonItemContext, IDungeonItemSave, MMO_SceneStruct, createPhotoFromContext, mergePhotoData, PhotoSave, applyPhotoToContext, createBottleFromContext, mergeBottleData, mergeBottleDataTime, applyBottleToContextTime, createTradeFromContext, mergeInventoryTrade, applyTradeToContext, IQuestSave } from './data/MMOSaveData';
-import { MMO_ClientFlagUpdate, MMO_ClientSceneContextUpdate, MMO_DownloadRequestPacket, MMO_SubscreenSyncPacket, MMO_BottleUpdatePacket, MMO_SceneGUIPacket, MMO_BankSyncPacket, MMO_ScenePacket, MMO_SceneRequestPacket, MMO_DownloadResponsePacket, MMO_DownloadResponsePacket2, MMO_ServerFlagUpdate, MMO_ClientSceneContextUpdateTime, MMO_TimePacket, MMO_PictoboxPacket } from './data/MMOPackets';
+import { MMO_ClientFlagUpdate, MMO_ClientSceneContextUpdate, MMO_DownloadRequestPacket, MMO_SubscreenSyncPacket, MMO_BottleUpdatePacket, MMO_SceneGUIPacket, MMO_BankSyncPacket, MMO_ScenePacket, MMO_SceneRequestPacket, MMO_DownloadResponsePacket, MMO_DownloadResponsePacket2, MMO_ServerFlagUpdate, MMO_ClientSceneContextUpdateTime, MMO_TimePacket, MMO_PictoboxPacket, MMO_PermFlagsPacket } from './data/MMOPackets';
 import path from 'path';
 import { GUITunnelPacket } from 'modloader64_api/GUITunnel';
 import fs from 'fs';
@@ -36,6 +36,7 @@ import { SmartBuffer } from 'smart-buffer';
 import { rgba, xy, xywh } from 'modloader64_api/Sylvain/vec';
 import { FlipFlags } from 'modloader64_api/Sylvain/Gfx';
 import bitwise from 'bitwise';
+import { number_ref, string_ref } from 'modloader64_api/Sylvain/ImGui';
 
 export let TIME_SYNC_TRIGGERED: boolean = false;
 
@@ -77,6 +78,8 @@ export class MMOnlineClient {
     modelManager!: ModelManagerClient;
     @SidedProxy(ProxySide.CLIENT, SoundManagerClient)
     soundManager!: SoundManagerClient;
+    teleportDest: string_ref = [""];
+    cutsceneDest: string_ref = [""];
 
     /*
     @SidedProxy(ProxySide.CLIENT, UtilityActorHelper)
@@ -623,6 +626,9 @@ export class MMOnlineClient {
         //this.core.save.skulltulaFlags = packet.flags.skulltulas;
         //this.clientStorage.bank = packet.bank.savings;
         //this.ModLoader.emulator.rdramWrite16(0x801F054E, this.clientStorage.bank);
+
+        parseFlagChanges(packet.permFlags.flags, this.clientStorage.permFlags);
+        this.core.save.permFlags = this.clientStorage.permFlags;
         this.clientStorage.first_time_sync = true;
         this.ModLoader.logger.info('onDownloadPacket_client() End');
     }
@@ -1073,6 +1079,36 @@ export class MMOnlineClient {
             this.clientStorage.pictoboxAlert.pos = xy(this.ModLoader.ImGui.getWindowWidth() - this.clientStorage.pictoboxAlert.size.x, this.ModLoader.ImGui.getWindowHeight() - this.clientStorage.pictoboxAlert.size.y);
             this.clientStorage.pictoboxAlert.opacity = 255;
         }
+        if (this.ModLoader.ImGui.beginMainMenuBar()) {
+            if (this.ModLoader.ImGui.beginMenu("Mods")) {
+                if (this.ModLoader.ImGui.beginMenu("MMO")) {
+                    if (this.ModLoader.ImGui.beginMenu("Teleport")) {
+                        this.ModLoader.ImGui.inputText("Destination", this.teleportDest);
+                        this.ModLoader.ImGui.inputText("Cutscene", this.cutsceneDest);
+                        if (this.ModLoader.ImGui.button("Warp")) {
+                            this.core.commandBuffer.runWarp(parseInt(this.teleportDest[0], 16), parseInt(this.cutsceneDest[0], 16), () => { });
+                        }
+                        this.ModLoader.ImGui.endMenu();
+                    }
+                    this.ModLoader.ImGui.endMenu();
+                }
+                this.ModLoader.ImGui.endMenu();
+            }
+            this.ModLoader.ImGui.endMainMenuBar();
+        }
+    }
+
+    updatePermFlags() {
+        parseFlagChanges(this.core.save.permFlags.slice(0, 0x8C), this.clientStorage.permFlags);
+        this.ModLoader.clientSide.sendPacket(new MMO_PermFlagsPacket(this.clientStorage.permFlags, this.ModLoader.clientLobby));
+    }
+
+    @NetworkHandler('MMO_PermFlagsPacket')
+    onPermFlags(packet: MMO_PermFlagsPacket) {
+        parseFlagChanges(packet.flags, this.clientStorage.permFlags);
+        let flags = this.core.save.permFlags.slice(0, 0x8C);
+        parseFlagChanges(this.clientStorage.permFlags, flags);
+        this.core.save.permFlags = flags;
     }
 
     @onTick()
@@ -1117,6 +1153,7 @@ export class MMOnlineClient {
                     }
                     else if (state === API.LinkState.STANDING && this.clientStorage.needs_update && this.LobbyConfig.data_syncing) {
                         this.updateInventory();
+                        this.updatePermFlags();
                         if (this.clientStorage.syncMode === 1) this.updateFlags();
                         this.clientStorage.needs_update = false;
                     }

@@ -79,7 +79,6 @@ class MMOnline implements IPlugin, IMMOnlineHelpers, IPluginServerConfig {
 
     postinit(): void {
         this.writeModel();
-        fs.writeFileSync(global.ModLoader.startdir + "/dump.bin", this.ModLoader.emulator.rdramReadBuffer(0x0, 16 * 1024 * 1024));
     }
 
     writeModel() {
