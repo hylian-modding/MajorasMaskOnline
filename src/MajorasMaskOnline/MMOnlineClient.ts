@@ -37,6 +37,7 @@ import { rgba, xy, xywh } from 'modloader64_api/Sylvain/vec';
 import { FlipFlags } from 'modloader64_api/Sylvain/Gfx';
 import bitwise from 'bitwise';
 import { number_ref, string_ref } from 'modloader64_api/Sylvain/ImGui';
+import { flags } from './data/permflags';
 
 export let TIME_SYNC_TRIGGERED: boolean = false;
 
@@ -80,7 +81,9 @@ export class MMOnlineClient {
     soundManager!: SoundManagerClient;
     teleportDest: string_ref = [""];
     cutsceneDest: string_ref = [""];
+    timeDest: string_ref = [""];
     permFlagBits: Array<number> = [];
+    permFlagNames: Map<number, string> = new Map<number, string>();
 
     /*
     @SidedProxy(ProxySide.CLIENT, UtilityActorHelper)
@@ -143,16 +146,10 @@ export class MMOnlineClient {
         status.partySize = 1;
         this.ModLoader.gui.setDiscordStatus(status);
         // Flag shit
-        for (let bit in API.EventFlags) {
-            try {
-                if (typeof(bit) === 'string'){
-                    let _b = API.EventFlags[bit];
-                    if (bit.startsWith("PERM")) {
-                        this.permFlagBits.push(parseInt(_b));
-                    }
-                }
-            } catch (err) { 
-                console.log(err);
+        for (let i = 0; i < flags.flags.length; i++) {
+            if (flags.flags[i].startsWith("PERM")) {
+                this.permFlagBits.push(i);
+                this.permFlagNames.set(this.permFlagBits.indexOf(i), flags.flags[i]);
             }
         }
     }
@@ -1098,8 +1095,15 @@ export class MMOnlineClient {
                         }
                         this.ModLoader.ImGui.endMenu();
                     }
+                    if (this.ModLoader.ImGui.beginMenu("TARDIS")){
+                        this.ModLoader.ImGui.inputText("Hour", this.timeDest);
+                        if (this.ModLoader.ImGui.smallButton("Go")){
+                           
+                        }
+                    }
                     this.ModLoader.ImGui.endMenu();
                 }
+
                 this.ModLoader.ImGui.endMenu();
             }
             this.ModLoader.ImGui.endMainMenuBar();
@@ -1110,7 +1114,7 @@ export class MMOnlineClient {
         parseFlagChanges(this.core.save.permFlags.slice(0, 0x8C), this.clientStorage.permFlags);
         let bits = this.ModLoader.emulator.rdramReadBitsBuffer(0x801F0568, 99);
         let buf = Buffer.alloc(this.permFlagBits.length);
-        for (let i = 0; i < this.permFlagBits.length; i++){
+        for (let i = 0; i < this.permFlagBits.length; i++) {
             buf.writeUInt8(bits.readUInt8(this.permFlagBits[i]), i);
         }
         let flips = parseFlagChanges(buf, this.clientStorage.permEvents);
@@ -1118,7 +1122,7 @@ export class MMOnlineClient {
             let bit = parseInt(key);
             let value = flips[key];
             if (value > 0) {
-                this.ModLoader.logger.info(API.EventFlags[this.permFlagBits[bit]]);
+                this.ModLoader.logger.info(this.permFlagNames.get(bit)!);
             }
         });
         this.ModLoader.clientSide.sendPacket(new MMO_PermFlagsPacket(this.clientStorage.permFlags, this.clientStorage.permEvents, this.ModLoader.clientLobby));
@@ -1132,7 +1136,7 @@ export class MMOnlineClient {
         this.core.save.permFlags = flags;
         parseFlagChanges(packet.eventFlags, this.clientStorage.permEvents);
         let bits = this.ModLoader.emulator.rdramReadBitsBuffer(0x801F0568, 99);
-        for (let i = 0; i < this.permFlagBits.length; i++){
+        for (let i = 0; i < this.permFlagBits.length; i++) {
             bits.writeUInt8(this.clientStorage.permEvents.readUInt8(i), this.permFlagBits[i]);
         }
         this.ModLoader.emulator.rdramWriteBitsBuffer(0x801F0568, bits);
