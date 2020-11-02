@@ -887,7 +887,7 @@ export class MMOnlineClient {
 
     healPlayer() {
         if (this.core.helper.isTitleScreen() || !this.core.helper.isSceneNumberValid()) return;
-        this.ModLoader.emulator.rdramWrite16(global.ModLoader.save_context + 0x3F5A, 0x65);
+        this.core.save.health_mod = 0x65;
     }
 
     @EventHandler(MMOnlineEvents.GAINED_PIECE_OF_HEART)
