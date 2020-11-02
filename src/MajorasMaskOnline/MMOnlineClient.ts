@@ -1069,7 +1069,7 @@ export class MMOnlineClient {
                 sb.writeUInt8(0xFF);
             }
         }
-        this.clientStorage.pictoboxAlert.buf = buf;
+        this.clientStorage.pictoboxAlert.buf = sb.toBuffer();
     }
 
     @onViUpdate()
@@ -1083,9 +1083,9 @@ export class MMOnlineClient {
         if (this.clientStorage.pictoboxAlert.buf !== undefined) {
             this.clientStorage.pictoboxAlert.image = this.ModLoader.Gfx.createTexture();
             this.clientStorage.pictoboxAlert.image.loadFromMemoryRGBA32(160, 112, this.clientStorage.pictoboxAlert.buf);
-            this.clientStorage.pictoboxAlert.buf = undefined;
             this.clientStorage.pictoboxAlert.pos = xy(this.ModLoader.ImGui.getWindowWidth() - this.clientStorage.pictoboxAlert.size.x, this.ModLoader.ImGui.getWindowHeight() - this.clientStorage.pictoboxAlert.size.y);
             this.clientStorage.pictoboxAlert.opacity = 255;
+            this.clientStorage.pictoboxAlert.buf = undefined;
         }
         if (this.ModLoader.ImGui.beginMainMenuBar()) {
             if (this.ModLoader.ImGui.beginMenu("Mods")) {
