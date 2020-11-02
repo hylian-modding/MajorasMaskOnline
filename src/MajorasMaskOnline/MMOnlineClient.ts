@@ -1101,8 +1101,9 @@ export class MMOnlineClient {
                     if (this.ModLoader.ImGui.beginMenu("TARDIS")){
                         this.ModLoader.ImGui.inputText("Hour", this.timeDest);
                         if (this.ModLoader.ImGui.smallButton("Go")){
-                           
+                           // todo
                         }
+                        this.ModLoader.ImGui.endMenu();
                     }
                     this.ModLoader.ImGui.endMenu();
                 }
