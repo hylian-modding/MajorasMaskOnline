@@ -803,6 +803,7 @@ export function mergeEquipmentData(
   // Swords
   if (incoming.swordLevel > save.swordLevel) {
     save.swordLevel = incoming.swordLevel;
+    bus.emit(MMOnlineEvents.SWORD_NEEDS_UPDATE, {});
   }
   // Shields
   if (incoming.shieldLevel > save.shieldLevel) {

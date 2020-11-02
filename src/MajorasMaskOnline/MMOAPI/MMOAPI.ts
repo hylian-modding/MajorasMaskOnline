@@ -31,6 +31,7 @@ export enum MMOnlineEvents {
   ON_LOAD_SOUND_PACK = "OotOnline:OnLoadSoundPack",
   ON_REMOTE_SOUND_PACK = "OotOnline:OnRemoteSoundPack",
   ON_REMOTE_PLAY_SOUND = "OotOnline:OnRemotePlaySound",
+  SWORD_NEEDS_UPDATE = "MMOnline:SwordNeedsUpdate"
 }
 
 export class MMOnline_PlayerScene {

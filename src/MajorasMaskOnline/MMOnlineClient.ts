@@ -1152,6 +1152,11 @@ export class MMOnlineClient {
         this.ModLoader.emulator.rdramWriteBitsBuffer(0x801F0568, bits);
     }
 
+    @EventHandler(MMOnlineEvents.SWORD_NEEDS_UPDATE)
+    onSwordChange(evt: any){
+        this.core.save.sword_helper.updateSwordonB();
+    }
+
     @onTick()
     onTick() {
         if (
