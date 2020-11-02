@@ -146,10 +146,13 @@ export class MMOnlineClient {
         status.partySize = 1;
         this.ModLoader.gui.setDiscordStatus(status);
         // Flag shit
-        for (let i = 0; i < flags.flags.length; i++) {
-            if (flags.flags[i].startsWith("PERM")) {
-                this.permFlagBits.push(i);
-                this.permFlagNames.set(this.permFlagBits.indexOf(i), flags.flags[i]);
+        for (let name in API.EventFlags){
+            if (typeof(name) === 'string'){
+                let value = parseInt(API.EventFlags[name]);
+                if (name.startsWith("PERM")){
+                    this.permFlagBits.push(value);
+                    this.permFlagNames.set(this.permFlagBits.indexOf(value), flags.flags[value]);
+                }
             }
         }
     }
