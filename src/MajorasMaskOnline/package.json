@@ -1,20 +1,21 @@
 {
-    "name": "MajorasMaskOnline",
-    "version": "2.0.112",
-    "description": "",
-    "main": "MMOnline.js",
-    "author": "Psi-Hate, Denoflions, Drahsid",
-    "credits": "",
-    "license": "GPL-3.0",
-    "core": "MajorasMask",
-    "updateUrl": "",
-    "devUrl": "",
-    "modloader64_deps": {
-        "MajorasMask": "https://github.com/hylian-modding/Core-MajorasMask.git"
-    },
-    "modloader64_aliases": {
-        "Z64Lib": [
-            "libs/Z64Lib"
-        ]
-    }
+  "name": "MajorasMaskOnline",
+  "version": "2.0.112",
+  "description": "",
+  "main": "MMOnline.js",
+  "author": "Psi-Hate, Denoflions, Drahsid",
+  "credits": "",
+  "license": "GPL-3.0",
+  "core": "MajorasMask",
+  "updateUrl": "",
+  "devUrl": "",
+  "modloader64_deps": {
+    "Z64Lib": "https://github.com/hylian-modding/ML64-Z64Lib.git",
+    "MajorasMask": "https://github.com/hylian-modding/Core-MajorasMask.git"
+  },
+  "modloader64_aliases": {
+    "Z64Lib": [
+      "libs/Z64Lib"
+    ]
+  }
 }

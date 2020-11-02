@@ -16,14 +16,14 @@
       "@sound/*": [
         "./build/emulator/*"
       ],
+      "@MajorasMaskOnline/*": [
+        "./src/MajorasMaskOnline/*"
+      ],
       "Z64Lib/*": [
-        "./libs/Z64Lib/*"
+        "libs\\Z64Lib/*"
       ],
       "MajorasMask/*": [
-        "./libs/MajorasMask/*"
-      ],
-      "@MajorasMaskOnline": [
-        "./src/MajorasMaskOnline/*"
+        "libs\\MajorasMask/*"
       ]
     }
   },
