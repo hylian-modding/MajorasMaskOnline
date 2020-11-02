@@ -1114,6 +1114,12 @@ export class MMOnlineClient {
     }
 
     updatePermFlags() {
+        let hash = this.ModLoader.utils.hashBuffer(this.core.save.permFlags.slice(0, 0x8C));
+        hash+=this.ModLoader.utils.hashBuffer(this.ModLoader.emulator.rdramReadBuffer(0x801F0568, 99));
+        if (this.clientStorage.flagHash === hash){
+            return;
+        }
+        this.clientStorage.flagHash = hash;
         parseFlagChanges(this.core.save.permFlags.slice(0, 0x8C), this.clientStorage.permFlags);
         let bits = this.ModLoader.emulator.rdramReadBitsBuffer(0x801F0568, 99);
         let buf = Buffer.alloc(this.permFlagBits.length);
@@ -1174,6 +1180,7 @@ export class MMOnlineClient {
                     }
 
                     this.updatePictobox();
+                    this.updatePermFlags();
 
                     let state = this.core.link.state;
                     if ((this.core.global.scene_framecount % 400) === 0) this.clientStorage.needs_update = true;
@@ -1187,7 +1194,6 @@ export class MMOnlineClient {
                     }
                     else if (state === API.LinkState.STANDING && this.clientStorage.needs_update && this.LobbyConfig.data_syncing) {
                         this.updateInventory();
-                        this.updatePermFlags();
                         if (this.clientStorage.syncMode === 1) this.updateFlags();
                         this.clientStorage.needs_update = false;
                     }

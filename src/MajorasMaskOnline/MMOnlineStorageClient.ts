@@ -31,6 +31,7 @@ export class MMOnlineStorageClient extends MMOnlineStorageBase {
   last_time = 0;
   last_day = 0;
   pictoboxAlert: PictoboxPreview = new PictoboxPreview(xy(0, 0));
+  flagHash: string = "";
 }
 
 export class PictoboxPreview{
