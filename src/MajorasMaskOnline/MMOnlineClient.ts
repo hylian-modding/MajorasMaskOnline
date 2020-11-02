@@ -632,8 +632,8 @@ export class MMOnlineClient {
         //this.core.save.itemFlags = packet.flags.items;
         //this.core.save.infTable = packet.flags.inf;
         //this.core.save.skulltulaFlags = packet.flags.skulltulas;
-        //this.clientStorage.bank = packet.bank.savings;
-        //this.ModLoader.emulator.rdramWrite16(0x801F054E, this.clientStorage.bank);
+        this.clientStorage.bank = packet.bank.savings;
+        this.ModLoader.emulator.rdramWrite16(0x801F054E, this.clientStorage.bank);
 
         parseFlagChanges(packet.permFlags.flags, this.clientStorage.permFlags);
         this.core.save.permFlags = this.clientStorage.permFlags;
