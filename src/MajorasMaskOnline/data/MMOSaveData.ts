@@ -803,7 +803,6 @@ export function mergeEquipmentData(
   // Swords
   if (incoming.swordLevel > save.swordLevel) {
     save.swordLevel = incoming.swordLevel;
-    bus.emit(MMOnlineEvents.SWORD_NEEDS_UPDATE, {});
   }
   // Shields
   if (incoming.shieldLevel > save.shieldLevel) {
@@ -822,7 +821,11 @@ export function applyEquipmentToContext(
   data: IEquipmentSave,
   save: API.ISaveContext
 ) {
+  let lastSword = save.swords.swordLevel;
   save.swords.swordLevel = data.swordLevel;
+  if (save.swords.swordLevel > lastSword) {
+    bus.emit(MMOnlineEvents.SWORD_NEEDS_UPDATE, {});
+  }
   save.shields.shieldLevel = data.shieldLevel;
 }
 

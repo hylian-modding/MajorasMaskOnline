@@ -81,7 +81,7 @@ export class MMOnlineClient {
     soundManager!: SoundManagerClient;
     teleportDest: string_ref = [""];
     cutsceneDest: string_ref = [""];
-    timeDest: string_ref = [""];
+    swordSlider: number_ref = [0];
     permFlagBits: Array<number> = [];
     permFlagNames: Map<number, string> = new Map<number, string>();
 
@@ -146,10 +146,10 @@ export class MMOnlineClient {
         status.partySize = 1;
         this.ModLoader.gui.setDiscordStatus(status);
         // Flag shit
-        for (let name in API.EventFlags){
-            if (typeof(name) === 'string'){
+        for (let name in API.EventFlags) {
+            if (typeof (name) === 'string') {
                 let value = parseInt(API.EventFlags[name]);
-                if (name.startsWith("PERM")){
+                if (name.startsWith("PERM")) {
                     this.permFlagBits.push(value);
                     this.permFlagNames.set(this.permFlagBits.indexOf(value), flags.flags[value]);
                 }
@@ -637,6 +637,7 @@ export class MMOnlineClient {
 
         parseFlagChanges(packet.permFlags.flags, this.clientStorage.permFlags);
         this.core.save.permFlags = this.clientStorage.permFlags;
+
         this.clientStorage.first_time_sync = true;
         this.ModLoader.logger.info('onDownloadPacket_client() End');
     }
@@ -644,6 +645,9 @@ export class MMOnlineClient {
     // I am giving the server data.
     @NetworkHandler('MMO_DownloadResponsePacket2')
     onDownPacket2_client(packet: MMO_DownloadResponsePacket2) {
+        //  REMOVE ME
+        this.core.save.swords.swordLevel = 0;
+        this.core.save.sword_helper.updateSwordonB();
         this.ModLoader.logger.debug("onDownPacket2_client() Start");
         this.clientStorage.first_time_sync = true;
         this.ModLoader.logger.info('The lobby is mine!');
@@ -1098,10 +1102,10 @@ export class MMOnlineClient {
                         }
                         this.ModLoader.ImGui.endMenu();
                     }
-                    if (this.ModLoader.ImGui.beginMenu("TARDIS")){
-                        this.ModLoader.ImGui.inputText("Hour", this.timeDest);
-                        if (this.ModLoader.ImGui.smallButton("Go")){
-                           // todo
+                    if (this.ModLoader.ImGui.beginMenu("Sword Debugging")) {
+                        if (this.ModLoader.ImGui.sliderInt("Sword", this.swordSlider, 0, 3)) {
+                            this.core.save.swords.swordLevel = this.swordSlider[0];
+                            this.core.save.sword_helper.updateSwordonB();
                         }
                         this.ModLoader.ImGui.endMenu();
                     }
@@ -1116,8 +1120,8 @@ export class MMOnlineClient {
 
     updatePermFlags() {
         let hash = this.ModLoader.utils.hashBuffer(this.core.save.permFlags.slice(0, 0x8C));
-        hash+=this.ModLoader.utils.hashBuffer(this.ModLoader.emulator.rdramReadBuffer(0x801F0568, 99));
-        if (this.clientStorage.flagHash === hash){
+        hash += this.ModLoader.utils.hashBuffer(this.ModLoader.emulator.rdramReadBuffer(0x801F0568, 99));
+        if (this.clientStorage.flagHash === hash) {
             return;
         }
         this.clientStorage.flagHash = hash;
@@ -1153,7 +1157,7 @@ export class MMOnlineClient {
     }
 
     @EventHandler(MMOnlineEvents.SWORD_NEEDS_UPDATE)
-    onSwordChange(evt: any){
+    onSwordChange(evt: any) {
         this.core.save.sword_helper.updateSwordonB();
     }
 
