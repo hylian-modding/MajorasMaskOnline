@@ -646,8 +646,6 @@ export class MMOnlineClient {
     @NetworkHandler('MMO_DownloadResponsePacket2')
     onDownPacket2_client(packet: MMO_DownloadResponsePacket2) {
         //  REMOVE ME
-        this.core.save.swords.swordLevel = 0;
-        this.core.save.sword_helper.updateSwordonB();
         this.ModLoader.logger.debug("onDownPacket2_client() Start");
         this.clientStorage.first_time_sync = true;
         this.ModLoader.logger.info('The lobby is mine!');
@@ -655,6 +653,7 @@ export class MMOnlineClient {
         this.clientStorage.needs_update = true;
 
         if (this.clientStorage.syncMode === 1) this.updateBottlesTime(true);
+        this.core.save.sword_helper.updateSwordonB();
         this.ModLoader.logger.debug("onDownPacket2_client() End");
     }
 
@@ -1111,7 +1110,6 @@ export class MMOnlineClient {
                     }
                     this.ModLoader.ImGui.endMenu();
                 }
-
                 this.ModLoader.ImGui.endMenu();
             }
             this.ModLoader.ImGui.endMainMenuBar();
