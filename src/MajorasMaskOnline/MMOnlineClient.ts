@@ -1154,8 +1154,7 @@ export class MMOnlineClient {
     onPermFlags(packet: MMO_PermFlagsPacket) {
         parseFlagChanges(packet.flags, this.clientStorage.permFlags);
         let save = this.core.save.permFlags;
-        let flags = save.slice(0, 0x8C);
-        parseFlagChanges(this.clientStorage.permFlags, flags);
+        parseFlagChanges(this.clientStorage.permFlags, save);
         this.core.save.permFlags = save;
         parseFlagChanges(packet.eventFlags, this.clientStorage.permEvents);
         let bits = this.ModLoader.emulator.rdramReadBitsBuffer(0x801F0568, 99);
