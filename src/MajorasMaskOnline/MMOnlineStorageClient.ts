@@ -32,16 +32,17 @@ export class MMOnlineStorageClient extends MMOnlineStorageBase {
   last_day = 0;
   pictoboxAlert: PictoboxPreview = new PictoboxPreview(xy(0, 0));
   flagHash: string = "";
+  isMMR: boolean = false;
 }
 
-export class PictoboxPreview{
+export class PictoboxPreview {
   buf: Buffer | undefined;
   image: Texture | undefined;
   pos: vec2;
   size: vec2 = xy(160, 112);
   opacity: number = 255;
 
-  constructor(pos: vec2){
+  constructor(pos: vec2) {
     this.pos = pos;
   }
 }

@@ -1117,13 +1117,23 @@ export class MMOnlineClient {
     }
 
     updatePermFlags() {
-        let hash = this.ModLoader.utils.hashBuffer(this.core.save.permFlags.slice(0, 0x8C));
+        let hash = this.ModLoader.utils.hashBuffer(this.core.save.permFlags);
         hash += this.ModLoader.utils.hashBuffer(this.ModLoader.emulator.rdramReadBuffer(0x801F0568, 99));
         if (this.clientStorage.flagHash === hash) {
             return;
         }
         this.clientStorage.flagHash = hash;
-        parseFlagChanges(this.core.save.permFlags.slice(0, 0x8C), this.clientStorage.permFlags);
+        let flags = this.core.save.permFlags;
+        if (this.clientStorage.isMMR) {
+            let mask = this.ModLoader.emulator.rdramReadBuffer(0x801C5FC0, 0x710);
+            for (let i = 0; i < flags.byteLength; i += 4) {
+                let cur = flags.readUInt32BE(i);
+                let m = mask.readUInt32BE(i);
+                cur = cur & m;
+                flags.writeUInt32BE(cur, i);
+            }
+        }
+        parseFlagChanges(flags, this.clientStorage.permFlags);
         let bits = this.ModLoader.emulator.rdramReadBitsBuffer(0x801F0568, 99);
         let buf = Buffer.alloc(this.permFlagBits.length);
         for (let i = 0; i < this.permFlagBits.length; i++) {
@@ -1143,9 +1153,10 @@ export class MMOnlineClient {
     @NetworkHandler('MMO_PermFlagsPacket')
     onPermFlags(packet: MMO_PermFlagsPacket) {
         parseFlagChanges(packet.flags, this.clientStorage.permFlags);
-        let flags = this.core.save.permFlags.slice(0, 0x8C);
+        let save = this.core.save.permFlags;
+        let flags = save.slice(0, 0x8C);
         parseFlagChanges(this.clientStorage.permFlags, flags);
-        this.core.save.permFlags = flags;
+        this.core.save.permFlags = save;
         parseFlagChanges(packet.eventFlags, this.clientStorage.permEvents);
         let bits = this.ModLoader.emulator.rdramReadBitsBuffer(0x801F0568, 99);
         for (let i = 0; i < this.permFlagBits.length; i++) {
@@ -1157,6 +1168,18 @@ export class MMOnlineClient {
     @EventHandler(MMOnlineEvents.SWORD_NEEDS_UPDATE)
     onSwordChange(evt: any) {
         this.core.save.sword_helper.updateSwordonB();
+    }
+
+    @EventHandler(ModLoaderEvents.ON_ROM_PATCHED_POST)
+    onRomPost(evt: any) {
+        let rom: Buffer = evt.rom;
+        let offset: number = rom.indexOf('DPAD_CONFIG');
+        if (offset === -1) {
+            this.ModLoader.logger.debug("This is not an MMR Rom.");
+        } else {
+            this.ModLoader.logger.debug("This is an MMR Rom.");
+            this.clientStorage.isMMR = true;
+        }
     }
 
     @onTick()
