@@ -28,6 +28,6 @@ export class MMOnlineStorageBase {
   questStorage: QuestSave = new QuestSave();
   tradeStorage: InventorySave = new InventorySave();
   bank: number = 0;
-  permFlags: Buffer = Buffer.alloc(0x8C);
+  permFlags: Buffer = Buffer.alloc(0x78);
   permEvents: Buffer = Buffer.alloc(152);
 }
