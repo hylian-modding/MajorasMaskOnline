@@ -1123,15 +1123,17 @@ export class MMOnlineClient {
             return;
         }
         this.clientStorage.flagHash = hash;
-        let flags = this.core.save.permFlags.slice(0x0, 0x78);
-        if (this.clientStorage.isMMR) {
-            let mask = this.ModLoader.emulator.rdramReadBuffer(0x801C5FC0, 0x78);
-            for (let i = 0; i < flags.byteLength; i += 4) {
-                let cur = flags.readUInt32BE(i);
-                let m = mask.readUInt32BE(i);
-                cur = cur & m;
-                flags.writeUInt32BE(cur, i);
+        let flags = this.core.save.permFlags;
+        let mask = this.ModLoader.emulator.rdramReadBuffer(0x801C5FC0, 0x710);
+        for (let i = 0; i < flags.byteLength; i++) {
+            let f = bitwise.byte.read(flags[i] as any);
+            let m = bitwise.byte.read(mask[i] as any);
+            for (let j = 0; j < m.length; j++){
+                if (m[j] === 1){
+                    f[j] = 0;
+                }
             }
+            flags[i] = bitwise.byte.write(f);
         }
         parseFlagChanges(flags, this.clientStorage.permFlags);
         let bits = this.ModLoader.emulator.rdramReadBitsBuffer(0x801F0568, 99);
