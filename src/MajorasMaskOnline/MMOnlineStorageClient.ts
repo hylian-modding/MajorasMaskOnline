@@ -33,6 +33,7 @@ export class MMOnlineStorageClient extends MMOnlineStorageBase {
   pictoboxAlert: PictoboxPreview = new PictoboxPreview(xy(0, 0));
   flagHash: string = "";
   isMMR: boolean = false;
+  isAdultSizedHuman: boolean = false;
 }
 
 export class PictoboxPreview {

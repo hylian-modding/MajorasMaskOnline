@@ -115,7 +115,8 @@ import {MMRomPatches} from 'Z64Lib/API/MM/MMRomPatches';
       if (manifest.repoint(this.ModLoader, evt.rom, copy)) {
         manifest.inject(this.ModLoader, evt.rom, copy);
         if (model.readUInt8(0x500B) === 0x68) {
-          model.writeUInt8(0x4, 0x500B);
+          model.writeUInt8(0x5, 0x500B);
+          this.clientStorage.isAdultSizedHuman = true;
         }
         this.clientStorage.childModel = model;
       }

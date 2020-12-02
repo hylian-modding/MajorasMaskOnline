@@ -3,6 +3,7 @@
 #define FORM_ZORA                      2 // Zora Link
 #define FORM_DEKU                      3 // Deku Link
 #define FORM_HUMAN                     4 // Hylian Link
+#define FORM_HUMAN_ADULT               5 // Hylian Link Adult size
 
 // Animations
 #define ANIM_MASK_OFF                  0x0400D0A8

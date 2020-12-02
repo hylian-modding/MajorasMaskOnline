@@ -117,8 +117,13 @@ static void init(entity_t *en, z64_global_t *gl)
 			case FORM_HUMAN:
 				(en->puppet).playas.init = (puppet_init_t){base + (en->puppet.form * 0x37800), 0x0, 0x0005, 0x0002, 0.65f};
 				break;
+			case FORM_HUMAN_ADULT:
+				(en->puppet).playas.init = (puppet_init_t){base + (en->puppet.form * 0x37800), 0x0, 0x0005, 0x0002, 1.0f};
+				break;
 			}
-		}else{
+		}
+		else
+		{
 			(en->puppet).playas.init = (puppet_init_t){base + (en->puppet.form * 0x37800), 0x0, 0x0005, 0x0002, 0.65f};
 			en->puppet.form = AVAL(en->puppet.playas.init.base, uint8_t, 0x500B);
 		}

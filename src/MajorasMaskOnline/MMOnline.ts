@@ -75,7 +75,8 @@ class MMOnline implements IPlugin, IMMOnlineHelpers, IPluginServerConfig {
         if (this.client !== undefined) this.client.clientStorage = this.clientStorage;
     }
 
-    init(): void {}
+    init(): void {
+    }
 
     postinit(): void {
         this.writeModel();

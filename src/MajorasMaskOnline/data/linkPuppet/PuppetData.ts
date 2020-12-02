@@ -8,9 +8,10 @@ import { Z64RomTools } from 'Z64Lib/API/Z64RomTools';
 import MMOnline from '../../MMOnline';
 import { MMOnlineEvents } from '../../MMOAPI/MMOAPI';
 import { runInThisContext } from 'vm';
+import { MMOnlineStorageClient } from '@MajorasMaskOnline/MMOnlineStorageClient';
 
-const actor =         0x0000
-const anim_data =     0x0144
+const actor = 0x0000
+const anim_data = 0x0144
 
 export class PuppetData implements IPuppetData {
   pointer: number;
@@ -18,12 +19,15 @@ export class PuppetData implements IPuppetData {
   core: API.IMMCore;
   time: number = 0;
   private readonly copyFields: string[] = new Array<string>();
+  private storage: MMOnlineStorageClient;
 
   constructor(
     pointer: number,
     ModLoader: IModLoaderAPI,
     core: API.IMMCore,
+    storage: MMOnlineStorageClient
   ) {
+    this.storage = storage;
     this.pointer = pointer;
     this.ModLoader = ModLoader;
     this.core = core;
@@ -44,8 +48,9 @@ export class PuppetData implements IPuppetData {
     //this.copyFields.push('blastMaskTimer');
     //this.copyFields.push('maskProps');
     this.copyFields.push('time');
+    this.copyFields.push("isAdultSizedHuman");
   }
-  
+
   get pos(): Buffer {
     return this.core.link.rawPos;
   }
@@ -121,10 +126,10 @@ export class PuppetData implements IPuppetData {
     return this.ModLoader.emulator.rdramRead8(offsets.link_instance + (0x144 + 0x11));
   }
 
-  set sound(id: number){
+  set sound(id: number) {
   }
 
-  get sound(): number{
+  get sound(): number {
     // TODO
     return 0;
   }
@@ -186,7 +191,7 @@ export class PuppetData implements IPuppetData {
   set dekuStickLength(dekuStickLength: number) {
     this.ModLoader.emulator.rdramWriteF32(this.pointer + 0x398, dekuStickLength);
   }
-  
+
   get nowAnim(): number {
     let offsets = new MMOffsets;
     return this.ModLoader.emulator.rdramReadF32(offsets.link_instance + 0x248);
@@ -198,6 +203,16 @@ export class PuppetData implements IPuppetData {
 
   get form(): MMForms {
     return this.core.save.form;
+  }
+
+  get isAdultSizedHuman(): boolean {
+    return this.storage.isAdultSizedHuman && this.core.save.form === 0x4;
+  }
+
+  set isAdultSizedHuman(bool: boolean) {
+    if (bool) {
+      this.ModLoader.emulator.rdramWriteF32(this.pointer + 0x1E0, 1.0);
+    }
   }
 
   toJSON() {

@@ -41,7 +41,7 @@ export class Puppet implements IPuppet {
 
   ) {
     this.player = player;
-    this.data = new PuppetData(pointer, ModLoader, core);
+    this.data = new PuppetData(pointer, ModLoader, core, parent.getClientStorage()!);
     this.scene = 81;
     this.form = 1;
     this.ModLoader = ModLoader;
@@ -78,6 +78,7 @@ export class Puppet implements IPuppet {
       this.core.commandBuffer.runCommand(Command.SPAWN_ACTOR, 0x80800000, (success: boolean, result: number) => {
         if (success) {
           this.data.pointer = result & 0x00ffffff;
+          console.log(this.data.pointer.toString(16));
           //this.applyColor(this.data.pointer);
           this.doNotDespawnMe(this.data.pointer);
           if (this.hasAttachedHorse()) {

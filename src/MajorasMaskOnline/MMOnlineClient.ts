@@ -38,6 +38,7 @@ import { FlipFlags } from 'modloader64_api/Sylvain/Gfx';
 import bitwise from 'bitwise';
 import { number_ref, string_ref } from 'modloader64_api/Sylvain/ImGui';
 import { flags } from './data/permflags';
+import { Z64LibSupportedGames } from 'Z64Lib/API/Z64LibSupportedGames';
 
 export let TIME_SYNC_TRIGGERED: boolean = false;
 
@@ -229,6 +230,8 @@ export class MMOnlineClient {
         //let items: any = parseFlagChanges(item_data, this.clientStorage.itemFlagStorage);
         //let inf: any = parseFlagChanges(inf_data, this.clientStorage.infStorage);
         //let skulltulas: any = parseFlagChanges(skulltula_data, this.clientStorage.skulltulaStorage);
+
+
         this.ModLoader.clientSide.sendPacket(new MMO_ClientFlagUpdate(this.clientStorage.sceneStorage, this.clientStorage.eventStorage, this.ModLoader.clientLobby));
         this.ModLoader.logger.debug("updateFlags() End");
     }
@@ -1118,22 +1121,43 @@ export class MMOnlineClient {
 
     updatePermFlags() {
         let hash = this.ModLoader.utils.hashBuffer(this.core.save.permFlags);
-        hash += this.ModLoader.utils.hashBuffer(this.ModLoader.emulator.rdramReadBuffer(0x801F0568, 99));
+        hash += this.ModLoader.utils.hashBuffer(this.ModLoader.emulator.rdramReadBitsBuffer(0x801F0568, 99));
         if (this.clientStorage.flagHash === hash) {
             return;
         }
         this.clientStorage.flagHash = hash;
         let flags = this.core.save.permFlags;
         let mask = this.ModLoader.emulator.rdramReadBuffer(0x801C5FC0, 0x710);
-        for (let i = 0; i < flags.byteLength; i++) {
-            let f = bitwise.byte.read(flags[i] as any);
-            let m = bitwise.byte.read(mask[i] as any);
-            for (let j = 0; j < m.length; j++){
-                if (m[j] === 1){
-                    f[j] = 0;
-                }
-            }
-            flags[i] = bitwise.byte.write(f);
+        // Scenes 0x00 to 0x70 inclusive
+        for (let i = 0; i <= 0x70; i++) {
+            const maskIndex = i * 0x10;
+            const sceneFlagsIndex = i * 0x14;
+
+            const genericMask1 = mask.readUInt32BE(maskIndex);
+            const genericMask2 = mask.readUInt32BE(maskIndex + 0x4);
+            const chestMask = mask.readUInt32BE(maskIndex + 0x8);
+            const collectibleMask = mask.readUInt32BE(maskIndex + 0xC);
+
+            /* These are in a different order! */
+            const genericSceneFlags1Index = sceneFlagsIndex + 0x4;
+            const genericSceneFlags2Index = sceneFlagsIndex + 0x8;
+            const chestSceneFlagsIndex = sceneFlagsIndex;
+            const collectibleSceneFlagsIndex = sceneFlagsIndex + 0x10;
+
+            let genericSceneFlags1 = flags.readUInt32BE(genericSceneFlags1Index);
+            let genericSceneFlags2 = flags.readUInt32BE(genericSceneFlags2Index);
+            let chestSceneFlags = flags.readUInt32BE(chestSceneFlagsIndex);
+            let collectibleSceneFlags = flags.readUInt32BE(collectibleSceneFlagsIndex);
+
+            genericSceneFlags1 &= genericMask1;
+            genericSceneFlags2 &= genericMask2;
+            chestSceneFlags &= chestMask;
+            collectibleSceneFlags &= collectibleMask;
+
+            flags.writeUInt32BE(genericSceneFlags1, genericSceneFlags1Index);
+            flags.writeUInt32BE(genericSceneFlags2, genericSceneFlags2Index);
+            flags.writeUInt32BE(chestSceneFlags, chestSceneFlagsIndex);
+            flags.writeUInt32BE(collectibleSceneFlags, collectibleSceneFlagsIndex);
         }
         parseFlagChanges(flags, this.clientStorage.permFlags);
         let bits = this.ModLoader.emulator.rdramReadBitsBuffer(0x801F0568, 99);
@@ -1181,6 +1205,10 @@ export class MMOnlineClient {
             this.ModLoader.logger.debug("This is an MMR Rom.");
             this.clientStorage.isMMR = true;
         }
+
+        let t = new Z64RomTools(this.ModLoader, Z64LibSupportedGames.MAJORAS_MASK);
+        let z = t.decompressDMAFileFromRom(evt.rom, 768);
+        fs.writeFileSync(global.ModLoader.startdir + "/En_Ja.zobj", z);
     }
 
     @onTick()
