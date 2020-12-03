@@ -1128,8 +1128,12 @@ export class MMOnlineClient {
         this.clientStorage.flagHash = hash;
         let flags = this.core.save.permFlags;
         let mask = this.ModLoader.emulator.rdramReadBuffer(0x801C5FC0, 0x710);
+        let scratch: Buffer = Buffer.alloc(0x4);
+        let scratch2: Buffer = Buffer.alloc(0x4);
         // Scenes 0x00 to 0x70 inclusive
         for (let i = 0; i <= 0x70; i++) {
+            this.ModLoader.utils.clearBuffer(scratch);
+            this.ModLoader.utils.clearBuffer(scratch2);
             const maskIndex = i * 0x10;
             const sceneFlagsIndex = i * 0x14;
 
@@ -1149,15 +1153,25 @@ export class MMOnlineClient {
             let chestSceneFlags = flags.readUInt32BE(chestSceneFlagsIndex);
             let collectibleSceneFlags = flags.readUInt32BE(collectibleSceneFlagsIndex);
 
-            genericSceneFlags1 &= genericMask1;
-            genericSceneFlags2 &= genericMask2;
-            chestSceneFlags &= chestMask;
-            collectibleSceneFlags &= collectibleMask;
+            let flag_array = [genericSceneFlags1, genericSceneFlags2, chestSceneFlags, collectibleSceneFlags];
+            let mask_array = [genericMask1, genericMask2, chestMask, collectibleMask];
 
-            flags.writeUInt32BE(genericSceneFlags1, genericSceneFlags1Index);
-            flags.writeUInt32BE(genericSceneFlags2, genericSceneFlags2Index);
-            flags.writeUInt32BE(chestSceneFlags, chestSceneFlagsIndex);
-            flags.writeUInt32BE(collectibleSceneFlags, collectibleSceneFlagsIndex);
+            for (let j = 0; j < flag_array.length; j++){
+                let f = flag_array[j];
+                let m = mask_array[j];
+                scratch.writeUInt32BE(f, 0);
+                scratch2.writeUInt32BE(m, 0);
+                for (let k = 0; k < scratch.byteLength; k++){
+                    scratch[k] &= scratch2[k];
+                }
+                f = scratch.readUInt32BE(0);
+                flag_array[j] = f;
+            }
+
+            flags.writeUInt32BE(flag_array[0], genericSceneFlags1Index);
+            flags.writeUInt32BE(flag_array[1], genericSceneFlags2Index);
+            flags.writeUInt32BE(flag_array[2], chestSceneFlagsIndex);
+            flags.writeUInt32BE(flag_array[3], collectibleSceneFlagsIndex);
         }
         parseFlagChanges(flags, this.clientStorage.permFlags);
         let bits = this.ModLoader.emulator.rdramReadBitsBuffer(0x801F0568, 99);
