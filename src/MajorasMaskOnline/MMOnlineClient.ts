@@ -156,6 +156,11 @@ export class MMOnlineClient {
                 }
             }
         }
+        
+        this.clientStorage.isSkulltulaSync = (this.ModLoader.emulator.rdramRead32(0x8014449C) !== 0xAE4C0EC0) && (this.ModLoader.emulator.rdramRead32(0x801444A4) !== 0xAE4E0EC0);
+        this.clientStorage.isFairySync = (this.ModLoader.emulator.rdramRead32(0x8014450C) !== 0xA20000D1) && (this.ModLoader.emulator.rdramRead32(0x80144514) !== 0xA20000D2) && (this.ModLoader.emulator.rdramRead32(0x8014451C) !== 0xA20000D3) && (this.ModLoader.emulator.rdramRead32(0x8014452C) !== 0xA20000D0);
+        this.ModLoader.logger.info(`Skulltula Sync: ${this.clientStorage.isSkulltulaSync}`);
+        this.ModLoader.logger.info(`Fairy Sync: ${this.clientStorage.isFairySync}`);
     }
 
     updateInventory() {
