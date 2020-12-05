@@ -265,7 +265,7 @@ export class MMOnlineServer {
         else mergeBottleData(storage.bottleStorage, packet.bottle);
         mergeEquipmentData(storage.equipmentStorage, packet.equipment);
         mergeQuestSaveData(storage.questStorage, packet.quest);
-        mergeDungeonItemData(storage.dungeonItemStorage, packet.dungeonItems);
+        mergeDungeonItemData(this.ModLoader, storage.dungeonItemStorage, packet.dungeonItems, ProxySide.SERVER, packet.lobby);
         this.ModLoader.serverSide.sendPacket(
             new MMO_SubscreenSyncPacket(
                 storage.inventoryStorage,

@@ -36,8 +36,8 @@ export interface IMMOnlineLobbyConfig {
 }
 
 export class MMOnlineConfigCategory {
-    mapTracker: boolean = false;
-    keySync: boolean = true;
+    notifications: boolean = true;
+    nameplates: boolean = true;
     syncMode: number = 0;
 }
 

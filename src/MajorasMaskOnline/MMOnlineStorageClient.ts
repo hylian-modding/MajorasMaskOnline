@@ -3,6 +3,7 @@ import * as API from 'MajorasMask/API/MMAPI';
 import PlayerSchedule from './data/MMOPlayerSchedule';
 import { Texture } from 'modloader64_api/Sylvain/Gfx';
 import { rgba, vec2, vec4, xy } from 'modloader64_api/Sylvain/vec';
+import { MMO_ItemGetMessagePacket } from './data/MMOPackets';
 
 export class MMOnlineStorageClient extends MMOnlineStorageBase {
   autoSaveHash = '!';
@@ -36,6 +37,7 @@ export class MMOnlineStorageClient extends MMOnlineStorageBase {
   isSkulltulaSync = false;
   isFairySync = false;
   isAdultSizedHuman: boolean = false;
+  notifBuffer: Array<MMO_ItemGetMessagePacket> = [];
 }
 
 export class PictoboxPreview {

@@ -387,3 +387,13 @@ export class MMO_PermFlagsPacket extends Packet{
     this.eventFlags = eventFlags;
   }
 }
+
+export class MMO_ItemGetMessagePacket extends Packet {
+  text: string;
+  icon?: string;
+  constructor(text: string, lobby: string, icon?: string) {
+    super('MMO_ItemGetMessagePacket', 'MMOnline', lobby, true);
+    this.text = text;
+    this.icon = icon;
+  }
+}

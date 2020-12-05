@@ -1,7 +1,7 @@
 import * as API from 'MajorasMask/API/Imports';
 import { bus, setupEventHandlers } from 'modloader64_api/EventHandler';
 import { MMOnlineEvents } from '../MMOAPI/MMOAPI';
-import { ISwords, IShields, ISaveContext, InventorySlots, Shield, Sword } from 'MajorasMask/API/Imports';
+import { ISwords, IShields, ISaveContext, InventorySlots, Shield, Sword, IDungeonItemManager } from 'MajorasMask/API/Imports';
 import { MMOnlineClient } from '../MMOnlineClient';
 import { Interface } from 'readline';
 import { MMOnlineConfigCategory } from '../MMOnline';
@@ -9,8 +9,23 @@ import { config } from 'process';
 import { setActorBehavior } from 'MajorasMask/src/Actor';
 import { IModLoaderAPI } from 'modloader64_api/IModLoaderAPI';
 import zlib from 'zlib';
+import { ProxySide } from 'modloader64_api/SidedProxy/SidedProxy';
+import { MMO_ItemGetMessagePacket } from './MMOPackets';
 
 
+export function isAdultTradeItem(item: API.InventoryItem) {
+  return (
+    item === API.InventoryItem.QSLOT1_MOONS_TEAR ||
+    item === API.InventoryItem.QSLOT1_TITLE_DEED_LAND ||
+    item === API.InventoryItem.QSLOT1_TITLE_DEED_MOUNTAIN ||
+    item === API.InventoryItem.QSLOT1_TITLE_DEED_OCEAN ||
+    item === API.InventoryItem.QSLOT1_TITLE_DEED_SWAMP ||
+    item === API.InventoryItem.QSLOT2_ROOM_KEY ||
+    item === API.InventoryItem.QSLOT2_SPECIAL_DELIVERY_TO_MAMA ||
+    item === API.InventoryItem.QSLOT3_LETTER_TO_KAFEI ||
+    item === API.InventoryItem.QSLOT3_PENDANT_OF_MEMORIES
+  );
+}
 
 export interface IDungeonItemSave extends API.IDungeonItemManager { }
 
@@ -25,20 +40,6 @@ export class MMODungeonItemContext implements IDungeonItemSave {
   SNOWHEAD_TEMPLE: API.IDungeonItemContainer = new MMODungeonItemContainer();
   GREAT_BAY_TEMPLE: API.IDungeonItemContainer = new MMODungeonItemContainer();
   STONE_TOWER_TEMPLE: API.IDungeonItemContainer = new MMODungeonItemContainer();
-}
-
-export function isAdultTradeItem(item: API.InventoryItem) {
-  return (
-    item === API.InventoryItem.QSLOT1_MOONS_TEAR ||
-    item === API.InventoryItem.QSLOT1_TITLE_DEED_LAND ||
-    item === API.InventoryItem.QSLOT1_TITLE_DEED_MOUNTAIN ||
-    item === API.InventoryItem.QSLOT1_TITLE_DEED_OCEAN ||
-    item === API.InventoryItem.QSLOT1_TITLE_DEED_SWAMP ||
-    item === API.InventoryItem.QSLOT2_ROOM_KEY ||
-    item === API.InventoryItem.QSLOT2_SPECIAL_DELIVERY_TO_MAMA ||
-    item === API.InventoryItem.QSLOT3_LETTER_TO_KAFEI ||
-    item === API.InventoryItem.QSLOT3_PENDANT_OF_MEMORIES
-  );
 }
 
 export function createDungeonItemDataFromContext(
@@ -65,10 +66,17 @@ export function createDungeonItemDataFromContext(
 }
 
 export function mergeDungeonItemData(
+  ModLoader: IModLoaderAPI,
   storage: API.IDungeonItemManager,
-  incoming: IDungeonItemSave
+  incoming: IDungeonItemSave,
+  side: ProxySide,
+  lobby: string
 ) {
+
   if (incoming.WOODFALL_TEMPLE.bossKey && !storage.WOODFALL_TEMPLE.bossKey) {
+    if (true && side === ProxySide.SERVER) {
+      //ModLoader.serverSide.sendPacket(new MMO_ItemGetMessagePacket("You obtained the Boss Key (Woodfall Temple)", lobby, "tile283.png"));
+    }
     storage.WOODFALL_TEMPLE.bossKey = incoming.WOODFALL_TEMPLE.bossKey;
   }
   if (incoming.WOODFALL_TEMPLE.compass && !storage.WOODFALL_TEMPLE.compass) {
@@ -79,6 +87,9 @@ export function mergeDungeonItemData(
   }
 
   if (incoming.SNOWHEAD_TEMPLE.bossKey && !storage.SNOWHEAD_TEMPLE.bossKey) {
+    if (true && side === ProxySide.SERVER) {
+      //ModLoader.serverSide.sendPacket(new MMO_ItemGetMessagePacket("You obtained the Boss Key (Snowhead Temple)", lobby, "tile283.png"));
+    }
     storage.SNOWHEAD_TEMPLE.bossKey = incoming.SNOWHEAD_TEMPLE.bossKey;
   }
   if (incoming.SNOWHEAD_TEMPLE.compass && !storage.SNOWHEAD_TEMPLE.compass) {
@@ -89,6 +100,9 @@ export function mergeDungeonItemData(
   }
 
   if (incoming.GREAT_BAY_TEMPLE.bossKey && !storage.GREAT_BAY_TEMPLE.bossKey) {
+    if (true && side === ProxySide.SERVER) {
+      //ModLoader.serverSide.sendPacket(new MMO_ItemGetMessagePacket("You obtained the Boss Key (Great Bay Temple)", lobby, "tile283.png"));
+    }
     storage.GREAT_BAY_TEMPLE.bossKey = incoming.GREAT_BAY_TEMPLE.bossKey;
   }
   if (incoming.GREAT_BAY_TEMPLE.compass && !storage.GREAT_BAY_TEMPLE.compass) {
@@ -99,6 +113,9 @@ export function mergeDungeonItemData(
   }
 
   if (incoming.STONE_TOWER_TEMPLE.bossKey && !storage.STONE_TOWER_TEMPLE.bossKey) {
+    if (true && side === ProxySide.SERVER) {
+      //ModLoader.serverSide.sendPacket(new MMO_ItemGetMessagePacket("You obtained the Boss Key (Stone Tower Temple)", lobby, "tile283.png"));
+    }
     storage.STONE_TOWER_TEMPLE.bossKey = incoming.STONE_TOWER_TEMPLE.bossKey;
   }
   if (incoming.STONE_TOWER_TEMPLE.compass && !storage.STONE_TOWER_TEMPLE.compass) {

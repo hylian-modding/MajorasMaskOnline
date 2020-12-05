@@ -5,7 +5,7 @@ import * as API from 'MajorasMask/API/MMAPI'
 import { MMOnlineEvents, MMOnline_PlayerScene } from './MMOAPI/MMOAPI';
 //import { ActorHookingManagerClient } from './data/ActorHookingSystem';
 import { createEquipmentFromContext, createInventoryFromContext, createQuestSaveFromContext, mergeEquipmentData, mergeInventoryData, mergeQuestSaveData, createDungeonItemDataFromContext, mergeDungeonItemData, InventorySave, applyInventoryToContext, applyBottleToContext, applyEquipmentToContext, applyQuestSaveToContext, applyDungeonItemDataToContext, EquipmentSave, QuestSave, MMODungeonItemContext, IDungeonItemSave, MMO_SceneStruct, createPhotoFromContext, mergePhotoData, PhotoSave, applyPhotoToContext, createBottleFromContext, mergeBottleData, mergeBottleDataTime, applyBottleToContextTime, createTradeFromContext, mergeInventoryTrade, applyTradeToContext, IQuestSave, createStrayFromContext, mergeStrayData, applyStrayToContext, createSkullFromContext, applySkullToContext, mergeSkullData, SkullSave, StraySave } from './data/MMOSaveData';
-import { MMO_ClientFlagUpdate, MMO_ClientSceneContextUpdate, MMO_DownloadRequestPacket, MMO_SubscreenSyncPacket, MMO_BottleUpdatePacket, MMO_SceneGUIPacket, MMO_BankSyncPacket, MMO_ScenePacket, MMO_SceneRequestPacket, MMO_DownloadResponsePacket, MMO_DownloadResponsePacket2, MMO_ServerFlagUpdate, MMO_ClientSceneContextUpdateTime, MMO_TimePacket, MMO_PictoboxPacket, MMO_PermFlagsPacket, MMO_SkullPacket, MMO_StrayFairyPacket } from './data/MMOPackets';
+import { MMO_ClientFlagUpdate, MMO_ClientSceneContextUpdate, MMO_DownloadRequestPacket, MMO_SubscreenSyncPacket, MMO_BottleUpdatePacket, MMO_SceneGUIPacket, MMO_BankSyncPacket, MMO_ScenePacket, MMO_SceneRequestPacket, MMO_DownloadResponsePacket, MMO_DownloadResponsePacket2, MMO_ServerFlagUpdate, MMO_ClientSceneContextUpdateTime, MMO_TimePacket, MMO_PictoboxPacket, MMO_PermFlagsPacket, MMO_SkullPacket, MMO_StrayFairyPacket, MMO_ItemGetMessagePacket } from './data/MMOPackets';
 import path from 'path';
 import { GUITunnelPacket } from 'modloader64_api/GUITunnel';
 import fs from 'fs';
@@ -14,7 +14,7 @@ import { DiscordStatus } from 'modloader64_api/Discord';
 //import { UtilityActorHelper } from './data/utilityActorHelper';
 //import { ModelManagerClient } from './data/models/ModelManager';
 import { ModLoaderAPIInject } from 'modloader64_api/ModLoaderAPIInjector';
-import { Init, Preinit, Postinit, onTick, onViUpdate } from 'modloader64_api/PluginLifecycle';
+import { Init, Preinit, Postinit, onTick, onViUpdate, onCreateResources } from 'modloader64_api/PluginLifecycle';
 import { parseFlagChanges } from './parseFlagChanges';
 import { IMMOnlineLobbyConfig, MMOnlineConfigCategory } from './MMOnline';
 import { IModLoaderAPI, ModLoaderEvents } from 'modloader64_api/IModLoaderAPI';
@@ -34,7 +34,7 @@ import { SoundManagerClient } from './data/sound/SoundManager';
 import { addToKillFeedQueue } from 'modloader64_api/Announcements';
 import { SmartBuffer } from 'smart-buffer';
 import { rgba, xy, xywh } from 'modloader64_api/Sylvain/vec';
-import { FlipFlags } from 'modloader64_api/Sylvain/Gfx';
+import { FlipFlags, Texture } from 'modloader64_api/Sylvain/Gfx';
 import bitwise from 'bitwise';
 import { number_ref, string_ref } from 'modloader64_api/Sylvain/ImGui';
 import { flags } from './data/permflags';
@@ -85,16 +85,23 @@ export class MMOnlineClient {
     swordSlider: number_ref = [0];
     permFlagBits: Array<number> = [];
     permFlagNames: Map<number, string> = new Map<number, string>();
-
-    /*
-    @SidedProxy(ProxySide.CLIENT, UtilityActorHelper)
-    utility!: UtilityActorHelper;
-    @SidedProxy(ProxySide.CLIENT, ActorHookingManagerClient)
-    actorHooks!: ActorHookingManagerClient;
-    @SidedProxy(ProxySide.CLIENT, KeyLogManagerClient)
-    keys!: KeyLogManagerClient;*/
-    //@SidedProxy(ProxySide.CLIENT, RPCClient)
-    //rcp!: RPCClient;
+    resourcesLoaded: boolean = false;
+    itemIcons: Map<string, Texture> = new Map<string, Texture>();
+    
+    @onCreateResources()
+    onResource() {
+        if (!this.resourcesLoaded) {
+            let base: string = path.resolve(__dirname, "gui", "sprites");
+            fs.readdirSync(base).forEach((file: string) => {
+                let p = path.resolve(base, file);
+                let t: Texture = this.ModLoader.Gfx.createTexture();
+                t.loadFromFile(p);
+                this.itemIcons.set(file, t);
+                //this.ModLoader.logger.debug("Loaded " + file + ".");
+            });
+            this.resourcesLoaded = true;
+        }
+    }
 
     sendPacketToPlayersInScene(packet: IPacketHeader) {
         try {
@@ -121,9 +128,9 @@ export class MMOnlineClient {
     @Preinit()
     preinit() {
         this.config = this.ModLoader.config.registerConfigCategory("MMOnline") as MMOnlineConfigCategory;
-        this.ModLoader.config.setData("MMOnline", "mapTracker", false);
-        this.ModLoader.config.setData("MMOnline", "keySync", true);
         this.ModLoader.config.setData("MMOnline", "syncMode", 0); // 0 is default, 1 is time sync, 2 is groundhog's-day sync
+        this.ModLoader.config.setData("MMOnline", "notifications", true);
+        this.ModLoader.config.setData("MMOnline", "nameplates", true);
 
     }
 
@@ -135,9 +142,6 @@ export class MMOnlineClient {
 
     @Postinit()
     postinit() {
-        if (this.config.mapTracker) {
-            this.ModLoader.gui.openWindow(698, 795, path.resolve(path.join(__dirname, 'gui', 'map.html')));
-        }
         this.clientStorage.scene_keys = JSON.parse(fs.readFileSync(__dirname + '/data/scene_numbers.json').toString());
         this.clientStorage.localization = JSON.parse(fs.readFileSync(__dirname + '/data/en_US.json').toString());
         let status: DiscordStatus = new DiscordStatus('Playing MMOnline', 'On the title screen');
@@ -165,7 +169,9 @@ export class MMOnlineClient {
         let inventoryTrade = createTradeFromContext(this.core.save);
         let equipment = createEquipmentFromContext(this.core.save);
         let quest = createQuestSaveFromContext(this.core.save);
+        let di = createDungeonItemDataFromContext(this.core.save.dungeonItemManager);
 
+        
         mergeInventoryData(this.clientStorage.inventoryStorage, inventory);
 
         if (this.clientStorage.syncMode === 1) {
@@ -177,6 +183,8 @@ export class MMOnlineClient {
         mergeEquipmentData(this.clientStorage.equipmentStorage, equipment);
 
         mergeQuestSaveData(this.clientStorage.questStorage, quest);
+
+        mergeDungeonItemData(this.ModLoader, this.clientStorage.dungeonItemStorage, di, ProxySide.CLIENT, this.ModLoader.clientLobby);
 
         this.ModLoader.clientSide.sendPacket(
             new MMO_SubscreenSyncPacket(this.clientStorage.inventoryStorage,
@@ -358,12 +366,7 @@ export class MMOnlineClient {
                 this.ModLoader.clientSide.sendPacket(new MMO_DownloadRequestPacket(this.ModLoader.clientLobby));
             }
             let gui_p: MMO_SceneGUIPacket = new MMO_SceneGUIPacket(this.core.global.current_scene, this.core.save.form, this.ModLoader.clientLobby);
-            /*if (this.modelManager.clientStorage.adultIcon.byteLength > 1) {
-                gui_p.setAdultIcon(this.modelManager.clientStorage.adultIcon);
-            }
-            if (this.modelManager.clientStorage.childIcon.byteLength > 1) {
-                gui_p.setChildIcon(this.modelManager.clientStorage.childIcon);
-            }*/
+
             this.ModLoader.gui.tunnel.send('MMOnline:onAgeChange', new GUITunnelPacket('MMOnline', 'MMOnline:onAgeChange', gui_p));
         }, 1000);
     }
@@ -375,14 +378,12 @@ export class MMOnlineClient {
     onLobbySetup(lobby: LobbyData): void {
         lobby.data['MMOnline:data_syncing'] = true;
         lobby.data['MMOnline:actor_syncing'] = true;
-        lobby.data['MMOnline:key_syncing'] = this.config.keySync;
     }
 
     @EventHandler(EventsClient.ON_LOBBY_JOIN)
     onJoinedLobby(lobby: LobbyData): void {
         this.LobbyConfig.actor_syncing = lobby.data['MMOnline:actor_syncing'];
         this.LobbyConfig.data_syncing = lobby.data['MMOnline:data_syncing'];
-        this.LobbyConfig.key_syncing = lobby.data['MMOnline:key_syncing'];
         this.ModLoader.logger.info('MMOnline settings inherited from lobby.');
     }
 
@@ -581,6 +582,10 @@ export class MMOnlineClient {
 
         applyQuestSaveToContext(packet.subscreen.quest, this.core.save);
 
+        applyDungeonItemDataToContext(
+            packet.subscreen.dungeonItems,
+            this.core.save.dungeonItemManager
+        );
 
         this.clientStorage.bank = packet.bank.savings;
         this.ModLoader.emulator.rdramWrite16(0x801F054E, this.clientStorage.bank);
@@ -624,6 +629,9 @@ export class MMOnlineClient {
             this.core.save
         ) as EquipmentSave;
         let quest: QuestSave = createQuestSaveFromContext(this.core.save) as IQuestSave;
+        let dungeonItems: MMODungeonItemContext = createDungeonItemDataFromContext(
+            this.core.save.dungeonItemManager
+        ) as IDungeonItemSave;
 
         mergeInventoryData(this.clientStorage.inventoryStorage, inventory);
         if (this.clientStorage.syncMode === 1) {
@@ -638,6 +646,7 @@ export class MMOnlineClient {
 
         mergeInventoryData(this.clientStorage.inventoryStorage, packet.inventory);
         mergeQuestSaveData(this.clientStorage.questStorage, packet.quest);
+        mergeDungeonItemData(this.ModLoader, this.clientStorage.dungeonItemStorage, packet.dungeonItems, ProxySide.CLIENT, this.ModLoader.clientLobby);
 
         if (this.clientStorage.syncMode === 1) {
             mergeBottleDataTime(this.clientStorage.bottleStorage, packet.bottle);
@@ -658,6 +667,8 @@ export class MMOnlineClient {
         applyEquipmentToContext(this.clientStorage.equipmentStorage, this.core.save);
 
         applyQuestSaveToContext(this.clientStorage.questStorage, this.core.save);
+
+        applyDungeonItemDataToContext(this.clientStorage.dungeonItemStorage, this.core.save.dungeonItemManager);
 
         this.ModLoader.gui.tunnel.send('MMOnline:onSubscreenPacket', new GUITunnelPacket('MMOnline', 'MMOnline:onSubscreenPacket', packet));
     }
@@ -697,6 +708,11 @@ export class MMOnlineClient {
     onBankUpdate(packet: MMO_BankSyncPacket) {
         this.clientStorage.bank = packet.savings;
         this.ModLoader.emulator.rdramWrite16(0x801F054E, this.clientStorage.bank);
+    }
+
+    @NetworkHandler("MMO_ItemGetMessagePacket")
+    onMessage(packet: MMO_ItemGetMessagePacket) {
+        this.clientStorage.notifBuffer.push(packet);
     }
 
     healPlayer() {
@@ -1004,6 +1020,23 @@ export class MMOnlineClient {
                     this.updatePermFlags();
 
                     let state = this.core.link.state;
+                    if (state === API.LinkState.STANDING && this.clientStorage.notifBuffer.length > 0) {
+                        if (this.clientStorage.notifBuffer.length > 10) {
+                            let size = this.clientStorage.notifBuffer.length;
+                            this.clientStorage.notifBuffer.length = 0;
+                            this.clientStorage.notifBuffer.push(new MMO_ItemGetMessagePacket("You obtained " + size + " items.", this.ModLoader.clientLobby));
+                        }
+                        while (this.clientStorage.notifBuffer.length > 0) {
+                            let packet = this.clientStorage.notifBuffer.shift()!;
+                            if (this.config.notifications) {
+                                if (packet.icon !== undefined) {
+                                    addToKillFeedQueue(packet.text, this.itemIcons.get(packet.icon));
+                                } else {
+                                    addToKillFeedQueue(packet.text);
+                                }
+                            }
+                        }
+                    }
                     if ((this.core.global.scene_framecount % 400) === 0) this.clientStorage.needs_update = true;
                     if (
                         state === API.LinkState.BUSY ||
