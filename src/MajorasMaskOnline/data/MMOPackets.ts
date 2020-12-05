@@ -5,9 +5,8 @@ import {
 } from 'modloader64_api/ModLoaderDefaultImpls';
 import { PuppetData } from './linkPuppet/PuppetData';
 //import { HorseData } from './linkPuppet/HorseData';
-import { InventorySave, IEquipmentSave, IQuestSave, IDungeonItemSave, PhotoSave } from './MMOSaveData';
+import { InventorySave, IEquipmentSave, IQuestSave, IDungeonItemSave, PhotoSave, SkullSave, StraySave } from './MMOSaveData';
 import * as API from 'MajorasMask/API/Imports';
-import { IPhoto, MMForms } from 'MajorasMask/API/Imports';
 import { INetworkPlayer } from 'modloader64_api/NetworkHandler';
 
 
@@ -56,6 +55,8 @@ export class MMO_DownloadResponsePacket extends Packet {
   flags: MMO_ServerFlagUpdate;
   bank: MMO_BankSyncPacket;
   photo: MMO_PictoboxPacket;
+  stray: MMO_StrayFairyPacket;
+  skull: MMO_SkullPacket;
   permFlags: MMO_PermFlagsPacket
 
   constructor(
@@ -63,6 +64,8 @@ export class MMO_DownloadResponsePacket extends Packet {
     scenes: MMO_ServerFlagUpdate,
     bank: MMO_BankSyncPacket,
     photo: MMO_PictoboxPacket,
+    stray: MMO_StrayFairyPacket,
+    skull: MMO_SkullPacket,
     permFlags: MMO_PermFlagsPacket,
     lobby: string
   ) {
@@ -71,6 +74,8 @@ export class MMO_DownloadResponsePacket extends Packet {
     this.flags = scenes;
     this.bank = bank;
     this.photo = photo;
+    this.stray = stray;
+    this.skull = skull;
     this.permFlags = permFlags;
     packetHelper.cloneDestination(this, this.subscreen);
     packetHelper.cloneDestination(this, this.flags);
@@ -299,9 +304,9 @@ export class MMO_SceneGUIPacket extends Packet {
 export class MMO_ModifyModelPacket extends Packet {
   mod: Buffer;
   offset: number;
-  form: MMForms;
+  form: API.MMForms;
 
-  constructor(lobby: string, mod: Buffer, offset: number, form: MMForms) {
+  constructor(lobby: string, mod: Buffer, offset: number, form: API.MMForms) {
     super('MMO_ModifyModelPacket', 'MMOnline', lobby, false);
     this.mod = mod;
     this.offset = offset;
@@ -321,10 +326,10 @@ export class MMO_GiveModelPacket extends Packet {
 
 export class MMO_AllocateModelPacket extends Packet {
   model: Buffer;
-  form: MMForms;
+  form: API.MMForms;
   hash: string;
 
-  constructor(model: Buffer, form: MMForms, lobby: string, hash: string) {
+  constructor(model: Buffer, form: API.MMForms, lobby: string, hash: string) {
     super('MMO_AllocateModelPacket', 'MMOnline', lobby, true);
     this.model = model;
     this.form = form;
@@ -334,10 +339,10 @@ export class MMO_AllocateModelPacket extends Packet {
 
 export class MMO_IconAllocatePacket extends Packet {
   icon: Buffer;
-  form: MMForms;
+  form: API.MMForms;
   hash: string;
 
-  constructor(buf: Buffer, form: MMForms, lobby: string, hash: string) {
+  constructor(buf: Buffer, form: API.MMForms, lobby: string, hash: string) {
     super('MMO_IconAllocatePacket', 'MMOnline', lobby, true);
     this.icon = buf;
     this.form = form;
@@ -351,6 +356,24 @@ export class MMO_PictoboxPacket extends Packet {
   constructor(photo: PhotoSave, lobby: string) {
     super('MMO_PictoboxPacket', 'MMOnline', lobby, false);
     this.photo = photo;
+  }
+}
+
+export class MMO_SkullPacket extends Packet {
+  skull: SkullSave;
+
+  constructor(skull: SkullSave, lobby: string) {
+    super('MMO_SkullPacket', 'MMOnline', lobby, false);
+    this.skull = skull;
+  }
+}
+
+export class MMO_StrayFairyPacket extends Packet {
+  stray: StraySave;
+
+  constructor(stray: StraySave, lobby: string) {
+    super('MMO_StrayFairyPacket', 'MMOnline', lobby, false);
+    this.stray = stray;
   }
 }
 

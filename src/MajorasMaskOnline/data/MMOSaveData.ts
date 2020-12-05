@@ -792,6 +792,98 @@ export function mergePhotoData(
   }
 
 }
+
+//-----------------------------------------------------
+// Stray Fairies
+//-----------------------------------------------------
+export interface IStraySave extends API.IStray {
+}
+
+export class StraySave implements IStraySave {
+
+  strayWoodfall = 0;
+  straySnowhead = 0;
+  strayBay = 0;
+  strayStone = 0;
+
+}
+
+export function createStrayFromContext(ModLoader: IModLoaderAPI, save: API.IStray) {
+  let data = new StraySave();
+  data.strayWoodfall = save.strayWoodfall;
+  data.straySnowhead = save.straySnowhead;
+  data.strayBay = save.strayBay;
+  data.strayStone = save.strayStone;
+  return data;
+}
+
+export function applyStrayToContext(
+  data: StraySave,
+  save: API.IStray
+) {
+  save.strayWoodfall = data.strayWoodfall;
+  save.straySnowhead = data.straySnowhead;
+  save.strayBay = data.strayBay;
+  save.strayStone = data.strayStone;
+}
+
+export function mergeStrayData(
+  save: StraySave,
+  incoming: StraySave
+) {
+  if (incoming.strayWoodfall !== save.strayWoodfall) {
+    save.strayWoodfall = incoming.strayWoodfall;
+  }
+  if (incoming.straySnowhead !== save.straySnowhead) {
+    save.straySnowhead = incoming.straySnowhead;
+  }
+  if (incoming.strayBay !== save.strayBay) {
+    save.strayBay = incoming.strayBay;
+  }
+  if (incoming.strayStone !== save.strayStone) {
+    save.strayStone = incoming.strayStone;
+  }
+}
+
+//-----------------------------------------------------
+// Skulltula Tokens
+//-----------------------------------------------------
+export interface ISkullSave extends API.ISkull {
+}
+
+export class SkullSave implements ISkullSave {
+  swampSkulltula = 0;
+  baySkulltula = 0;
+}
+
+export function createSkullFromContext(ModLoader: IModLoaderAPI, save: API.ISkull) {
+  let data = new SkullSave();
+  data.swampSkulltula = save.swampSkulltula;
+  data.baySkulltula = save.baySkulltula;
+
+  return data;
+}
+
+export function applySkullToContext(
+  data: ISkullSave,
+  save: API.ISkull
+) {
+  save.swampSkulltula = data.swampSkulltula;
+  save.baySkulltula = data.baySkulltula;
+}
+
+export function mergeSkullData(
+  save: ISkullSave,
+  incoming: ISkullSave
+) {
+  if (incoming.swampSkulltula !== save.swampSkulltula) {
+    save.swampSkulltula = incoming.swampSkulltula;
+  }
+  if (incoming.baySkulltula !== save.baySkulltula) {
+    save.baySkulltula = incoming.baySkulltula;
+  }
+}
+
 //-----------------------------------------------------
 // Equipment
 //-----------------------------------------------------
@@ -984,6 +1076,7 @@ export function mergeQuestSaveData(save: IQuestSave, incoming: IQuestSave) {
   if (incoming.twinmoldRemains) {
     save.twinmoldRemains = true;
   }
+
   if (incoming.songOfTime) {
     save.songOfTime = true;
   }
@@ -1034,7 +1127,6 @@ export function mergeQuestSaveData(save: IQuestSave, incoming: IQuestSave) {
     save.preludeIcon = true;
   }
 
-
   if (incoming.owl_statues > save.owl_statues) {
     save.owl_statues = incoming.owl_statues;
   }
@@ -1049,10 +1141,8 @@ export function mergeQuestSaveData(save: IQuestSave, incoming: IQuestSave) {
 
   if (incoming.heartPieceCount > save.heartPieceCount) {
     save.heartPieceCount = incoming.heartPieceCount;
-    //console.log("incoming.heartPieceCount > save.heartPieceCount")
   } else if (incoming.heartPieceCount === 0 && save.heartPieceCount >= 3) {
     save.heartPieceCount = 0;
-    //console.log ("incoming.heartPieceCount === 0 && save.heartPieceCount >= 3")
   }
 
   if (incoming.heart_containers > save.heart_containers) {

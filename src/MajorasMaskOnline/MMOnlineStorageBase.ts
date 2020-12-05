@@ -12,11 +12,15 @@ import {
   EquipmentSave,
   QuestSave,
   PhotoSave,
+  SkullSave,
+  StraySave,
 } from './data/MMOSaveData';
 
 export class MMOnlineStorageBase {
   constructor() {}
   photoStorage: PhotoSave = new PhotoSave();
+  skullStorage: SkullSave = new SkullSave();
+  strayStorage: StraySave = new StraySave();
   sceneStorage: Buffer = Buffer.alloc(SCENE_ARR_SIZE);
   eventStorage: Buffer = Buffer.alloc(EVENT_ARR_SIZE);
   itemFlagStorage: Buffer = Buffer.alloc(ITEM_FLAG_ARR_SIZE);

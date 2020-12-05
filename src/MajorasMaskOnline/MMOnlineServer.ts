@@ -7,9 +7,9 @@ import MMOnline from './MMOnline';
 import { IModLoaderAPI, ModLoaderEvents } from 'modloader64_api/IModLoaderAPI';
 import { ServerNetworkHandler, IPacketHeader } from 'modloader64_api/NetworkHandler';
 import { MMOnline_PlayerScene, MMOnlineEvents } from './MMOAPI/MMOAPI';
-import { MMO_ScenePacket, MMO_BottleUpdatePacket, MMO_DownloadRequestPacket, MMO_DownloadResponsePacket, MMO_SubscreenSyncPacket, MMO_ServerFlagUpdate, MMO_BankSyncPacket, MMO_DownloadResponsePacket2, MMO_ClientFlagUpdate, MMO_ClientSceneContextUpdate, MMO_TimePacket, MMO_PictoboxPacket, MMO_PermFlagsPacket } from './data/MMOPackets';
+import { MMO_ScenePacket, MMO_BottleUpdatePacket, MMO_DownloadRequestPacket, MMO_DownloadResponsePacket, MMO_SubscreenSyncPacket, MMO_ServerFlagUpdate, MMO_BankSyncPacket, MMO_DownloadResponsePacket2, MMO_ClientFlagUpdate, MMO_ClientSceneContextUpdate, MMO_TimePacket, MMO_PictoboxPacket, MMO_PermFlagsPacket, MMO_StrayFairyPacket, MMO_SkullPacket } from './data/MMOPackets';
 //import { MMO_KeyRebuildPacket, KeyLogManagerServer } from './data/keys/KeyLogManager';
-import { mergeInventoryData, mergeEquipmentData, mergeQuestSaveData, mergeDungeonItemData, MMO_SceneStruct, mergePhotoData, mergeBottleData, mergeBottleDataTime, PhotoSave } from './data/MMOSaveData';
+import { mergeInventoryData, mergeEquipmentData, mergeQuestSaveData, mergeDungeonItemData, MMO_SceneStruct, mergePhotoData, mergeBottleData, mergeBottleDataTime, PhotoSave, StraySave, mergeStrayData, mergeSkullData, SkullSave } from './data/MMOSaveData';
 import { PuppetOverlord } from './data/linkPuppet/PuppetOverlord';
 import { InjectCore } from 'modloader64_api/CoreInjection';
 import * as API from 'MajorasMask/API/MMAPI';
@@ -230,15 +230,12 @@ export class MMOnlineServer {
                         packet.lobby
                     ),
                     new MMO_ServerFlagUpdate(
-                        //storage.sceneStorage,
-                        //storage.eventStorage,
-                        //storage.itemFlagStorage,
-                        //storage.infStorage,
-                        //storage.skulltulaStorage,
                         packet.lobby
                     ),
                     new MMO_BankSyncPacket(storage.bank, packet.lobby),
                     new MMO_PictoboxPacket(storage.photoStorage, packet.lobby),
+                    new MMO_StrayFairyPacket(storage.strayStorage, packet.lobby),
+                    new MMO_SkullPacket(storage.skullStorage, packet.lobby),
                     new MMO_PermFlagsPacket(storage.permFlags, storage.permEvents, packet.lobby),
                     packet.lobby
                 ),
@@ -404,6 +401,34 @@ export class MMOnlineServer {
             mergePhotoData(storage.photoStorage, image);
             this.ModLoader.serverSide.sendPacket(packet);
         }
+    }
+
+    @ServerNetworkHandler('MMO_StrayFairyPacket')
+    onStray(packet: MMO_StrayFairyPacket) {
+        let storage: MMOnlineStorage = this.ModLoader.lobbyManager.getLobbyStorage(
+            packet.lobby,
+            this.parent
+        ) as MMOnlineStorage;
+        if (storage === null) {
+            return;
+        }
+        let stray = new StraySave();
+        mergeStrayData(storage.strayStorage, stray);
+        this.ModLoader.serverSide.sendPacket( new MMO_StrayFairyPacket(storage.strayStorage, packet.lobby));
+    }
+
+    @ServerNetworkHandler('MMO_SkullPacket')
+    onSkull(packet: MMO_SkullPacket) {
+        let storage: MMOnlineStorage = this.ModLoader.lobbyManager.getLobbyStorage(
+            packet.lobby,
+            this.parent
+        ) as MMOnlineStorage;
+        if (storage === null) {
+            return;
+        }
+        let skull = new SkullSave();
+        mergeSkullData(storage.skullStorage, skull);
+        this.ModLoader.serverSide.sendPacket(new MMO_SkullPacket(storage.skullStorage, packet.lobby));
     }
 
     @ServerNetworkHandler('MMO_PermFlagsPacket')

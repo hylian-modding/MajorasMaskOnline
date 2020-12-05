@@ -4,8 +4,8 @@ import { INetworkPlayer, LobbyData, NetworkHandler, IPacketHeader } from 'modloa
 import * as API from 'MajorasMask/API/MMAPI'
 import { MMOnlineEvents, MMOnline_PlayerScene } from './MMOAPI/MMOAPI';
 //import { ActorHookingManagerClient } from './data/ActorHookingSystem';
-import { createEquipmentFromContext, createInventoryFromContext, createQuestSaveFromContext, mergeEquipmentData, mergeInventoryData, mergeQuestSaveData, createDungeonItemDataFromContext, mergeDungeonItemData, InventorySave, applyInventoryToContext, applyBottleToContext, applyEquipmentToContext, applyQuestSaveToContext, applyDungeonItemDataToContext, EquipmentSave, QuestSave, MMODungeonItemContext, IDungeonItemSave, MMO_SceneStruct, createPhotoFromContext, mergePhotoData, PhotoSave, applyPhotoToContext, createBottleFromContext, mergeBottleData, mergeBottleDataTime, applyBottleToContextTime, createTradeFromContext, mergeInventoryTrade, applyTradeToContext, IQuestSave } from './data/MMOSaveData';
-import { MMO_ClientFlagUpdate, MMO_ClientSceneContextUpdate, MMO_DownloadRequestPacket, MMO_SubscreenSyncPacket, MMO_BottleUpdatePacket, MMO_SceneGUIPacket, MMO_BankSyncPacket, MMO_ScenePacket, MMO_SceneRequestPacket, MMO_DownloadResponsePacket, MMO_DownloadResponsePacket2, MMO_ServerFlagUpdate, MMO_ClientSceneContextUpdateTime, MMO_TimePacket, MMO_PictoboxPacket, MMO_PermFlagsPacket } from './data/MMOPackets';
+import { createEquipmentFromContext, createInventoryFromContext, createQuestSaveFromContext, mergeEquipmentData, mergeInventoryData, mergeQuestSaveData, createDungeonItemDataFromContext, mergeDungeonItemData, InventorySave, applyInventoryToContext, applyBottleToContext, applyEquipmentToContext, applyQuestSaveToContext, applyDungeonItemDataToContext, EquipmentSave, QuestSave, MMODungeonItemContext, IDungeonItemSave, MMO_SceneStruct, createPhotoFromContext, mergePhotoData, PhotoSave, applyPhotoToContext, createBottleFromContext, mergeBottleData, mergeBottleDataTime, applyBottleToContextTime, createTradeFromContext, mergeInventoryTrade, applyTradeToContext, IQuestSave, createStrayFromContext, mergeStrayData, applyStrayToContext, createSkullFromContext, applySkullToContext, mergeSkullData, SkullSave, StraySave } from './data/MMOSaveData';
+import { MMO_ClientFlagUpdate, MMO_ClientSceneContextUpdate, MMO_DownloadRequestPacket, MMO_SubscreenSyncPacket, MMO_BottleUpdatePacket, MMO_SceneGUIPacket, MMO_BankSyncPacket, MMO_ScenePacket, MMO_SceneRequestPacket, MMO_DownloadResponsePacket, MMO_DownloadResponsePacket2, MMO_ServerFlagUpdate, MMO_ClientSceneContextUpdateTime, MMO_TimePacket, MMO_PictoboxPacket, MMO_PermFlagsPacket, MMO_SkullPacket, MMO_StrayFairyPacket } from './data/MMOPackets';
 import path from 'path';
 import { GUITunnelPacket } from 'modloader64_api/GUITunnel';
 import fs from 'fs';
@@ -28,7 +28,7 @@ import { Command } from 'MajorasMask/API/Imports';
 import { MMOnlineStorage } from './MMOnlineStorage';
 //import { RPCClient } from './data/RPCHandler';
 import { RECORD_TICK_MODULO, NUM_SCHEDULE_TICKS, NUM_TICKS_PER_DAY, NUM_SCHEDULE_RECORD_TICKS, NUM_RECORD_TICKS_PER_DAY, get_scaled_time, PlayerScheduleData, PlayerSchedule } from './data/MMOPlayerSchedule'
-import { SaveContext } from 'MajorasMask/src/Imports';
+import { SaveContext, Skull } from 'MajorasMask/src/Imports';
 import { ModelManagerClient } from './data/models/ModelManager';
 import { SoundManagerClient } from './data/sound/SoundManager';
 import { addToKillFeedQueue } from 'modloader64_api/Announcements';
@@ -156,6 +156,10 @@ export class MMOnlineClient {
                 }
             }
         }
+        this.clientStorage.isSkulltulaSync = (this.ModLoader.emulator.rdramRead32(0x8014449C) !== 0xAE4C0EC0) && (this.ModLoader.emulator.rdramRead32(0x801444A4) !== 0xAE4E0EC0);
+        this.clientStorage.isFairySync = (this.ModLoader.emulator.rdramRead32(0x8014450C) !== 0xA20000D1) && (this.ModLoader.emulator.rdramRead32(0x80144514) !== 0xA20000D2) && (this.ModLoader.emulator.rdramRead32(0x8014451C) !== 0xA20000D3) && (this.ModLoader.emulator.rdramRead32(0x8014452C) !== 0xA20000D0);
+        this.ModLoader.logger.info(`Skulltula Sync: ${this.clientStorage.isSkulltulaSync}`);
+        this.ModLoader.logger.info(`Fairy Sync: ${this.clientStorage.isFairySync}`);
     }
 
     updateInventory() {
@@ -377,16 +381,6 @@ export class MMOnlineClient {
         }
     }
 
-    updateSkulltulas() {
-        /*if (this.clientStorage.lastKnownSkullCount <
-            this.core.save.questStatus.goldSkulltulas) {
-            this.clientStorage.needs_update = true;
-            this.clientStorage.lastKnownSkullCount = this.core.save.questStatus.goldSkulltulas;
-            this.ModLoader.logger.info('Skulltula update.');
-            this.updateFlags();
-        }*/
-    }
-
     @EventHandler(API.MMEvents.ON_SAVE_LOADED)
     onSaveLoaded(evt: any) {
         this.ModLoader.logger.debug("On_Save_Loaded");
@@ -554,7 +548,7 @@ export class MMOnlineClient {
         }
     }
     @NetworkHandler('MMO_BottleUpdatePacket')
-    onFIELD_BOTTLEclient(packet: MMO_BottleUpdatePacket) {
+    onBottle_client(packet: MMO_BottleUpdatePacket) {
         if (
             this.core.helper.isTitleScreen() ||
             !this.core.helper.isSceneNumberValid()
@@ -598,43 +592,27 @@ export class MMOnlineClient {
     // The server is giving me data.
     @NetworkHandler('MMO_DownloadResponsePacket')
     onDownloadPacket_client(packet: MMO_DownloadResponsePacket) {
-        this.ModLoader.logger.info('onDownloadPacket_client() Start');
         this.ModLoader.logger.info('Retrieving savegame from server...');
-        // Clear inventory.
-        //this.ModLoader.emulator.rdramWriteBuffer(global.ModLoader.save_context + 0x0070, Buffer.alloc(0x30, 0xFF));
-        // Clear c-button and b.
-        //this.ModLoader.emulator.rdramWriteBuffer(global.ModLoader.save_context + 0x0068, Buffer.alloc(0x4, 0xFF));
-        //this.core.link.sword = API.Sword.NONE;
-        //this.core.link.shield = API.Shield.NONE;
-        this.ModLoader.logger.info('MMO_DownloadResponsePacket() applyPhotoToContext() Start');
+
         let temp = new PhotoSave();
         temp.fromPhoto(packet.photo.photo);
         temp.decompressPhoto();
         mergePhotoData(this.clientStorage.photoStorage, temp);
         applyPhotoToContext(this.clientStorage.photoStorage, this.core.save.photo);
-        this.ModLoader.logger.info('MMO_DownloadResponsePacket() applyPhotoToContext() End');
+
+        if (this.clientStorage.isFairySync) applyStrayToContext(packet.stray.stray, this.core.save.stray);
+        if (this.clientStorage.isSkulltulaSync) applySkullToContext(packet.skull.skull, this.core.save.skull);
+
         applyInventoryToContext(packet.subscreen.inventory, this.core.save, true);
 
         if (this.clientStorage.syncMode === 1) applyBottleToContextTime(packet.subscreen.bottle, this.core.save);
         else applyBottleToContext(packet.subscreen.bottle, this.core.save);
 
         applyEquipmentToContext(packet.subscreen.equipment, this.core.save);
-        //this.ModLoader.logger.debug('onDownloadPacket_client() applyEquipmentToContext() Kokiri Sword: ' + packet.subscreen.equipment.kokiriSword);
-        //this.ModLoader.logger.debug('onDownloadPacket_client() applyEquipmentToContext() Razor Sword: ' + packet.subscreen.equipment.razorSword);
-        //this.ModLoader.logger.debug('onDownloadPacket_client() applyEquipmentToContext() Gilded Sword: ' + packet.subscreen.equipment.gilded);
-        //this.ModLoader.logger.debug('onDownloadPacket_client() applyEquipmentToContext() Heroes Shield: ' + packet.subscreen.equipment.heroesShield);
-        //this.ModLoader.logger.debug('onDownloadPacket_client() applyEquipmentToContext() Mirror Shield: ' + packet.subscreen.equipment.mirrorShield);
+
         applyQuestSaveToContext(packet.subscreen.quest, this.core.save);
-        //this.ModLoader.logger.debug('onItemSync_client() applyQuestSaveToContext() heartPieceCount: ' + packet.subscreen.quest.heartPieceCount);
-        /*applyDungeonItemDataToContext(
-            packet.subscreen.dungeonItems,
-            this.core.save.dungeonItemManager
-        );*/
-        //this.core.save.scene_flags = packet.flags.scenes;
-        //this.core.save.event_flags = packet.flags.events;
-        //this.core.save.itemFlags = packet.flags.items;
-        //this.core.save.infTable = packet.flags.inf;
-        //this.core.save.skulltulaFlags = packet.flags.skulltulas;
+
+
         this.clientStorage.bank = packet.bank.savings;
         this.ModLoader.emulator.rdramWrite16(0x801F054E, this.clientStorage.bank);
 
@@ -648,8 +626,6 @@ export class MMOnlineClient {
     // I am giving the server data.
     @NetworkHandler('MMO_DownloadResponsePacket2')
     onDownPacket2_client(packet: MMO_DownloadResponsePacket2) {
-        //  REMOVE ME
-        this.ModLoader.logger.debug("onDownPacket2_client() Start");
         this.clientStorage.first_time_sync = true;
         this.ModLoader.logger.info('The lobby is mine!');
 
@@ -657,7 +633,6 @@ export class MMOnlineClient {
 
         if (this.clientStorage.syncMode === 1) this.updateBottlesTime(true);
         this.core.save.sword_helper.updateSwordonB();
-        this.ModLoader.logger.debug("onDownPacket2_client() End");
     }
 
     @NetworkHandler('MMO_SubscreenSyncPacket')
@@ -668,7 +643,6 @@ export class MMOnlineClient {
         ) {
             return;
         }
-        this.ModLoader.logger.debug("onItemSync_client() Start");
         let inventory: InventorySave = createInventoryFromContext(
             this.core.save
         ) as InventorySave;
@@ -695,15 +669,9 @@ export class MMOnlineClient {
         else mergeBottleData(this.clientStorage.bottleStorage, inventoryBottle);
 
         mergeEquipmentData(this.clientStorage.equipmentStorage, equipment);
-        //this.ModLoader.logger.debug('onItemSync_client() mergeEquipmentData() Kokiri Sword: ' + equipment.kokiriSword);
-        //this.ModLoader.logger.debug('onItemSync_client() mergeEquipmentData() Razor Sword: ' + equipment.razorSword);
-        //this.ModLoader.logger.debug('onItemSync_client() mergeEquipmentData() Gilded Sword: ' + equipment.gilded);
-        //this.ModLoader.logger.debug('onItemSync_client() mergeEquipmentData() Heroes Shield: ' + equipment.heroesShield);
-        //this.ModLoader.logger.debug('onItemSync_client() mergeEquipmentData() Mirror Shield: ' + equipment.mirrorShield);
+
         mergeQuestSaveData(this.clientStorage.questStorage, quest);
-        //this.ModLoader.logger.debug('onItemSync_client() mergeQuestSaveData() heartPieceCount: ' + quest.heartPieceCount);
-        //mergeDungeonItemData(this.clientStorage.dungeonItemStorage, dungeonItems);
-        //mergePhotoData(this.clientStorage.photoStorage, packet.photo);
+
         mergeInventoryData(this.clientStorage.inventoryStorage, packet.inventory);
         mergeQuestSaveData(this.clientStorage.questStorage, packet.quest);
 
@@ -714,16 +682,7 @@ export class MMOnlineClient {
         else mergeBottleData(this.clientStorage.bottleStorage, packet.bottle);
 
         mergeEquipmentData(this.clientStorage.equipmentStorage, packet.equipment);
-        //this.ModLoader.logger.debug('onItemSync_client() mergeEquipmentData()2 Kokiri Sword: ' + packet.equipment.kokiriSword);
-        //this.ModLoader.logger.debug('onItemSync_client() mergeEquipmentData()2 Razor Sword: ' + packet.equipment.razorSword);
-        //this.ModLoader.logger.debug('onItemSync_client() mergeEquipmentData()2 Gilded Sword: ' + packet.equipment.gilded);
-        //this.ModLoader.logger.debug('onItemSync_client() mergeEquipmentData()2 Heroes Shield: ' + packet.equipment.heroesShield);
-        //this.ModLoader.logger.debug('onItemSync_client() mergeEquipmentData()2 Mirror Shield: ' + packet.equipment.mirrorShield);
 
-        /*mergeDungeonItemData(
-            this.clientStorage.dungeonItemStorage,
-            packet.dungeonItems
-        );*/
         applyInventoryToContext(this.clientStorage.inventoryStorage, this.core.save);
 
         if (this.clientStorage.syncMode === 1) {
@@ -733,17 +692,10 @@ export class MMOnlineClient {
         else applyBottleToContext(this.clientStorage.bottleStorage, this.core.save);
 
         applyEquipmentToContext(this.clientStorage.equipmentStorage, this.core.save);
-        //this.ModLoader.logger.debug('onItemSync_client() applyEquipmentToContext() Kokiri Sword: ' + this.clientStorage.equipmentStorage.kokiriSword);
-        //this.ModLoader.logger.debug('onItemSync_client() applyEquipmentToContext() Razor Sword: ' + this.clientStorage.equipmentStorage.razorSword);
-        //this.ModLoader.logger.debug('onItemSync_client() applyEquipmentToContext() Gilded Sword: ' + this.clientStorage.equipmentStorage.gilded);
-        //this.ModLoader.logger.debug('onItemSync_client() applyEquipmentToContext() Heroes Shield: ' + this.clientStorage.equipmentStorage.heroesShield);
-        //this.ModLoader.logger.debug('onItemSync_client() applyEquipmentToContext() Mirror Shield: ' + this.clientStorage.equipmentStorage.mirrorShield);
+
         applyQuestSaveToContext(this.clientStorage.questStorage, this.core.save);
-        //this.ModLoader.logger.debug('onItemSync_client() applyQuestSaveToContext() heartPieceCount: ' + this.clientStorage.questStorage.heartPieceCount);
-        /*applyDungeonItemDataToContext(this.clientStorage.dungeonItemStorage, this.core.save.dungeonItemManager);*/
 
         this.ModLoader.gui.tunnel.send('MMOnline:onSubscreenPacket', new GUITunnelPacket('MMOnline', 'MMOnline:onSubscreenPacket', packet));
-        this.ModLoader.logger.debug("onItemSync_client() End");
     }
 
 
@@ -856,12 +808,10 @@ export class MMOnlineClient {
     @NetworkHandler('MMO_ClientSceneContextUpdate')
     onSceneContextSync_client(packet: MMO_ClientSceneContextUpdate) {
         if (this.core.helper.isTitleScreen() || !this.core.helper.isSceneNumberValid() || this.core.helper.isLinkEnteringLoadingZone()) return;
-        this.ModLoader.logger.debug("onSceneContextSync_client() Start");
         if (this.core.global.current_scene !== packet.scene) return;
 
         let buf3: Buffer = this.core.global.liveSceneData_collectable;
         if (Object.keys(parseFlagChanges(packet.collect, buf3) > 0)) this.core.global.liveSceneData_collectable = buf3;
-        this.ModLoader.logger.debug("onSceneContextSync_client() End");
     }
 
     @NetworkHandler('MMO_ClientSceneContextUpdateTime')
@@ -939,7 +889,6 @@ export class MMOnlineClient {
 
     @EventHandler(MMOnlineEvents.ON_INVENTORY_UPDATE)
     onInventoryUpdate(inventory: API.IInventory) {
-        this.ModLoader.logger.debug("onInventoryUpdate() Start");
         if (this.core.helper.isTitleScreen() || !this.core.helper.isSceneNumberValid()) return;
 
         let addr: number = global.ModLoader.save_context + 0x005C;
@@ -980,7 +929,6 @@ export class MMOnlineClient {
             );
         }*/
 
-        this.ModLoader.logger.debug("onInventoryUpdate() End");
     }
 
     /*@EventHandler(ModLoaderEvents.ON_CRASH)
@@ -1049,6 +997,22 @@ export class MMOnlineClient {
         }
     }
 
+    updateSkulltula() {
+        let skull = createSkullFromContext(this.ModLoader, this.core.save.skull);
+        this.ModLoader.logger.info("updateSkulltula()");
+        mergeSkullData(this.clientStorage.skullStorage, skull);
+        applySkullToContext(skull, this.core.save.skull);
+        this.ModLoader.clientSide.sendPacket(new MMO_SkullPacket(this.clientStorage.skullStorage, this.ModLoader.clientLobby));
+    }
+
+    updateStray() {
+        let stray = createStrayFromContext(this.ModLoader, this.core.save.stray);
+        this.ModLoader.logger.info("updateStray()");
+        mergeStrayData(this.clientStorage.strayStorage, stray);
+        applyStrayToContext(stray, this.core.save.stray);
+        this.ModLoader.clientSide.sendPacket(new MMO_StrayFairyPacket(this.clientStorage.strayStorage, this.ModLoader.clientLobby));
+    }
+
     @NetworkHandler('MMO_PictoboxPacket')
     onPictobox(packet: MMO_PictoboxPacket) {
         if (packet.player.uuid === this.ModLoader.me.uuid) {
@@ -1076,6 +1040,38 @@ export class MMOnlineClient {
             }
         }
         this.clientStorage.pictoboxAlert.buf = sb.toBuffer();
+    }
+
+    @NetworkHandler('MMO_SkullPacket')
+    onSkull(packet: MMO_SkullPacket) {
+        this.ModLoader.logger.info("onSkull()");
+        let skull = createSkullFromContext(this.ModLoader, this.core.save.skull);
+        this.ModLoader.logger.info("Swamp Skull (save): "+ this.core.save.skull.swampSkulltula);
+        this.ModLoader.logger.info("Bay Skull (save): "+ this.core.save.skull.baySkulltula);
+        
+        this.ModLoader.logger.info("Swamp Skull (packet): "+ packet.skull.swampSkulltula);
+        this.ModLoader.logger.info("Bay Skull (packet): "+ packet.skull.baySkulltula);
+        mergeSkullData(this.clientStorage.skullStorage, packet.skull);
+        mergeSkullData(this.clientStorage.skullStorage, skull);
+        applySkullToContext(skull, this.core.save.skull);
+    }
+
+    @NetworkHandler('MMO_StrayFairyPacket')
+    onStray(packet: MMO_StrayFairyPacket) {
+        this.ModLoader.logger.info("onStray()");
+        let stray = createStrayFromContext(this.ModLoader, this.core.save.stray);
+        this.ModLoader.logger.info("Woodfall Stray (save): "+ this.core.save.stray.strayWoodfall);
+        this.ModLoader.logger.info("Snowhead Stray (save): "+ this.core.save.stray.straySnowhead);
+        this.ModLoader.logger.info("Bay Stray (save): "+ this.core.save.stray.strayBay);
+        this.ModLoader.logger.info("Stone Stray (save): "+ this.core.save.stray.strayStone);
+
+        this.ModLoader.logger.info("Woodfall Stray (packet): "+ packet.stray.strayWoodfall);
+        this.ModLoader.logger.info("Snowhead Stray (packet): "+ packet.stray.straySnowhead);
+        this.ModLoader.logger.info("Bay Stray (packet): "+ packet.stray.strayBay);
+        this.ModLoader.logger.info("Stone Stray (packet): "+ packet.stray.strayStone);
+        mergeStrayData(this.clientStorage.strayStorage, packet.stray);
+        mergeStrayData(this.clientStorage.strayStorage, stray);
+        applyStrayToContext(stray, this.core.save.stray);
     }
 
     @onViUpdate()
@@ -1156,12 +1152,12 @@ export class MMOnlineClient {
             let flag_array = [genericSceneFlags1, genericSceneFlags2, chestSceneFlags, collectibleSceneFlags];
             let mask_array = [genericMask1, genericMask2, chestMask, collectibleMask];
 
-            for (let j = 0; j < flag_array.length; j++){
+            for (let j = 0; j < flag_array.length; j++) {
                 let f = flag_array[j];
                 let m = mask_array[j];
                 scratch.writeUInt32BE(f, 0);
                 scratch2.writeUInt32BE(m, 0);
-                for (let k = 0; k < scratch.byteLength; k++){
+                for (let k = 0; k < scratch.byteLength; k++) {
                     scratch[k] &= scratch2[k];
                 }
                 f = scratch.readUInt32BE(0);
@@ -1219,10 +1215,6 @@ export class MMOnlineClient {
             this.ModLoader.logger.debug("This is an MMR Rom.");
             this.clientStorage.isMMR = true;
         }
-
-        let t = new Z64RomTools(this.ModLoader, Z64LibSupportedGames.MAJORAS_MASK);
-        let z = t.decompressDMAFileFromRom(evt.rom, 768);
-        fs.writeFileSync(global.ModLoader.startdir + "/En_Ja.zobj", z);
     }
 
     @onTick()
@@ -1269,6 +1261,8 @@ export class MMOnlineClient {
                     else if (state === API.LinkState.STANDING && this.clientStorage.needs_update && this.LobbyConfig.data_syncing) {
                         this.updateInventory();
                         if (this.clientStorage.syncMode === 1) this.updateFlags();
+                        if (this.clientStorage.isFairySync) this.updateStray();
+                        if (this.clientStorage.isSkulltulaSync) this.updateSkulltula();
                         this.clientStorage.needs_update = false;
                     }
                 }
