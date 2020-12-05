@@ -265,7 +265,6 @@ export class MMOnlineServer {
         else mergeBottleData(storage.bottleStorage, packet.bottle);
         mergeEquipmentData(storage.equipmentStorage, packet.equipment);
         mergeQuestSaveData(storage.questStorage, packet.quest);
-        this.ModLoader.logger.debug("onItemSync_server() Heart Piece Count: " + packet.quest.heartPieceCount)
         mergeDungeonItemData(storage.dungeonItemStorage, packet.dungeonItems);
         this.ModLoader.serverSide.sendPacket(
             new MMO_SubscreenSyncPacket(
@@ -412,8 +411,7 @@ export class MMOnlineServer {
         if (storage === null) {
             return;
         }
-        let stray = new StraySave();
-        mergeStrayData(storage.strayStorage, stray);
+        mergeStrayData(storage.strayStorage, packet.stray);
         this.ModLoader.serverSide.sendPacket( new MMO_StrayFairyPacket(storage.strayStorage, packet.lobby));
     }
 
@@ -426,8 +424,8 @@ export class MMOnlineServer {
         if (storage === null) {
             return;
         }
-        let skull = new SkullSave();
-        mergeSkullData(storage.skullStorage, skull);
+
+        mergeSkullData(storage.skullStorage, packet.skull);
         this.ModLoader.serverSide.sendPacket(new MMO_SkullPacket(storage.skullStorage, packet.lobby));
     }
 

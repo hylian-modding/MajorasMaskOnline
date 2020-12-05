@@ -831,16 +831,16 @@ export function mergeStrayData(
   save: StraySave,
   incoming: StraySave
 ) {
-  if (incoming.strayWoodfall !== save.strayWoodfall) {
+  if (incoming.strayWoodfall > save.strayWoodfall) {
     save.strayWoodfall = incoming.strayWoodfall;
   }
-  if (incoming.straySnowhead !== save.straySnowhead) {
+  if (incoming.straySnowhead > save.straySnowhead) {
     save.straySnowhead = incoming.straySnowhead;
   }
-  if (incoming.strayBay !== save.strayBay) {
+  if (incoming.strayBay > save.strayBay) {
     save.strayBay = incoming.strayBay;
   }
-  if (incoming.strayStone !== save.strayStone) {
+  if (incoming.strayStone > save.strayStone) {
     save.strayStone = incoming.strayStone;
   }
 }
@@ -876,10 +876,10 @@ export function mergeSkullData(
   save: ISkullSave,
   incoming: ISkullSave
 ) {
-  if (incoming.swampSkulltula !== save.swampSkulltula) {
+  if (incoming.swampSkulltula > save.swampSkulltula) {
     save.swampSkulltula = incoming.swampSkulltula;
   }
-  if (incoming.baySkulltula !== save.baySkulltula) {
+  if (incoming.baySkulltula > save.baySkulltula) {
     save.baySkulltula = incoming.baySkulltula;
   }
 }
