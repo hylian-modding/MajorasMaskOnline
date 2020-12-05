@@ -156,10 +156,6 @@ export class MMOnlineClient {
                 }
             }
         }
-        this.clientStorage.isSkulltulaSync = (this.ModLoader.emulator.rdramRead32(0x8014449C) !== 0xAE4C0EC0) && (this.ModLoader.emulator.rdramRead32(0x801444A4) !== 0xAE4E0EC0);
-        this.clientStorage.isFairySync = (this.ModLoader.emulator.rdramRead32(0x8014450C) !== 0xA20000D1) && (this.ModLoader.emulator.rdramRead32(0x80144514) !== 0xA20000D2) && (this.ModLoader.emulator.rdramRead32(0x8014451C) !== 0xA20000D3) && (this.ModLoader.emulator.rdramRead32(0x8014452C) !== 0xA20000D0);
-        this.ModLoader.logger.info(`Skulltula Sync: ${this.clientStorage.isSkulltulaSync}`);
-        this.ModLoader.logger.info(`Fairy Sync: ${this.clientStorage.isFairySync}`);
     }
 
     updateInventory() {
@@ -930,6 +926,21 @@ export class MMOnlineClient {
         this.ModLoader.clientSide.sendPacket(new MMO_PermFlagsPacket(this.clientStorage.permFlags, this.clientStorage.permEvents, this.ModLoader.clientLobby));
     }
 
+    mmrSyncCheck(){
+        let skullShuffle0: number = this.ModLoader.emulator.rdramRead32(0x8014449C);
+        let skullShuffle1: number = this.ModLoader.emulator.rdramRead32(0x801444A4);
+        let strayShuffle0: number = this.ModLoader.emulator.rdramRead32(0x8014450C);
+        let strayShuffle1: number = this.ModLoader.emulator.rdramRead32(0x80144514);
+        let strayShuffle2: number = this.ModLoader.emulator.rdramRead32(0x8014451C);
+        let strayShuffle3: number = this.ModLoader.emulator.rdramRead32(0x8014452C);
+
+        if(skullShuffle0 === 0x00000000 && skullShuffle1 === 0x00000000) this.clientStorage.isSkulltulaSync = true;
+        if(strayShuffle0 === 0x00000000 && strayShuffle1 === 0x00000000 && strayShuffle2 === 0x00000000 && strayShuffle3 === 0x00000000) this.clientStorage.isFairySync = true;
+        
+        this.ModLoader.logger.info("Skulltula Sync: " + this.clientStorage.isFairySync);
+        this.ModLoader.logger.info("Fairy Sync: " + this.clientStorage.isSkulltulaSync);
+    }
+
     @NetworkHandler('MMO_PermFlagsPacket')
     onPermFlags(packet: MMO_PermFlagsPacket) {
         parseFlagChanges(packet.flags, this.clientStorage.permFlags);
@@ -1012,5 +1023,6 @@ export class MMOnlineClient {
                 }
             }
         }
+        if (this.core.helper.isTitleScreen && this.core.global.scene_framecount === 1 && !this.core.save.checksum) this.mmrSyncCheck();
     }
 }
