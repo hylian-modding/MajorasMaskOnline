@@ -169,7 +169,9 @@ export class MMOnlineClient {
         let inventoryTrade = createTradeFromContext(this.core.save);
         let equipment = createEquipmentFromContext(this.core.save);
         let quest = createQuestSaveFromContext(this.core.save);
-        let di = createDungeonItemDataFromContext(this.core.save.dungeonItemManager);
+        let di!: any;
+
+        if(this.clientStorage.syncMode === 1) di = createDungeonItemDataFromContext(this.core.save.dungeonItemManager);
 
         
         mergeInventoryData(this.clientStorage.inventoryStorage, inventory);
@@ -184,7 +186,7 @@ export class MMOnlineClient {
 
         mergeQuestSaveData(this.clientStorage.questStorage, quest);
 
-        mergeDungeonItemData(this.ModLoader, this.clientStorage.dungeonItemStorage, di, ProxySide.CLIENT, this.ModLoader.clientLobby);
+        if(this.clientStorage.syncMode === 1) mergeDungeonItemData(this.ModLoader, this.clientStorage.dungeonItemStorage, di, ProxySide.CLIENT, this.ModLoader.clientLobby);
 
         this.ModLoader.clientSide.sendPacket(
             new MMO_SubscreenSyncPacket(this.clientStorage.inventoryStorage,
@@ -582,10 +584,7 @@ export class MMOnlineClient {
 
         applyQuestSaveToContext(packet.subscreen.quest, this.core.save);
 
-        applyDungeonItemDataToContext(
-            packet.subscreen.dungeonItems,
-            this.core.save.dungeonItemManager
-        );
+        if(this.clientStorage.syncMode === 1) applyDungeonItemDataToContext(packet.subscreen.dungeonItems, this.core.save.dungeonItemManager);
 
         this.clientStorage.bank = packet.bank.savings;
         this.ModLoader.emulator.rdramWrite16(0x801F054E, this.clientStorage.bank);
@@ -629,9 +628,12 @@ export class MMOnlineClient {
             this.core.save
         ) as EquipmentSave;
         let quest: QuestSave = createQuestSaveFromContext(this.core.save) as IQuestSave;
-        let dungeonItems: MMODungeonItemContext = createDungeonItemDataFromContext(
+        let dungeonItems!: MMODungeonItemContext;
+        if(this.clientStorage.syncMode === 1){
+            dungeonItems = createDungeonItemDataFromContext(
             this.core.save.dungeonItemManager
-        ) as IDungeonItemSave;
+            ) as IDungeonItemSave;
+        }
 
         mergeInventoryData(this.clientStorage.inventoryStorage, inventory);
         if (this.clientStorage.syncMode === 1) {
@@ -646,7 +648,7 @@ export class MMOnlineClient {
 
         mergeInventoryData(this.clientStorage.inventoryStorage, packet.inventory);
         mergeQuestSaveData(this.clientStorage.questStorage, packet.quest);
-        mergeDungeonItemData(this.ModLoader, this.clientStorage.dungeonItemStorage, packet.dungeonItems, ProxySide.CLIENT, this.ModLoader.clientLobby);
+        if(this.clientStorage.syncMode === 1) mergeDungeonItemData(this.ModLoader, this.clientStorage.dungeonItemStorage, packet.dungeonItems, ProxySide.CLIENT, this.ModLoader.clientLobby);
 
         if (this.clientStorage.syncMode === 1) {
             mergeBottleDataTime(this.clientStorage.bottleStorage, packet.bottle);
@@ -668,7 +670,7 @@ export class MMOnlineClient {
 
         applyQuestSaveToContext(this.clientStorage.questStorage, this.core.save);
 
-        applyDungeonItemDataToContext(this.clientStorage.dungeonItemStorage, this.core.save.dungeonItemManager);
+        if(this.clientStorage.syncMode === 1) applyDungeonItemDataToContext(this.clientStorage.dungeonItemStorage, this.core.save.dungeonItemManager);
 
         this.ModLoader.gui.tunnel.send('MMOnline:onSubscreenPacket', new GUITunnelPacket('MMOnline', 'MMOnline:onSubscreenPacket', packet));
     }
