@@ -1,0 +1,196 @@
+DICTIONARY
+    //
+    // For use with decompressed 1.0 MM only!
+    //
+        VROM_CODE             0x00B3C000        // start of code within rom
+        TABLE_OBJECT          0x11CC80          // start of object table within code
+        VROM_OBJ              O_0x14C           // object to overwrite
+        VROM_PLAYER           0xCA7F00          // start of ovl_player_actor within rom
+        HIERARCHY_CODE        0x0177B8			// Link's hierarchy pointer will
+												// be written at this address
+                                                
+        SEG                   0x06000000        // ram segment
+
+        OBJ_GORON             0x014C               // object_link_goron object number
+
+        // Hierarchy (Main Body)
+        DL_WAIST                         0x008C00       "Waist" // this is the name zzconvert automatically uses
+        DL_RTHIGH                        0x008138       "Thigh.R"
+        DL_RSHIN                         0x008230       "Shin.R"
+        DL_RFOOT                         0x008500       "Foot.R"
+        DL_LTHIGH                        0x0086A0       "Thigh.L"
+        DL_LSHIN                         0x008790       "Shin.L"
+        DL_LFOOT                         0x008A60       "Foot.L"
+        DL_HEAD                          0x0091F0       "Head"
+        DL_HAT                           0x009898       "Hat"
+        DL_COLLAR                        0x008C98       "Collar"
+        DL_LSHOULDER                     0x00A0A0       "Shoulder.L"
+        DL_LFOREARM                      0x00A220       "Forearm.L"
+        DL_RSHOULDER                     0x009A98       "Shoulder.R"
+        DL_RFOREARM                      0x009C18       "Forearm.R"
+        DL_TORSO                         0x008F18       "Torso"
+        DL_SHEATH                        0x0099D8		"Sheath"
+        // Hands
+        DL_LHAND                         0x00A500       "Hand.L"
+        DL_LFIST                         0x00DE68       "Fist.L"
+        DL_LHAND_BOTTLE                  0x011468       "Bottle.Hand.L"
+        DL_RHAND                         0x009EF8       "Hand.R"
+        DL_RFIST                         0x00E7E8       "Fist.R"
+
+        // Hands
+        DL_LHAND			   0x013890		"Hand.L"
+        DL_RHAND			   0x0153C0		"Hand.R"
+        DL_FIRE_PUNCH          0x011AC0     "FirePunch"
+		// Goron Drums
+		DL_DRUM_STRAP			   0x00FC18     "Drum.Strap"
+		DL_DRUM_UP			   	   0x00FCF0     "Drum.Up"
+		DL_DRUM_LEFT			   0x00FF18     "Drum.Left"
+		DL_DRUM_RIGHT			   0x010140     "Drum.Right"
+		DL_DRUM_DOWN     	 	   0x010368     "Drum.Down"
+		DL_DRUM_A			   	   0x010590     "Drum.A"
+		
+END
+
+
+OBJECT POOL=0x5000,0x800 
+  LUT_ZZ_MODLOADER:
+	HexString(4D 4F 44 4C 4F 41 44 45 52 36 34 02 06 00 50 D0);
+
+        LUT_DL_DRUM_STRAP:
+        CallList( DL_DRUM_STRAP );
+
+        LUT_DL_DRUM_UP:
+        CallList( DL_DRUM_UP );
+
+        LUT_DL_DRUM_LEFT:
+        CallList( DL_DRUM_LEFT );
+
+        LUT_DL_DRUM_RIGHT:
+        CallList( DL_DRUM_RIGHT );
+                
+        LUT_DL_DRUM_DOWN:
+        CallList( DL_DRUM_DOWN );
+
+        LUT_DL_DRUM_A:
+        CallList( DL_DRUM_A );
+        
+        LUT_DL_RFOOT:
+        CallList( DL_RFOOT );
+
+        LUT_DL_LTHIGH:
+        CallList( DL_LTHIGH );
+
+        LUT_DL_LSHIN:
+        CallList( DL_LSHIN );
+
+        LUT_DL_LFOOT:
+        CallList( DL_LFOOT );
+
+        LUT_DL_HEAD:
+        CallList( DL_HEAD );
+
+        LUT_DL_HAT:
+        CallList( DL_HAT );
+
+        LUT_DL_COLLAR:
+        CallList( DL_COLLAR );
+
+        LUT_DL_LSHOULDER:
+        CallList( DL_LSHOULDER );
+
+        LUT_DL_LFOREARM:
+        CallList( DL_LFOREARM );
+
+        LUT_DL_RSHOULDER:
+        CallList( DL_RSHOULDER );
+
+        LUT_DL_RFOREARM:
+        CallList( DL_RFOREARM );
+
+        LUT_DL_TORSO:
+        CallList( DL_TORSO );
+
+        LUT_DL_LHAND:
+        CallList( DL_LHAND );
+
+        LUT_DL_LFIST:
+        CallList( DL_LFIST );
+
+        LUT_DL_LHAND_BOTTLE:
+        CallList( DL_LHAND_BOTTLE );
+
+        LUT_DL_RHAND:
+        CallList( DL_RHAND );
+
+        LUT_DL_RFIST:
+        CallList( DL_RFIST );
+	
+		LUT_DL_WAIST:
+        CallList( DL_WAIST );
+	
+END
+
+REPOINT 
+        
+      GoTo(VROM_CODE+0x11A544);
+      Write32(LUT_DL_WAIST);                   // Waist
+      Write32(LUT_DL_WAIST);
+        
+      GoTo(VROM_CODE+0x11A800); // Right Shoulder
+      Write32(LUT_DL_RSHOULDER);
+      
+      GoTo(VROM_CODE+0x11A7D8); // Left Forearm
+      Write32(LUT_DL_LFOREARM); 
+      
+      GoTo(VROM_CODE+0x11A634);                    // Left Hand
+      Write32(LUT_DL_LHAND);
+      Write32(LUT_DL_LHAND);
+        
+      GoTo(VROM_CODE+0x11A65C);                    // Left Hand
+      Write32(LUT_DL_LHAND);
+      Write32(LUT_DL_LHAND);
+      
+      GoTo(VROM_CODE+0x11A6AC);                    // Left Hand
+      Write32(LUT_DL_LHAND);
+      
+      GoTo(VROM_CODE+0x11A7EC);                    // Left Hand
+      Write32(LUT_DL_LHAND);
+      Write32(LUT_DL_LHAND);
+      
+      GoTo(VROM_CODE+0x11A6AC);                    // Left Hand
+      Write32(LUT_DL_LHAND);
+      Write32(LUT_DL_LHAND);
+
+      GoTo(VROM_CODE+0x11A684);                    // Left Fist
+      Write32(LUT_DL_LFIST);
+      Write32(LUT_DL_LFIST);
+
+      GoTo(VROM_CODE+0x11A6EC);                    // Right Hand
+      Write32(LUT_DL_RHAND);
+      Write32(LUT_DL_RHAND);
+
+      GoTo(VROM_CODE+0x11A714);                    // Right Fist
+      Write32(LUT_DL_RFIST);
+      Write32(LUT_DL_RFIST);
+     
+      GoTo(VROM_CODE+0x11B340);                    // Drum Up
+      Write32(LUT_DL_DRUM_UP);
+      
+      GoTo(VROM_CODE+0x11B33C);                    // Drum Left
+      Write32(LUT_DL_DRUM_LEFT);
+      
+      GoTo(VROM_CODE+0x11B338);                    // Drum Rignt
+      Write32(LUT_DL_DRUM_RIGHT);
+      
+      GoTo(VROM_CODE+0x11B334);                    // Drum Down
+      Write32(LUT_DL_DRUM_DOWN);
+       
+      GoTo(VROM_CODE+0x11B330);                    // Drum A
+      Write32(LUT_DL_DRUM_A);
+      
+      GoTo(VROM_CODE+0x11A7B4);                    // Outstreched Left Hand (for holding bottles)
+      Write32(LUT_DL_LHAND_BOTTLE);
+      Write32(LUT_DL_LHAND_BOTTLE);
+
+        
+END

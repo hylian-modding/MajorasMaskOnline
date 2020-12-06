@@ -40,7 +40,7 @@ DICTIONARY
     DL_RFIST                    0x00FD08        "Fist.R"
 
     // Equipment
-	DL_SHIELD_MIRROR_FACE       0x015F98
+    DL_SHIELD_MIRROR_FACE       0x015F98	"Shield.2.Face"
     DL_SHIELD_MIRROR            0x016480        "Shield.2"
     DL_BLADE_GFSWORD            0x016898        "Sword.4"
     DL_SHEATH_GILDED            0x016B80        "Sheath.3"
@@ -72,7 +72,7 @@ END
 
 OBJECT POOL=0x5000,0x800 
   LUT_ZZ_MODLOADER:
-	HexString(4D 4F 44 4C 4F 41 44 45 52 36 34 04 FF FF FF FF);
+	HexString(4D 4F 44 4C 4F 41 44 45 52 36 34 04 06 00 54 20);
 	
 				
       MATRIX_SHIELD_MIRROR_BACK: // Mirror Shield Matrix
@@ -408,13 +408,13 @@ REPOINT
       Lo32(LUT_DL_HOOKSHOT_SPIKE);
 	  
 	  // FPS Glitch Fix (Thanks Fkualol!)
-      GoTo(VROM_CODE+0x11A7E4);
+      GoTo(0x00C567E4);
       Write32(LUT_DL_DF_COMMAND);
 
       // Swordless fix    (Thanks Nick!)
-      GoTo(VROM_CODE+0x11A5E4);
+      GoTo(0x00C565E4);
       Write32(LUT_DL_DF_COMMAND);                   // Sheathed Sword + Shield
-      GoTo(VROM_CODE+0x11A5BC);
+      GoTo(0x00C565BC);
       Write32(LUT_DL_DF_COMMAND);                   // Sheathed Sword
 	  
 	  // Unknown Pointers (?)

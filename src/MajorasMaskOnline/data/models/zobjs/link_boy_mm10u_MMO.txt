@@ -1,0 +1,184 @@
+DICTIONARY
+    //
+    // For use with decompressed 1.0 MM only!
+    //
+    VROM_CODE             0x00B3C000           // start of code within rom
+    TABLE_OBJECT          0x11CC80             // start of object table within code
+    VROM_OBJ              O_0x10               // object to overwrite
+    VROM_PLAYER           0xCA7F00            // start of ovl_player_actor within rom
+	
+	HIERARCHY_CODE        0x11A340            // Relative to the start of code;
+                                               // Link's hierarchy pointer will
+                                               // be written at this address
+    SEG                   0x06000000           // ram segment
+ 
+    OBJ_BOY               0x0010               // object_link_boy object number
+
+    // Hierarchy
+    DL_WAIST                    0x0049E0        "Waist" // this is the name zzconvert automatically uses
+    DL_RTHIGH                   0x004C50        "Thigh.R"
+    DL_RSHIN                    0x004F48        "Shin.R"
+    DL_RFOOT                    0x005190        "Foot.R"
+    DL_LTHIGH                   0x0052A0        "Thigh.L"
+    DL_LSHIN                    0x0055D0        "Shin.L"
+    DL_LFOOT                    0x005818        "Foot.L"
+    DL_HEAD                     0x005928        "Head"
+    DL_HAT                      0x005A78        "Hat"
+    DL_COLLAR                   0x0060E8        "Collar"
+    DL_LSHOULDER                0x006A58        "Shoulder.L"
+    DL_LFOREARM                 0x006C38        "Forearm.L"
+    DL_RSHOULDER                0x006410        "Shoulder.R"
+    DL_RFOREARM                 0x0065E0        "Forearm.R"
+	DL_SHEATH  					0x006370 		"Sheath"
+    DL_TORSO                    0x006148        "Torso"
+	
+    // Hands
+    DL_LHAND                    0x006EB8        "Hand.L"
+    DL_LHAND_BOTTLE             0x007820        "Bottle.Hand.L"
+    DL_RHAND                    0x0067D8        "Hand.R"
+	DL_LHAND_SWORD              0x0080F0        "Sword.Hand"
+
+	// Other
+	DL_HELIX_SWORD              	0x007F28        "Sword.Helix"
+	DL_BOTTLE_FILLING				0x007A50		"Bottle.Filling"
+	DL_BOTTLE_EMPTY 				0x007AD0        "Bottle.Empty"
+
+END
+
+OBJECT POOL=0x5000,0x800 
+  LUT_ZZ_MODLOADER:
+	HexString(4D 4F 44 4C 4F 41 44 45 52 36 34 00 06 00 50 C0);
+
+	LUT_DL_HELIX_SWORD:
+		CallList( DL_HELIX_SWORD );
+		
+	LUT_DL_LHAND_SWORD:
+		CallList( DL_LHAND_SWORD );
+		
+	LUT_DL_BOTTLE_EMPTY:
+		CallList( DL_BOTTLE_EMPTY );
+
+	LUT_DL_BOTTLE_FILLING:
+		CallList( DL_BOTTLE_FILLING );
+		
+    LUT_DL_RTHIGH:
+        CallList( DL_RTHIGH );
+
+    LUT_DL_RSHIN:
+        CallList( DL_RSHIN );
+
+    LUT_DL_RFOOT:
+        CallList( DL_RFOOT );
+
+    LUT_DL_LTHIGH:
+        CallList( DL_LTHIGH );
+
+    LUT_DL_LSHIN:
+        CallList( DL_LSHIN );
+
+    LUT_DL_LFOOT:
+        CallList( DL_LFOOT );
+
+    LUT_DL_HEAD:
+        CallList( DL_HEAD );
+
+    LUT_DL_HAT:
+        CallList( DL_HAT );
+
+    LUT_DL_COLLAR:
+        CallList( DL_COLLAR );
+
+    LUT_DL_LSHOULDER:
+        CallList( DL_LSHOULDER );
+
+    LUT_DL_LFOREARM:
+        CallList( DL_LFOREARM );
+
+    LUT_DL_RSHOULDER:
+        CallList( DL_RSHOULDER );
+
+    LUT_DL_RFOREARM:
+        CallList( DL_RFOREARM );
+
+    LUT_DL_TORSO:
+        CallList( DL_TORSO );
+
+    LUT_DL_LHAND:
+        CallList( DL_LHAND );
+
+    LUT_DL_LHAND_BOTTLE:
+        CallList( DL_LHAND_BOTTLE );
+
+    LUT_DL_RHAND:
+        CallList( DL_RHAND );
+	LUT_DL_WAIST:
+		CallList( DL_WAIST );
+		
+
+END
+
+REPOINT
+
+	GoTo(VROM_CODE+0x11A53C);
+		Write32( LUT_DL_WAIST );
+		Write32( LUT_DL_WAIST );
+
+	GoTo(VROM_CODE+0x11A7FC);
+		Write32( LUT_DL_RSHOULDER):
+		
+	GoTo(VROM_CODE+0x11A6E4);
+		Write32( LUT_DL_RHAND ):
+		Write32( LUT_DL_RHAND ):
+		
+	GoTo(VROM_CODE+0x11A70C);
+		Write32( LUT_DL_RHAND ):
+		Write32( LUT_DL_RHAND ):
+		
+	GoTo(VROM_CODE+0x11A734);
+		Write32( LUT_DL_RHAND ):
+		Write32( LUT_DL_RHAND ):
+		
+	GoTo(VROM_CODE+0x11A75C);
+		Write32( LUT_DL_RHAND ):
+		Write32( LUT_DL_RHAND ):
+		
+	GoTo(VROM_CODE+0x11A784);
+		Write32( LUT_DL_RHAND ):
+		Write32( LUT_DL_RHAND ):
+	
+	GoTo(VROM_CODE+0x11A810);
+		Write32( LUT_DL_RHAND ):
+		
+	GoTo(VROM_CODE+0x11A824);
+		Write32( LUT_DL_RHAND ):
+		
+	GoTo(VROM_CODE+0x11A7D4);
+		Write32( LUT_DL_LFOREARM ):
+		
+	GoTo(VROM_CODE+0x11A654);
+		Write32( LUT_DL_LHAND ):
+		Write32( LUT_DL_LHAND ):
+		
+	GoTo(VROM_CODE+0x11A67C);
+		Write32( LUT_DL_LHAND ):
+		Write32( LUT_DL_LHAND ):
+		
+	GoTo(VROM_CODE+0x11A6A4);
+		Write32( LUT_DL_LHAND ):
+		Write32( LUT_DL_LHAND ):
+
+	GoTo(VROM_CODE+0x11A7AC);
+		Write32( LUT_DL_LHAND ):
+		Write32( LUT_DL_LHAND ):
+		
+	GoTo(VROM_CODE+0x11A7E8);
+		Write32( LUT_DL_LHAND ):
+
+	GoTo(VROM_CODE+0x11A62C);
+		Write32( LUT_DL_LHAND_SWORD );
+		Write32( LUT_DL_LHAND_SWORD );
+		
+	GoTo(VROM_PLAYER+0x2621);
+		Write32( LUT_DL_RSHOULDER );
+	  
+END
