@@ -822,6 +822,7 @@ export class StraySave implements IStraySave {
   straySnowhead = 0;
   strayBay = 0;
   strayStone = 0;
+  strayClockTown = false;
 
 }
 
@@ -831,6 +832,7 @@ export function createStrayFromContext(ModLoader: IModLoaderAPI, save: API.IStra
   data.straySnowhead = save.straySnowhead;
   data.strayBay = save.strayBay;
   data.strayStone = save.strayStone;
+  data.strayClockTown = save.strayClockTown;
   return data;
 }
 
@@ -842,6 +844,7 @@ export function applyStrayToContext(
   save.straySnowhead = data.straySnowhead;
   save.strayBay = data.strayBay;
   save.strayStone = data.strayStone;
+  save.strayClockTown = data.strayClockTown;
 }
 
 export function mergeStrayData(
@@ -859,6 +862,9 @@ export function mergeStrayData(
   }
   if (incoming.strayStone > save.strayStone) {
     save.strayStone = incoming.strayStone;
+  }
+  if (incoming.strayClockTown > save.strayClockTown) {
+    save.strayClockTown = incoming.strayClockTown;
   }
 }
 

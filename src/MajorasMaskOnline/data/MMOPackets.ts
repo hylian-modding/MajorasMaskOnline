@@ -134,26 +134,20 @@ export class MMO_DownloadRequestPacket extends Packet {
 }
 
 export class MMO_ClientFlagUpdate extends Packet {
-  scenes: any;
-  events: any;
-  //items: any;
-  //inf: any;
-  //skulltulas: any;
+  //scenes: any;
+  //events: any;
+  minimaps: any;
 
   constructor(
-    scenes: any,
-    events: any,
-    //items: any,
-    //inf: any,
-    //skulltulas: any,
+    //scenes: any,
+    //events: any,
+    minimaps: any,
     lobby: string
   ) {
     super('MMO_ClientFlagUpdate', 'MMOnline', lobby, false);
-    this.scenes = scenes;
-    this.events = events;
-    //this.items = items;
-    //this.inf = inf;
-    //this.skulltulas = skulltulas;
+    //this.scenes = scenes;
+    //this.events = events;
+    this.minimaps = minimaps;
   }
 }
 
@@ -173,24 +167,18 @@ export class MMO_TimePacket extends Packet {
 export class MMO_ServerFlagUpdate extends Packet {
   //scenes: Buffer;
   //events: Buffer;
-  //items: Buffer;
-  //inf: Buffer;
-  //skulltulas: Buffer;
+  minimaps: Buffer;
 
   constructor(
     //scenes: Buffer,
     //events: Buffer,
-    //items: Buffer,
-    //inf: Buffer,
-    //skulltulas: Buffer,
+    minimaps: Buffer,
     lobby: string
   ) {
     super('MMO_ServerFlagUpdate', 'MMOnline', lobby, false);
     //this.scenes = scenes;
     //this.events = events;
-    //this.items = items;
-    //this.inf = inf;
-    //this.skulltulas = skulltulas;
+    this.minimaps = minimaps;
   }
 }
 

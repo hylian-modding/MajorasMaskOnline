@@ -214,9 +214,9 @@ export class MMOnlineClient {
         this.ModLoader.utils.clearBuffer(this.clientStorage.sceneStorage);
         this.ModLoader.utils.clearBuffer(this.clientStorage.eventStorage);
         this.ModLoader.utils.clearBuffer(this.clientStorage.itemFlagStorage);
-        let scene_data = this.core.save.scene_flags;
-        let scenes: any = parseFlagChanges(scene_data, this.clientStorage.sceneStorage);
-        this.ModLoader.clientSide.sendPacket(new MMO_ClientFlagUpdate(this.clientStorage.sceneStorage, this.clientStorage.eventStorage, this.ModLoader.clientLobby));
+        let minimap_data = this.core.save.minimap_flags;
+        let minimap: any = parseFlagChanges(minimap_data, this.clientStorage.minimapStorage);
+        this.ModLoader.clientSide.sendPacket(new MMO_ClientFlagUpdate(this.clientStorage.minimapStorage, this.ModLoader.clientLobby));
     }
 
     autosaveSceneDataTime() {
@@ -832,6 +832,129 @@ export class MMOnlineClient {
         applyStrayToContext(this.clientStorage.strayStorage, this.core.save.stray);
     }
 
+    @NetworkHandler('MMO_ServerFlagUpdate')
+    onSceneFlagSync_client(packet: MMO_ServerFlagUpdate) {
+
+        //this.ModLoader.utils.clearBuffer(this.clientStorage.sceneStorage);
+        //this.ModLoader.utils.clearBuffer(this.clientStorage.eventStorage);
+        //this.ModLoader.utils.clearBuffer(this.clientStorage.itemFlagStorage);
+        //this.ModLoader.utils.clearBuffer(this.clientStorage.infStorage);
+        //this.ModLoader.utils.clearBuffer(this.clientStorage.skulltulaStorage);
+        this.ModLoader.utils.clearBuffer(this.clientStorage.minimapStorage);
+
+        //let scene_data = this.core.save.permSceneData;
+        //let event_data = this.core.save.eventFlags;
+        //let item_data = this.core.save.itemFlags;
+        //let inf_data = this.core.save.infTable;
+        //let skulltula_data = this.core.save.skulltulaFlags;
+        let minimap_data = this.core.save.minimap_flags;
+
+        /*
+        parseFlagChanges(
+            scene_data,
+            this.clientStorage.sceneStorage
+        );
+        parseFlagChanges(
+            event_data,
+            this.clientStorage.eventStorage
+        );
+        parseFlagChanges(
+            item_data,
+            this.clientStorage.itemFlagStorage
+        );
+        parseFlagChanges(
+            inf_data,
+            this.clientStorage.infStorage
+        );
+        parseFlagChanges(
+            skulltula_data,
+            this.clientStorage.skulltulaStorage
+        );
+        */
+        parseFlagChanges(
+            minimap_data,
+            this.clientStorage.minimapStorage
+        );
+
+        /*for (let i = 0; i < packet.scenes.byteLength; i += 0x1C) {
+            let struct = new OotO_SceneStruct(packet.scenes.slice(i, i + 0x1C));
+            let cur = new OotO_SceneStruct(this.clientStorage.sceneStorage.slice(i, i + 0x1C));
+            for (let j = 0; j < struct.chests.byteLength; j++) {
+                if (struct.chests[j] !== cur.chests[i]) {
+                    cur.chests[j] |= struct.chests[j];
+                }
+            }
+            for (let j = 0; j < struct.collectible.byteLength; j++) {
+                if (struct.collectible[j] !== cur.collectible[i]) {
+                    cur.collectible[j] |= struct.collectible[j];
+                }
+            }
+            for (let j = 0; j < struct.room_clear.byteLength; j++) {
+                if (struct.room_clear[j] !== cur.room_clear[i]) {
+                    cur.room_clear[j] |= struct.room_clear[j];
+                }
+            }
+            for (let j = 0; j < struct.switches.byteLength; j++) {
+                if (struct.switches[j] !== cur.switches[i]) {
+                    cur.switches[j] |= struct.switches[j];
+                }
+            }
+            for (let j = 0; j < struct.visited_floors.byteLength; j++) {
+                if (struct.visited_floors[j] !== cur.visited_floors[i]) {
+                    cur.visited_floors[j] |= struct.visited_floors[j];
+                }
+            }
+            for (let j = 0; j < struct.visited_rooms.byteLength; j++) {
+                if (struct.visited_rooms[j] !== cur.visited_rooms[i]) {
+                    cur.visited_rooms[j] |= struct.visited_rooms[j];
+                }
+            }
+            for (let j = 0; j < struct.unused.byteLength; j++) {
+                if (struct.unused[j] !== cur.unused[i]) {
+                    cur.unused[j] = struct.unused[j];
+                }
+            }
+        }
+        for (let i = 0; i < packet.events.byteLength; i++) {
+            let value = packet.events[i];
+            if (this.clientStorage.eventStorage[i] !== value) {
+                this.clientStorage.eventStorage[i] |= value;
+            }
+        }
+        for (let i = 0; i < packet.items.byteLength; i++) {
+            let value = packet.items[i];
+            if (this.clientStorage.itemFlagStorage[i] !== value) {
+                this.clientStorage.itemFlagStorage[i] |= value;
+            }
+        }
+        for (let i = 0; i < packet.inf.byteLength; i++) {
+            let value = packet.inf[i];
+            if (this.clientStorage.infStorage[i] !== value) {
+                this.clientStorage.infStorage[i] |= value;
+            }
+        }
+        for (let i = 0; i < packet.skulltulas.byteLength; i++) {
+            let value = packet.skulltulas[i];
+            if (this.clientStorage.skulltulaStorage[i] !== value) {
+                this.clientStorage.skulltulaStorage[i] |= value;
+            }
+        }*/
+
+        for (let i = 0; i < packet.minimaps.byteLength; i++) {
+            let value = packet.minimaps[i];
+            if (this.clientStorage.minimapStorage[i] !== value) {
+                this.clientStorage.minimapStorage[i] |= value;
+            }
+        }
+
+        //this.core.save.permSceneData = this.clientStorage.sceneStorage;
+        //this.core.save.eventFlags = this.clientStorage.eventStorage;
+        //this.core.save.itemFlags = this.clientStorage.itemFlagStorage;
+        //this.core.save.infTable = this.clientStorage.infStorage;
+        //this.core.save.skulltulaFlags = this.clientStorage.skulltulaStorage;
+        this.core.save.minimap_flags = this.clientStorage.minimapStorage;
+    }
+
     @onViUpdate()
     onVi() {
         if (this.clientStorage.pictoboxAlert.image !== undefined) {
@@ -1050,7 +1173,7 @@ export class MMOnlineClient {
                     }
                     else if (state === API.LinkState.STANDING && this.clientStorage.needs_update && this.LobbyConfig.data_syncing) {
                         this.updateInventory();
-                        if (this.clientStorage.syncMode === 1) this.updateFlags();
+                        this.updateFlags();
                         if (this.clientStorage.isFairySync) this.updateStray();
                         if (this.clientStorage.isSkulltulaSync) this.updateSkulltula();
                         this.clientStorage.needs_update = false;

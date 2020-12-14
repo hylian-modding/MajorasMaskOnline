@@ -230,6 +230,7 @@ export class MMOnlineServer {
                         packet.lobby
                     ),
                     new MMO_ServerFlagUpdate(
+                        storage.minimapStorage,
                         packet.lobby
                     ),
                     new MMO_BankSyncPacket(storage.bank, packet.lobby),
@@ -293,7 +294,7 @@ export class MMOnlineServer {
         if (storage === null) {
             return;
         }
-        for (let i = 0; i < packet.scenes.byteLength; i += 0x1C) {
+        /*for (let i = 0; i < packet.scenes.byteLength; i += 0x1C) {
             let struct = new MMO_SceneStruct(packet.scenes.slice(i, i + 0x1C));
             let cur = new MMO_SceneStruct(storage.sceneStorage.slice(i, i + 0x1C));
             for (let j = 0; j < struct.chests.byteLength; j++) {
@@ -337,32 +338,18 @@ export class MMOnlineServer {
             if (storage.eventStorage[i] !== value) {
                 storage.eventStorage[i] |= value;
             }
-        }
-        /*for (let i = 0; i < packet.items.byteLength; i++) {
-            let value = packet.items[i];
-            if (storage.itemFlagStorage[i] !== value) {
-                storage.itemFlagStorage[i] |= value;
-            }
-        }
-        for (let i = 0; i < packet.inf.byteLength; i++) {
-            let value = packet.inf[i];
-            if (storage.infStorage[i] !== value) {
-                storage.infStorage[i] |= value;
-            }
-        }
-        for (let i = 0; i < packet.skulltulas.byteLength; i++) {
-            let value = packet.skulltulas[i];
-            if (storage.skulltulaStorage[i] !== value) {
-                storage.skulltulaStorage[i] |= value;
-            }
         }*/
+
+        for (let i = 0; i < packet.minimaps.byteLength; i++) {
+            let value = packet.minimaps[i];
+            if (storage.minimapStorage[i] !== value) {
+                storage.minimapStorage[i] |= value;
+            }
+        }
         this.ModLoader.serverSide.sendPacket(
             new MMO_ServerFlagUpdate(
                 //storage.sceneStorage,
-                //storage.eventStorage,
-                //storage.itemFlagStorage,
-                //storage.infStorage,
-                //storage.skulltulaStorage,
+                storage.minimapStorage,
                 packet.lobby
             )
         );

@@ -30,6 +30,7 @@ export class MMOnlineStorageBase {
   bottleStorage: InventorySave = new InventorySave();
   equipmentStorage: EquipmentSave = new EquipmentSave();
   questStorage: QuestSave = new QuestSave();
+  minimapStorage: Buffer = Buffer.alloc(0x1C);
   tradeStorage: InventorySave = new InventorySave();
   bank: number = 0;
   permFlags: Buffer = Buffer.alloc(0x960);
