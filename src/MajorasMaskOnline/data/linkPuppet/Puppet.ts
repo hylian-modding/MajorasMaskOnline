@@ -71,6 +71,7 @@ export class Puppet implements IPuppet {
     }
 
     if (!this.isSpawned && !this.isSpawning) {
+    
       bus.emit(MMOnlineEvents.PLAYER_PUPPET_PRESPAWN, this);
       this.isSpawning = true;
       this.data.pointer = 0x0;
@@ -78,7 +79,8 @@ export class Puppet implements IPuppet {
       this.core.commandBuffer.runCommand(Command.SPAWN_ACTOR, 0x80800000, (success: boolean, result: number) => {
         if (success) {
           this.data.pointer = result & 0x00ffffff;
-          console.log(this.data.pointer.toString(16));
+          console.log("this.data.pointer: " + this.data.pointer);
+          this.makeRamDump();
           //this.applyColor(this.data.pointer);
           this.doNotDespawnMe(this.data.pointer);
           if (this.hasAttachedHorse()) {
@@ -159,14 +161,6 @@ export class Puppet implements IPuppet {
 
   hasAttachedHorse(): boolean {
     return false;
-  }
-
-  applyColor(pointer: number) {
-    this.ModLoader.logger.debug("Previous puppet tunic color: " + this.ModLoader.emulator.rdramRead32(pointer + 0x530));
-    this.ModLoader.logger.debug('Setting tunic color for your puppet: ' + this.tunic_color);
-    this.ModLoader.emulator.rdramWrite32(pointer + 0x530, this.tunic_color);
-    this.ModLoader.logger.debug("Puppet Pointer: " + pointer);
-    //this.makeRamDump();
   }
 
   makeRamDump() {

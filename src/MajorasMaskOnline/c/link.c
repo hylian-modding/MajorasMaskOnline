@@ -1,5 +1,5 @@
-#include "C:/Users/Diana/Desktop/Modding/Zelda64/Tools/CAT/gcc/mips64/include/z64ovl-may-10/mm/u10.h"
-#include "C:/Users/Diana/Desktop/Modding/Zelda64/Tools/CAT/gcc/mips64/include/z64ovl-may-10/mm/helpers.h"
+#include "D:\Modding\Zelda64\Tools\CAT/gcc/mips64/include/z64ovl-may-10/mm/u10.h"
+#include "D:\Modding\Zelda64\Tools\CAT/gcc/mips64/include/z64ovl-may-10/mm/helpers.h"
 #include "defines_limbs.h"
 #include "defines_mm.h"
 #include "structs.h"
@@ -8,33 +8,74 @@
 //printf on
 #define DEBUG
 
+//typedef struct
+//{
+//	/* 0x0000 */ zzplayas_t playas;
+//	/* 0x0018 */ puppet_items_t item;
+//	/* 0x0028 */ uint16_t form;
+//	/* 0x002A */ uint16_t _pad;
+//	/* 0x002C */
+//} puppet_data_t;
+//
+//typedef struct
+//{
+//	/* 0x0000 */ z64_actor_t actor; 
+//	/* 0x013C */ uint8_t current_frame_data[0x88]; // 0x86 used, 0x2 pad
+//	/* 0x01C4 */ puppet_data_t puppet;
+//	/* 0x01F0 */ z64_skelanime_t skelanime;
+//	/* 0x0230 */ z64_collider_cylinder_main_t collider;
+//	/* 0x0274 */ vec3s_t dt_rot[LIMB_COUNT];
+//	/* 0x0300 */ vec3s_t dt_pos[LIMB_COUNT];
+//	/* 0x038C */ uint8_t action_param_1;
+//	/* 0x038D */ uint8_t action_param_2;
+//	/* 0x038E */ uint8_t save_sword_equip;
+//	/* 0x038F */ uint8_t lastMask;
+//	/* 0x0390 */ uint16_t razor_durability;
+//	/* 0x0392 */ uint16_t blast_mask_timer;
+//	/* 0x0394 */ vec3s_t shield_rot;
+//	/* 0x0398 */ float deku_stick_length;
+//	/* 0x039C */ uint32_t now_anime;
+//	/* 0x03A0 */ mask_properties_t mask_props;
+//	/* 0x04CC */ uint32_t mask_ram_addresses[24];
+//	/* 0x052C */ uint16_t soundid;
+//	/* 0x052E */ uint16_t _pad;
+//	/* 0x0530 */
+//} entity_t;
+
 typedef struct
 {
-	zzplayas_t playas;
-	uint16_t form;
-	puppet_items_t item;
+    /* 0x0000 */ zzplayas_t playas;
+    /* 0x0018 */ puppet_items_t item;
+    /* 0x0028 */ mask_properties_t mask_props;
+    /* 0x0154 */ uint16_t form;
+    /* 0x0156 */ uint16_t _pad;
+    /* 0x0158 */
 } puppet_data_t;
 
 typedef struct
 {
-	z64_actor_t actor;
-	uint8_t current_frame_data[0x86];
-	puppet_data_t puppet;
-	z64_skelanime_t skelanime;
-	z64_collider_cylinder_main_t collider;
-	vec3s_t dt_rot[(LIMB_TOTAL + 1)];
-	vec3s_t dt_pos[(LIMB_TOTAL + 1)];
-	uint8_t action_param_1;
-	uint8_t action_param_2;
-	uint8_t save_sword_equip;
-	uint16_t razor_durability;
-	vec3s_t shield_rot;
-	float deku_stick_length;
-	uint32_t now_anime;
-	uint8_t lastMask;
-	uint16_t blast_mask_timer;
-	mask_properties_t mask_props;
-	uint32_t mask_ram_addresses[24];
+    /* 0x0000 */ z64_actor_t actor; 
+    /* 0x0144 */ z64_skelanime_t skelanime;
+    /* 0x0184 */ z64_collider_cylinder_main_t collider;
+    /* 0x01D0 */ puppet_data_t puppet;
+    /* 0x0328 */ vec3s_t dt_rot[LIMB_COUNT];
+    /* 0x03B2 */ vec3s_t dt_pos[LIMB_COUNT];
+    /* 0x043C */ vec3s_t shield_rot;
+    /* 0x0442 */ uint16_t _pad0;
+    /* 0x0444 */ float deku_stick_length;
+    /* 0x0448 */ uint32_t now_anime;
+    /* 0x044C */ uint32_t mask_ram_addresses[24];
+    /* 0x04AC */ uint16_t soundid;
+    /* 0x04AE */ uint16_t razor_durability;
+    /* 0x04B0 */ uint16_t blast_mask_timer;
+    /* 0x04B2 */ uint16_t _pad1;
+    /* 0x04B4 */ uint8_t action_param_1;
+    /* 0x04B5 */ uint8_t action_param_2;
+    /* 0x04B6 */ uint8_t save_sword_equip;
+    /* 0x04B7 */ uint8_t lastMask;
+    /* 0x04B8 */ uint8_t current_frame_data[0x86];
+    /* 0x053E */ uint8_t _pad2[2];
+    /* 0x0540 */
 } entity_t;
 
 /*const uint32_t shield_wield[3] = {
@@ -91,7 +132,7 @@ static void init(entity_t *en, z64_global_t *gl)
 	//char* _debug = "nowMask: 0x%08X; 0x%02X";
 	//printf(_debug, _nowMask - _inst, (en->puppet).item.nowMask);
 
-	load_masks(en, (void *)0x80958700);
+	//load_masks(en, (void *)0x80958700);
 
 	if ((en->actor).variable < 0xFFFF)
 	{
@@ -190,10 +231,17 @@ static void play(entity_t *en, z64_global_t *gl)
 	z_collider_set_ot(gl, AADDR(gl, 0x18884), &en->collider);
 }
 
+#define OFFSETOF(TYPE, ELEMENT) ((int16_t)&(((TYPE *)0)->ELEMENT))
+
 static void draw(entity_t *en, z64_global_t *gl)
 {
-	z_skelanime_draw(
-		gl, 0x12, en, &en->skelanime, callback_set_limb, callback_animate_face);
+	z_skelanime_draw(gl, 0x12, en, &en->skelanime, callback_set_limb, callback_animate_face);
+
+	if (en->soundid > 0)
+    {
+        z_sfx_play_position(gl, &en->actor.pos, 25.0, en->soundid);
+        en->soundid = 0;
+    }
 }
 
 static void callback_animate_face(z64_global_t *gl, int32_t limb, uint32_t dlist, vec3s_t *rotation, void *_en)
@@ -429,7 +477,7 @@ static int32_t callback_set_limb(z64_global_t *gl, int32_t limb, uint32_t *dl, v
 				if ((en->puppet).item.nowMask == MASK_BUNNY)
 				{
 					Mtx *ear_mtx = graph_alloc((gl->common).gfx_ctxt, 0x80);
-					vec3s_t *r = &(en->mask_props).bunny_hood.rot;
+					vec3s_t *r = &(en->puppet.mask_props).bunny_hood.rot;
 					vec3s_t ear;
 					gSPSegment(opa->p++, 0x0B, ear_mtx);
 
@@ -596,33 +644,6 @@ static int32_t callback_set_limb(z64_global_t *gl, int32_t limb, uint32_t *dl, v
 	}
 
 	return 0;
-}
-
-static void load_masks(entity_t *en, void *vRam)
-{
-	uint16_t mask_objects[24] = {
-		0x01DE, 0x01FF, 0x025D, 0x01DB, 0x01DA, 0x01FE, 0x0219, 0x024C, 0x0221, 0x025E, 0x0200, 0x01FD, 0x025C, 0x025F, 0x01DC, 0x024E, 0x0252, 0x01DD, 0x01D9, 0x0214, 0x01E4, 0x01E1, 0x01E2, 0x01E3};
-
-	struct objtable
-	{
-		uint32_t start;
-		uint32_t end;
-	};
-
-	uint32_t vStart, vEnd, vSize;
-	int32_t r;
-	struct objtable *table = (void *)(0x801C2738 + 8);
-	void *vRam_Start = vRam;
-	for (int id = 0; id < 24; id++)
-	{
-		vRam_Start += vSize;
-		vStart = table[mask_objects[id]].start;
-		vEnd = table[mask_objects[id]].end;
-		vSize = vEnd - vStart;
-		en->mask_ram_addresses[id] = (uint32_t)(vRam_Start);
-		r = load_data_from_rom(vRam_Start, (void *)vStart, vSize, "");
-		//printf("Wrote (0x%08X - 0x%08X) at 0x%08X.\n", vStart, vEnd, vRam_Start);
-	}
 }
 
 static rgb8_t bottle_handler(int32_t action_param)

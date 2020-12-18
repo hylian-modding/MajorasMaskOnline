@@ -36,7 +36,7 @@ export class PuppetData implements IPuppetData {
     this.copyFields.push('anim');
     this.copyFields.push('xzSpeed');
     this.copyFields.push('nowShield');
-    //this.copyFields.push('nowMask');
+    this.copyFields.push('nowMask');
     this.copyFields.push('actionParam1');
     this.copyFields.push('actionParam2');
     this.copyFields.push('equipSword');
@@ -47,8 +47,9 @@ export class PuppetData implements IPuppetData {
     //this.copyFields.push('lastMask');
     //this.copyFields.push('blastMaskTimer');
     //this.copyFields.push('maskProps');
-    this.copyFields.push('time');
+    //this.copyFields.push('time');
     this.copyFields.push("isAdultSizedHuman");
+    this.copyFields.push("sound");
   }
 
   get pos(): Buffer {
@@ -68,22 +69,30 @@ export class PuppetData implements IPuppetData {
     this.ModLoader.emulator.rdramWriteBuffer(this.pointer + 0xBC, rot);
   }
 
+  get sound(): number {
+    return this.core.link.current_sound_id;
+  }
+
+  set sound(s: number) {
+    this.ModLoader.emulator.rdramWrite16(this.pointer + 0x4AC, s);
+  }
+
   get maskProps(): Buffer {
     let offsets = new MMOffsets;
     return this.ModLoader.emulator.rdramReadBuffer(offsets.mask_props, 0x12C);
   }
 
   set maskProps(maskProps: Buffer) {
-    this.ModLoader.emulator.rdramWriteBuffer(this.pointer + 0x3A4, maskProps);
+    this.ModLoader.emulator.rdramWriteBuffer(this.pointer + 0x1D0 + 28, maskProps);
   }
 
   get shieldRot(): Buffer {
     let offsets = new MMOffsets;
-    return this.ModLoader.emulator.rdramReadBuffer(offsets.link_instance + 0xAB2, 0x6);
+    return this.ModLoader.emulator.rdramReadBuffer(offsets.link_instance + 0x434, 0x6);
   }
 
   set shieldRot(shieldRot: Buffer) {
-    this.ModLoader.emulator.rdramWriteBuffer(this.pointer + 0x392, shieldRot);
+    this.ModLoader.emulator.rdramWriteBuffer(this.pointer + 0x43C, shieldRot);
   }
 
   get anim(): Buffer {
@@ -91,7 +100,7 @@ export class PuppetData implements IPuppetData {
   }
 
   set anim(anim: Buffer) {
-    this.ModLoader.emulator.rdramWriteBuffer(this.pointer + 0x144, anim);
+    this.ModLoader.emulator.rdramWriteBuffer(this.pointer + 0x4B8, anim);
   }
 
   get xzSpeed(): number {
@@ -126,16 +135,8 @@ export class PuppetData implements IPuppetData {
     return this.ModLoader.emulator.rdramRead8(offsets.link_instance + (0x144 + 0x11));
   }
 
-  set sound(id: number) {
-  }
-
-  get sound(): number {
-    // TODO
-    return 0;
-  }
-
   set lastMask(lastMask: number) {
-    this.ModLoader.emulator.rdramWrite8(this.pointer + 0x3A0, lastMask);
+    this.ModLoader.emulator.rdramWrite8(this.pointer + 0x4B7, lastMask);
   }
 
   get blastMaskTimer(): number {
@@ -144,7 +145,7 @@ export class PuppetData implements IPuppetData {
   }
 
   set blastMaskTimer(blastMaskTimer: number) {
-    this.ModLoader.emulator.rdramWrite16(this.pointer + 0x3A2, blastMaskTimer);
+    this.ModLoader.emulator.rdramWrite16(this.pointer + 0x4B0, blastMaskTimer);
   }
 
   get actionParam1(): number {
@@ -153,7 +154,7 @@ export class PuppetData implements IPuppetData {
   }
 
   set actionParam1(actionParam1: number) {
-    this.ModLoader.emulator.rdramWrite8(this.pointer + 0x38C, actionParam1);
+    this.ModLoader.emulator.rdramWrite8(this.pointer + 0x4B4, actionParam1);
   }
 
   get actionParam2(): number {
@@ -162,7 +163,7 @@ export class PuppetData implements IPuppetData {
   }
 
   set actionParam2(actionParam2: number) {
-    this.ModLoader.emulator.rdramWrite8(this.pointer + 0x38D, actionParam2);
+    this.ModLoader.emulator.rdramWrite8(this.pointer + 0x4B5, actionParam2);
   }
 
   get equipSword(): number {
@@ -171,7 +172,7 @@ export class PuppetData implements IPuppetData {
   }
 
   set equipSword(equipSword: number) {
-    this.ModLoader.emulator.rdramWrite8(this.pointer + 0x38E, equipSword);
+    this.ModLoader.emulator.rdramWrite8(this.pointer + 0x4B6, equipSword);
   }
 
   get razorDurability(): number {
@@ -180,7 +181,7 @@ export class PuppetData implements IPuppetData {
   }
 
   set razorDurability(razorDurability: number) {
-    this.ModLoader.emulator.rdramWrite16(this.pointer + 0x390, razorDurability);
+    this.ModLoader.emulator.rdramWrite16(this.pointer + 0x4AE, razorDurability);
   }
 
   get dekuStickLength(): number {
@@ -189,7 +190,7 @@ export class PuppetData implements IPuppetData {
   }
 
   set dekuStickLength(dekuStickLength: number) {
-    this.ModLoader.emulator.rdramWriteF32(this.pointer + 0x398, dekuStickLength);
+    this.ModLoader.emulator.rdramWriteF32(this.pointer + 0x444, dekuStickLength);
   }
 
   get nowAnim(): number {
@@ -198,7 +199,7 @@ export class PuppetData implements IPuppetData {
   }
 
   set nowAnim(nowAnim: number) {
-    this.ModLoader.emulator.rdramWriteF32(this.pointer + 0x39C, nowAnim);
+    this.ModLoader.emulator.rdramWriteF32(this.pointer + 0x448, nowAnim);
   }
 
   get form(): MMForms {
@@ -211,7 +212,7 @@ export class PuppetData implements IPuppetData {
 
   set isAdultSizedHuman(bool: boolean) {
     if (bool) {
-      this.ModLoader.emulator.rdramWriteF32(this.pointer + 0x1E0, 1.0);
+      this.ModLoader.emulator.rdramWriteF32(this.pointer + 0x1E4, 1.0);
     }
   }
 
