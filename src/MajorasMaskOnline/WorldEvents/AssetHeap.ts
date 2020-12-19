@@ -221,10 +221,10 @@ export class AssetHeap {
             // Give free stuff.
             if (key.indexOf("freebies/human") > -1 && key.indexOf(".txt") === -1) {
                 Buffer.from(path.parse(key).name).copy(value, 0x5440);
-                bus.emit(Z64_RewardEvents.UNLOCK_PLAYAS, { name: CostumeHelper.getCostumeName(value), data: value, age: MMForms.HUMAN } as Z64_EventReward);
+                bus.emit(Z64_RewardEvents.UNLOCK_PLAYAS, { event: "Christmas 2020", name: CostumeHelper.getCostumeName(value), data: value, age: MMForms.HUMAN } as Z64_EventReward);
             }
-            if (key.indexOf("freebies/equipment") > -1 && key.indexOf(".txt") === -1){
-                bus.emit(Z64_RewardEvents.UNLOCK_PLAYAS, { name: CostumeHelper.getCostumeName(value), data: value, age: MMForms.HUMAN } as Z64_EventReward);
+            if (key.indexOf("freebies/equipment") > -1 && key.indexOf(".txt") === -1) {
+                bus.emit(Z64_RewardEvents.UNLOCK_PLAYAS, { event: "Christmas 2020", name: CostumeHelper.getCostumeName(value), data: value, age: MMForms.HUMAN } as Z64_EventReward);
             }
             // Load costumes.
             if (key.indexOf("costumes/human") > -1) {
