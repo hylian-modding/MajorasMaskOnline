@@ -1,9 +1,10 @@
 import { MMOnlineStorageBase } from './MMOnlineStorageBase';
-import * as API from 'MajorasMask/API/MMAPI';
 import PlayerSchedule from './data/MMOPlayerSchedule';
 import { Texture } from 'modloader64_api/Sylvain/Gfx';
-import { rgba, vec2, vec4, xy } from 'modloader64_api/Sylvain/vec';
+import { vec2, xy } from 'modloader64_api/Sylvain/vec';
 import { MMO_ItemGetMessagePacket } from './data/MMOPackets';
+import { Z64Online_ModelAllocation } from './Z64OnlineAPI/Z64OnlineAPI';
+import * as API from 'MajorasMask/API/Imports';
 
 export class MMOnlineStorageClient extends MMOnlineStorageBase {
   autoSaveHash = '!';
@@ -17,9 +18,6 @@ export class MMOnlineStorageClient extends MMOnlineStorageBase {
     API.InventoryItem.NONE,
     API.InventoryItem.NONE,
   ];
-  childModel: Buffer = Buffer.alloc(1);
-  adultModel: Buffer = Buffer.alloc(1);
-  equipmentModel: Buffer = Buffer.alloc(1);
   adultIcon: Buffer = Buffer.alloc(1);
   childIcon: Buffer = Buffer.alloc(1);
   overlayCache: any = {};
@@ -38,6 +36,9 @@ export class MMOnlineStorageClient extends MMOnlineStorageBase {
   isFairySync = false;
   isAdultSizedHuman: boolean = false;
   notifBuffer: Array<MMO_ItemGetMessagePacket> = [];
+  // Custom model shit do not touch.
+  humanModel: Buffer = Buffer.alloc(1);
+  humanProxy!: Z64Online_ModelAllocation;
 }
 
 export class PictoboxPreview {

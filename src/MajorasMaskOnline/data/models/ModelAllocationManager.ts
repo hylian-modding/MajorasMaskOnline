@@ -3,7 +3,7 @@ import { INetworkPlayer } from 'modloader64_api/NetworkHandler';
 
 export class ModelAllocationManager {
   MAX_MODELS = 16;
-  RESERVED_SLOTS = 6;
+  RESERVED_SLOTS = 5;
   models: ModelPlayer[] = new Array<ModelPlayer>(this.MAX_MODELS);
 
   constructor() {
@@ -64,6 +64,19 @@ export class ModelAllocationManager {
         continue;
       }
       if (player.uuid === this.models[i].uuid) {
+        return this.models[i];
+      }
+    }
+    //@ts-ignore
+    return null;
+  }
+
+  getAllocationByUUID(uuid: string){
+    for (let i = this.RESERVED_SLOTS; i < this.models.length; i++) {
+      if (this.models[i] === undefined) {
+        continue;
+      }
+      if (uuid === this.models[i].uuid) {
         return this.models[i];
       }
     }

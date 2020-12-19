@@ -2,9 +2,7 @@ import { PuppetData } from './PuppetData';
 import { INetworkPlayer } from 'modloader64_api/NetworkHandler';
 import { Command } from 'modloader64_api/OOT/ICommandBuffer';
 import { bus, EventHandler } from 'modloader64_api/EventHandler';
-import { MMOnlineEvents, IMMOnlineHelpers, RemoteSoundPlayRequest } from '../../MMOAPI/MMOAPI';
 import { IModLoaderAPI, ModLoaderEvents } from 'modloader64_api/IModLoaderAPI';
-import { IPuppet } from '../../MMOAPI/IPuppet';
 import Vector3 from 'modloader64_api/math/Vector3';
 import { HorseData } from './HorseData';
 import fs from 'fs';
@@ -13,10 +11,11 @@ import path from 'path';
 import { IMMCore, MMForms, MMEvents } from 'MajorasMask/API/MMAPI';
 import { Z64RomTools } from 'Z64Lib/API/Z64RomTools';
 import MMOnline from '../../MMOnline';
+import { IZ64OnlineHelpers, RemoteSoundPlayRequest, Z64OnlineEvents } from '@MajorasMaskOnline/Z64OnlineAPI/Z64OnlineAPI';
 
 const DEADBEEF_OFFSET: number = 0x288;
 
-export class Puppet implements IPuppet {
+export class Puppet {
   player: INetworkPlayer;
   id: string;
   data: PuppetData;
@@ -29,7 +28,7 @@ export class Puppet implements IPuppet {
   void!: Vector3;
   ModLoader: IModLoaderAPI;
   horse!: HorseData;
-  parent: IMMOnlineHelpers;
+  parent: IZ64OnlineHelpers;
   tunic_color!: number;
 
   constructor(
@@ -37,7 +36,7 @@ export class Puppet implements IPuppet {
     core: IMMCore,
     pointer: number,
     ModLoader: IModLoaderAPI,
-    parent: IMMOnlineHelpers,
+    parent: IZ64OnlineHelpers,
 
   ) {
     this.player = player;
@@ -72,15 +71,14 @@ export class Puppet implements IPuppet {
 
     if (!this.isSpawned && !this.isSpawning) {
     
-      bus.emit(MMOnlineEvents.PLAYER_PUPPET_PRESPAWN, this);
+      bus.emit(Z64OnlineEvents.PLAYER_PUPPET_PRESPAWN, this);
       this.isSpawning = true;
       this.data.pointer = 0x0;
-      (this.parent as any)["writeModel"]();
       this.core.commandBuffer.runCommand(Command.SPAWN_ACTOR, 0x80800000, (success: boolean, result: number) => {
         if (success) {
           this.data.pointer = result & 0x00ffffff;
           console.log("this.data.pointer: " + this.data.pointer);
-          this.makeRamDump();
+          //this.makeRamDump();
           //this.applyColor(this.data.pointer);
           this.doNotDespawnMe(this.data.pointer);
           if (this.hasAttachedHorse()) {
@@ -91,7 +89,7 @@ export class Puppet implements IPuppet {
           this.void = this.ModLoader.math.rdramReadV3(this.data.pointer + 0x24);
           this.isSpawned = true;
           this.isSpawning = false;
-          bus.emit(MMOnlineEvents.PLAYER_PUPPET_SPAWNED, this);
+          bus.emit(Z64OnlineEvents.PLAYER_PUPPET_SPAWNED, this);
         }
       });
     }
@@ -150,7 +148,7 @@ export class Puppet implements IPuppet {
       this.isSpawned = false;
       this.isShoveled = false;
       this.ModLoader.logger.debug('Puppet ' + this.id + ' despawned.');
-      bus.emit(MMOnlineEvents.PLAYER_PUPPET_DESPAWNED, this);
+      bus.emit(Z64OnlineEvents.PLAYER_PUPPET_DESPAWNED, this);
     }
   }
 

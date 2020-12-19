@@ -236,15 +236,6 @@ export class MMO_ActorDeadPacket extends Packet {
   }
 }
 
-export class MMO_DownloadAllModelsPacket extends Packet {
-  models: any;
-
-  constructor(models: any, lobby: string) {
-    super('MMO_DownloadAllModelsPacket', 'MMOnline', lobby, false);
-    this.models = models;
-  }
-}
-
 export class MMO_BottleUpdatePacket extends Packet {
   slot: number;
   contents: API.InventoryItem;
@@ -286,42 +277,6 @@ export class MMO_SceneGUIPacket extends Packet {
 
   setChildIcon(iconChild: Buffer) {
     this.iconChild = iconChild.toString('base64');
-  }
-}
-
-export class MMO_ModifyModelPacket extends Packet {
-  mod: Buffer;
-  offset: number;
-  form: API.MMForms;
-
-  constructor(lobby: string, mod: Buffer, offset: number, form: API.MMForms) {
-    super('MMO_ModifyModelPacket', 'MMOnline', lobby, false);
-    this.mod = mod;
-    this.offset = offset;
-    this.form = form;
-  }
-}
-
-export class MMO_GiveModelPacket extends Packet {
-
-  target: INetworkPlayer;
-
-  constructor(lobby: string, player: INetworkPlayer) {
-    super('MMO_GiveModelPacket', 'MMOnline', lobby, true);
-    this.target = player;
-  }
-}
-
-export class MMO_AllocateModelPacket extends Packet {
-  model: Buffer;
-  form: API.MMForms;
-  hash: string;
-
-  constructor(model: Buffer, form: API.MMForms, lobby: string, hash: string) {
-    super('MMO_AllocateModelPacket', 'MMOnline', lobby, true);
-    this.model = model;
-    this.form = form;
-    this.hash = hash;
   }
 }
 

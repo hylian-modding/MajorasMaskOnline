@@ -1,6 +1,5 @@
 import * as API from 'MajorasMask/API/Imports';
 import { bus, setupEventHandlers } from 'modloader64_api/EventHandler';
-import { MMOnlineEvents } from '../MMOAPI/MMOAPI';
 import { ISwords, IShields, ISaveContext, InventorySlots, Shield, Sword, IDungeonItemManager } from 'MajorasMask/API/Imports';
 import { MMOnlineClient } from '../MMOnlineClient';
 import { Interface } from 'readline';
@@ -11,6 +10,7 @@ import { IModLoaderAPI } from 'modloader64_api/IModLoaderAPI';
 import zlib from 'zlib';
 import { ProxySide } from 'modloader64_api/SidedProxy/SidedProxy';
 import { MMO_ItemGetMessagePacket } from './MMOPackets';
+import { Z64OnlineEvents } from '@MajorasMaskOnline/Z64OnlineAPI/Z64OnlineAPI';
 
 
 export function isAdultTradeItem(item: API.InventoryItem) {
@@ -939,7 +939,7 @@ export function applyEquipmentToContext(
   let lastSword = save.swords.swordLevel;
   save.swords.swordLevel = data.swordLevel;
   if (save.swords.swordLevel > lastSword) {
-    bus.emit(MMOnlineEvents.SWORD_NEEDS_UPDATE, {});
+    bus.emit(Z64OnlineEvents.SWORD_NEEDS_UPDATE, {});
   }
   save.shields.shieldLevel = data.shieldLevel;
 }
@@ -1061,7 +1061,7 @@ export function applyQuestSaveToContext(data: IQuestSave, save: API.ISaveContext
   let lastKnownHP: number = save.questStatus.heartPieceCount;
   save.questStatus.heartPieceCount = data.heartPieceCount;
   if (lastKnownHP < data.heartPieceCount) {
-    bus.emit(MMOnlineEvents.GAINED_PIECE_OF_HEART, data.heartPieceCount);
+    bus.emit(Z64OnlineEvents.GAINED_PIECE_OF_HEART, data.heartPieceCount);
   }
 
   save.owl_statues = data.owl_statues;
@@ -1072,17 +1072,17 @@ export function applyQuestSaveToContext(data: IQuestSave, save: API.ISaveContext
   let lastKnownHC: number = save.heart_containers;
   save.heart_containers = data.heart_containers;
   if (lastKnownHC < data.heart_containers) {
-    bus.emit(MMOnlineEvents.GAINED_HEART_CONTAINER, data.heart_containers);
+    bus.emit(Z64OnlineEvents.GAINED_HEART_CONTAINER, data.heart_containers);
   }
   let lastKnownMagic: API.Magic = save.magic_meter_size;
   save.magic_meter_size = data.magic_meter_size;
   if (lastKnownMagic < data.magic_meter_size) {
-    bus.emit(MMOnlineEvents.MAGIC_METER_INCREASED, data.magic_meter_size);
+    bus.emit(Z64OnlineEvents.MAGIC_METER_INCREASED, data.magic_meter_size);
   }
   let lastKnownDD: number = save.double_defense;
   save.double_defense = data.double_defense;
   if (lastKnownDD < data.double_defense) {
-    bus.emit(MMOnlineEvents.GAINED_HEART_CONTAINER, data.double_defense);
+    bus.emit(Z64OnlineEvents.GAINED_HEART_CONTAINER, data.double_defense);
   }
 }
 

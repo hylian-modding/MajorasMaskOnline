@@ -1,19 +1,16 @@
 import { IModLoaderAPI, ModLoaderEvents } from 'modloader64_api/IModLoaderAPI';
-import { IPuppetData } from "../../MMOAPI/IPuppetData";
 import { bus, EventHandler } from 'modloader64_api/EventHandler';
 import { MMOffsets } from 'MajorasMask/API/MMOffsets';
 import { IMMCore, MMForms } from 'MajorasMask/API/MMAPI';
 import * as API from 'MajorasMask/API/MMAPI';
 import { Z64RomTools } from 'Z64Lib/API/Z64RomTools';
 import MMOnline from '../../MMOnline';
-import { MMOnlineEvents } from '../../MMOAPI/MMOAPI';
-import { runInThisContext } from 'vm';
 import { MMOnlineStorageClient } from '@MajorasMaskOnline/MMOnlineStorageClient';
 
 const actor = 0x0000
 const anim_data = 0x0144
 
-export class PuppetData implements IPuppetData {
+export class PuppetData {
   pointer: number;
   ModLoader: IModLoaderAPI;
   core: API.IMMCore;

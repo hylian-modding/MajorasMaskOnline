@@ -1,9 +1,7 @@
 import { InjectCore } from 'modloader64_api/CoreInjection';
 import { bus, EventHandler, EventsClient } from 'modloader64_api/EventHandler';
 import { INetworkPlayer, LobbyData, NetworkHandler, IPacketHeader } from 'modloader64_api/NetworkHandler';
-import * as API from 'MajorasMask/API/MMAPI'
-import { MMOnlineEvents, MMOnline_PlayerScene } from './MMOAPI/MMOAPI';
-//import { ActorHookingManagerClient } from './data/ActorHookingSystem';
+import * as API from 'MajorasMask/API/Imports';
 import { createEquipmentFromContext, createInventoryFromContext, createQuestSaveFromContext, mergeEquipmentData, mergeInventoryData, mergeQuestSaveData, createDungeonItemDataFromContext, mergeDungeonItemData, InventorySave, applyInventoryToContext, applyBottleToContext, applyEquipmentToContext, applyQuestSaveToContext, applyDungeonItemDataToContext, EquipmentSave, QuestSave, MMODungeonItemContext, IDungeonItemSave, MMO_SceneStruct, createPhotoFromContext, mergePhotoData, PhotoSave, applyPhotoToContext, createBottleFromContext, mergeBottleData, mergeBottleDataTime, applyBottleToContextTime, createTradeFromContext, mergeInventoryTrade, applyTradeToContext, IQuestSave, createStrayFromContext, mergeStrayData, applyStrayToContext, createSkullFromContext, applySkullToContext, mergeSkullData, SkullSave, StraySave } from './data/MMOSaveData';
 import { MMO_ClientFlagUpdate, MMO_ClientSceneContextUpdate, MMO_DownloadRequestPacket, MMO_SubscreenSyncPacket, MMO_BottleUpdatePacket, MMO_SceneGUIPacket, MMO_BankSyncPacket, MMO_ScenePacket, MMO_SceneRequestPacket, MMO_DownloadResponsePacket, MMO_DownloadResponsePacket2, MMO_ServerFlagUpdate, MMO_ClientSceneContextUpdateTime, MMO_TimePacket, MMO_PictoboxPacket, MMO_PermFlagsPacket, MMO_SkullPacket, MMO_StrayFairyPacket, MMO_ItemGetMessagePacket } from './data/MMOPackets';
 import path from 'path';
@@ -11,34 +9,24 @@ import { GUITunnelPacket } from 'modloader64_api/GUITunnel';
 import fs from 'fs';
 import { MMOnlineStorageClient } from './MMOnlineStorageClient';
 import { DiscordStatus } from 'modloader64_api/Discord';
-//import { UtilityActorHelper } from './data/utilityActorHelper';
-//import { ModelManagerClient } from './data/models/ModelManager';
 import { ModLoaderAPIInject } from 'modloader64_api/ModLoaderAPIInjector';
 import { Init, Preinit, Postinit, onTick, onViUpdate, onCreateResources } from 'modloader64_api/PluginLifecycle';
 import { parseFlagChanges } from './parseFlagChanges';
 import { IMMOnlineLobbyConfig, MMOnlineConfigCategory } from './MMOnline';
 import { IModLoaderAPI, ModLoaderEvents } from 'modloader64_api/IModLoaderAPI';
-//import { ModelPlayer } from './data/models/ModelPlayer';
-import { Z64RomTools } from 'Z64Lib/API/Z64RomTools';
-import { IActor } from 'modloader64_api/OOT/IActor';
-//import { KeyLogManagerClient } from './data/keys/KeyLogManager';
-import { PuppetOverlord } from './data/linkPuppet/PuppetOverlord';
 import { SidedProxy, ProxySide } from 'modloader64_api/SidedProxy/SidedProxy';
-import { Command } from 'MajorasMask/API/Imports';
 import { MMOnlineStorage } from './MMOnlineStorage';
-//import { RPCClient } from './data/RPCHandler';
-import { RECORD_TICK_MODULO, NUM_SCHEDULE_TICKS, NUM_TICKS_PER_DAY, NUM_SCHEDULE_RECORD_TICKS, NUM_RECORD_TICKS_PER_DAY, get_scaled_time, PlayerScheduleData, PlayerSchedule } from './data/MMOPlayerSchedule'
-import { SaveContext, Skull } from 'MajorasMask/src/Imports';
+import { RECORD_TICK_MODULO, get_scaled_time } from './data/MMOPlayerSchedule'
 import { ModelManagerClient } from './data/models/ModelManager';
 import { SoundManagerClient } from './data/sound/SoundManager';
 import { addToKillFeedQueue } from 'modloader64_api/Announcements';
 import { SmartBuffer } from 'smart-buffer';
 import { rgba, xy, xywh } from 'modloader64_api/Sylvain/vec';
 import { FlipFlags, Texture } from 'modloader64_api/Sylvain/Gfx';
-import bitwise from 'bitwise';
 import { number_ref, string_ref } from 'modloader64_api/Sylvain/ImGui';
 import { flags } from './data/permflags';
-import { Z64LibSupportedGames } from 'Z64Lib/API/Z64LibSupportedGames';
+import { Z64OnlineEvents, Z64_PlayerScene } from './Z64OnlineAPI/Z64OnlineAPI';
+import { WorldEvents } from './WorldEvents/WorldEvents';
 
 export let TIME_SYNC_TRIGGERED: boolean = false;
 
@@ -87,6 +75,8 @@ export class MMOnlineClient {
     permFlagNames: Map<number, string> = new Map<number, string>();
     resourcesLoaded: boolean = false;
     itemIcons: Map<string, Texture> = new Map<string, Texture>();
+    @SidedProxy(ProxySide.CLIENT, WorldEvents)
+    worldEvents!: WorldEvents;
     
     @onCreateResources()
     onResource() {
@@ -458,8 +448,8 @@ export class MMOnlineClient {
             '.'
         );
         bus.emit(
-            MMOnlineEvents.CLIENT_REMOTE_PLAYER_CHANGED_SCENES,
-            new MMOnline_PlayerScene(packet.player, packet.lobby, packet.scene)
+            Z64OnlineEvents.CLIENT_REMOTE_PLAYER_CHANGED_SCENES,
+            new Z64_PlayerScene(packet.player, packet.lobby, packet.scene)
         );
         let gui_p: MMO_SceneGUIPacket = new MMO_SceneGUIPacket(
             packet.scene,
@@ -558,7 +548,7 @@ export class MMOnlineClient {
             this.core.save,
             true
         );
-        bus.emit(MMOnlineEvents.ON_INVENTORY_UPDATE, this.core.save.inventory);
+        bus.emit(Z64OnlineEvents.ON_INVENTORY_UPDATE, this.core.save.inventory);
     }
 
     // The server is giving me data.
@@ -722,17 +712,17 @@ export class MMOnlineClient {
         this.core.save.health_mod = 0x65;
     }
 
-    @EventHandler(MMOnlineEvents.GAINED_PIECE_OF_HEART)
+    @EventHandler(Z64OnlineEvents.GAINED_PIECE_OF_HEART)
     onNeedsHeal1(evt: any) {
         this.healPlayer();
     }
 
-    @EventHandler(MMOnlineEvents.GAINED_HEART_CONTAINER)
+    @EventHandler(Z64OnlineEvents.GAINED_HEART_CONTAINER)
     onNeedsHeal2(evt: any) {
         this.healPlayer();
     }
 
-    @EventHandler(MMOnlineEvents.MAGIC_METER_INCREASED)
+    @EventHandler(Z64OnlineEvents.MAGIC_METER_INCREASED)
     onNeedsMagic(size: API.Magic) {
         switch (size) {
             case API.Magic.NONE:
@@ -1096,7 +1086,7 @@ export class MMOnlineClient {
         this.ModLoader.emulator.rdramWriteBitsBuffer(0x801F0568, bits);
     }
 
-    @EventHandler(MMOnlineEvents.SWORD_NEEDS_UPDATE)
+    @EventHandler(Z64OnlineEvents.SWORD_NEEDS_UPDATE)
     onSwordChange(evt: any) {
         this.core.save.sword_helper.updateSwordonB();
     }

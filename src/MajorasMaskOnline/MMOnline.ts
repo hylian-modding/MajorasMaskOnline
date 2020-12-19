@@ -1,32 +1,30 @@
-import { IPlugin, IModLoaderAPI, IPluginServerConfig, ModLoaderEvents } from 'modloader64_api/IModLoaderAPI';
-import { EventHandler, bus, EventsServer, EventsClient, EventServerJoined, EventServerLeft } from 'modloader64_api/EventHandler';
-import { IMMOnlineHelpers, MMOnlineEvents, MMOnline_PlayerScene, MMO_CHILD_MODEL_EVENT } from './MMOAPI/MMOAPI';
-
+import { IPlugin, IModLoaderAPI, IPluginServerConfig } from 'modloader64_api/IModLoaderAPI';
+import { EventHandler, EventsClient } from 'modloader64_api/EventHandler';
 
 // @Drahsid TODO: Move to Z64lib?
-import { MMO_ScenePacket, MMO_SceneRequestPacket } from './data/MMOPackets';
-import { MMOnlineStorage } from './MMOnlineStorage';
 
 import { MMOnlineStorageClient } from './MMOnlineStorageClient';
-import { IPacketHeader, ServerNetworkHandler, NetworkHandler, INetworkPlayer } from 'modloader64_api/NetworkHandler';
+import { IPacketHeader } from 'modloader64_api/NetworkHandler';
 import { zzstatic } from 'Z64Lib/API/zzstatic';
 import { Z64LibSupportedGames } from 'Z64Lib/API/Z64LibSupportedGames';
 
-import printf from './printf'
 import path from 'path';
 import fs from 'fs';
 import { SidedProxy, ProxySide } from 'modloader64_api/SidedProxy/SidedProxy';
 import { MMOnlineClient } from './MMOnlineClient';
 import { MMOnlineServer } from './MMOnlineServer';
 import { InjectCore } from 'modloader64_api/CoreInjection';
-import * as API from 'MajorasMask/API/MMAPI';
+import * as API from 'MajorasMask/API/Imports';
 import { PuppetOverlord } from './data/linkPuppet/PuppetOverlord';
-import { Console } from 'console';
+import { IZ64OnlineHelpers } from './Z64OnlineAPI/Z64OnlineAPI';
+
 export const SCENE_ARR_SIZE = 0xD20;
 export const EVENT_ARR_SIZE = 0x8;
 export const ITEM_FLAG_ARR_SIZE = 0x18;
 export const MASK_FLAG_ARR_SIZE = 0x18;
 export const WEEK_EVENT_ARR_SIZE = 0x64;
+
+export const IS_DEV_BUILD: boolean = true;
 
 export interface IMMOnlineLobbyConfig {
     data_syncing: boolean;
@@ -41,7 +39,7 @@ export class MMOnlineConfigCategory {
     syncMode: number = 0;
 }
 
-class MMOnline implements IPlugin, IMMOnlineHelpers, IPluginServerConfig {
+class MMOnline implements IPlugin, IZ64OnlineHelpers, IPluginServerConfig {
 
     ModLoader!: IModLoaderAPI;
     @InjectCore()
@@ -63,9 +61,9 @@ class MMOnline implements IPlugin, IMMOnlineHelpers, IPluginServerConfig {
 
     sendPacketToPlayersInScene(packet: IPacketHeader): void {
         if (this.server !== undefined) {
-          this.server.sendPacketToPlayersInScene(packet);
+            this.server.sendPacketToPlayersInScene(packet);
         }
-      }
+    }
 
     getClientStorage(): MMOnlineStorageClient | null {
         return this.client !== undefined ? this.client.clientStorage : null;
@@ -83,13 +81,14 @@ class MMOnline implements IPlugin, IMMOnlineHelpers, IPluginServerConfig {
     }
 
     writeModel() {
-        // These use the OOT adult format.
-        let zz: zzstatic = new zzstatic(Z64LibSupportedGames.MAJORAS_MASK);
-        this.ModLoader.emulator.rdramWriteBuffer(0x80900000 + (0x37800 * 0), zz.doRepoint(fs.readFileSync(path.resolve(__dirname, "data", "models", "zobjs", "Deity.zobj")), 0, true, 0x80900000 + (0x37800 * 0)));
-        this.ModLoader.emulator.rdramWriteBuffer(0x80900000 + (0x37800 * 1), zz.doRepoint(fs.readFileSync(path.resolve(__dirname, "data", "models", "zobjs", "Goron.zobj")), 0, true, 0x80900000 + (0x37800 * 1)));
-        this.ModLoader.emulator.rdramWriteBuffer(0x80900000 + (0x37800 * 2), zz.doRepoint(fs.readFileSync(path.resolve(__dirname, "data", "models", "zobjs", "Zora.zobj")), 0, true, 0x80900000 + (0x37800 * 2)));
-        this.ModLoader.emulator.rdramWriteBuffer(0x80900000 + (0x37800 * 3), zz.doRepoint(fs.readFileSync(path.resolve(__dirname, "data", "models", "zobjs", "Deku.zobj")), 0, true, 0x80900000 + (0x37800 * 3)));
-        this.ModLoader.emulator.rdramWriteBuffer(0x80900000 + (0x37800 * 4), zz.doRepoint(fs.readFileSync(path.resolve(__dirname, "data", "models", "zobjs", "Human.zobj")), 0, true, 0x80900000 + (0x37800 * 4)));
+        if (this.ModLoader.isClient) {
+            let zz: zzstatic = new zzstatic(Z64LibSupportedGames.MAJORAS_MASK);
+            this.ModLoader.emulator.rdramWriteBuffer(0x80900000 + (0x37800 * 0), zz.doRepoint(fs.readFileSync(path.resolve(__dirname, "data", "models", "zobjs", "Deity.zobj")), 0, true, 0x80900000 + (0x37800 * 0)));
+            this.ModLoader.emulator.rdramWriteBuffer(0x80900000 + (0x37800 * 1), zz.doRepoint(fs.readFileSync(path.resolve(__dirname, "data", "models", "zobjs", "Goron.zobj")), 0, true, 0x80900000 + (0x37800 * 1)));
+            this.ModLoader.emulator.rdramWriteBuffer(0x80900000 + (0x37800 * 2), zz.doRepoint(fs.readFileSync(path.resolve(__dirname, "data", "models", "zobjs", "Zora.zobj")), 0, true, 0x80900000 + (0x37800 * 2)));
+            this.ModLoader.emulator.rdramWriteBuffer(0x80900000 + (0x37800 * 3), zz.doRepoint(fs.readFileSync(path.resolve(__dirname, "data", "models", "zobjs", "Deku.zobj")), 0, true, 0x80900000 + (0x37800 * 3)));
+            this.ModLoader.emulator.rdramWriteBuffer(0x80900000 + (0x37800 * 4), zz.doRepoint(fs.readFileSync(path.resolve(__dirname, "data", "models", "zobjs", "Human.zobj")), 0, true, 0x80900000 + (0x37800 * 4)));
+        }
     }
 
     onTick(frame?: number): void {
@@ -109,7 +108,7 @@ class MMOnline implements IPlugin, IMMOnlineHelpers, IPluginServerConfig {
     }
 
     getServerURL(): string {
-        return "192.99.70.23:8035";
+        return IS_DEV_BUILD ? "192.99.70.23:8037" : "192.99.70.23:8035";
     }
 }
 
