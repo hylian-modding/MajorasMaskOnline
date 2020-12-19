@@ -12,17 +12,17 @@ import { DiscordStatus } from 'modloader64_api/Discord';
 import { ModLoaderAPIInject } from 'modloader64_api/ModLoaderAPIInjector';
 import { Init, Preinit, Postinit, onTick, onViUpdate, onCreateResources } from 'modloader64_api/PluginLifecycle';
 import { parseFlagChanges } from './parseFlagChanges';
-import { IMMOnlineLobbyConfig, MMOnlineConfigCategory } from './MMOnline';
+import { IMMOnlineLobbyConfig, IS_DEV_BUILD, MMOnlineConfigCategory } from './MMOnline';
 import { IModLoaderAPI, ModLoaderEvents } from 'modloader64_api/IModLoaderAPI';
 import { SidedProxy, ProxySide } from 'modloader64_api/SidedProxy/SidedProxy';
 import { MMOnlineStorage } from './MMOnlineStorage';
 import { RECORD_TICK_MODULO, get_scaled_time } from './data/MMOPlayerSchedule'
 import { ModelManagerClient } from './data/models/ModelManager';
 import { SoundManagerClient } from './data/sound/SoundManager';
-import { addToKillFeedQueue } from 'modloader64_api/Announcements';
+import { addToKillFeedQueue, changeKillfeedFont } from 'modloader64_api/Announcements';
 import { SmartBuffer } from 'smart-buffer';
 import { rgba, xy, xywh } from 'modloader64_api/Sylvain/vec';
-import { FlipFlags, Texture } from 'modloader64_api/Sylvain/Gfx';
+import { FlipFlags, Font, Texture } from 'modloader64_api/Sylvain/Gfx';
 import { number_ref, string_ref } from 'modloader64_api/Sylvain/ImGui';
 import { flags } from './data/permflags';
 import { Z64OnlineEvents, Z64_PlayerScene } from './Z64OnlineAPI/Z64OnlineAPI';
@@ -77,21 +77,7 @@ export class MMOnlineClient {
     itemIcons: Map<string, Texture> = new Map<string, Texture>();
     @SidedProxy(ProxySide.CLIENT, WorldEvents)
     worldEvents!: WorldEvents;
-    
-    @onCreateResources()
-    onResource() {
-        if (!this.resourcesLoaded) {
-            let base: string = path.resolve(__dirname, "gui", "sprites");
-            fs.readdirSync(base).forEach((file: string) => {
-                let p = path.resolve(base, file);
-                let t: Texture = this.ModLoader.Gfx.createTexture();
-                t.loadFromFile(p);
-                this.itemIcons.set(file, t);
-                //this.ModLoader.logger.debug("Loaded " + file + ".");
-            });
-            this.resourcesLoaded = true;
-        }
-    }
+    font!: Font;
 
     sendPacketToPlayersInScene(packet: IPacketHeader) {
         try {
@@ -161,9 +147,9 @@ export class MMOnlineClient {
         let quest = createQuestSaveFromContext(this.core.save);
         let di!: any;
 
-        if(this.clientStorage.syncMode === 1) di = createDungeonItemDataFromContext(this.core.save.dungeonItemManager);
+        if (this.clientStorage.syncMode === 1) di = createDungeonItemDataFromContext(this.core.save.dungeonItemManager);
 
-        
+
         mergeInventoryData(this.clientStorage.inventoryStorage, inventory);
 
         if (this.clientStorage.syncMode === 1) {
@@ -176,7 +162,7 @@ export class MMOnlineClient {
 
         mergeQuestSaveData(this.clientStorage.questStorage, quest);
 
-        if(this.clientStorage.syncMode === 1) mergeDungeonItemData(this.ModLoader, this.clientStorage.dungeonItemStorage, di, ProxySide.CLIENT, this.ModLoader.clientLobby);
+        if (this.clientStorage.syncMode === 1) mergeDungeonItemData(this.ModLoader, this.clientStorage.dungeonItemStorage, di, ProxySide.CLIENT, this.ModLoader.clientLobby);
 
         this.ModLoader.clientSide.sendPacket(
             new MMO_SubscreenSyncPacket(this.clientStorage.inventoryStorage,
@@ -574,7 +560,7 @@ export class MMOnlineClient {
 
         applyQuestSaveToContext(packet.subscreen.quest, this.core.save);
 
-        if(this.clientStorage.syncMode === 1) applyDungeonItemDataToContext(packet.subscreen.dungeonItems, this.core.save.dungeonItemManager);
+        if (this.clientStorage.syncMode === 1) applyDungeonItemDataToContext(packet.subscreen.dungeonItems, this.core.save.dungeonItemManager);
 
         this.clientStorage.bank = packet.bank.savings;
         this.ModLoader.emulator.rdramWrite16(0x801F054E, this.clientStorage.bank);
@@ -619,9 +605,9 @@ export class MMOnlineClient {
         ) as EquipmentSave;
         let quest: QuestSave = createQuestSaveFromContext(this.core.save) as IQuestSave;
         let dungeonItems!: MMODungeonItemContext;
-        if(this.clientStorage.syncMode === 1){
+        if (this.clientStorage.syncMode === 1) {
             dungeonItems = createDungeonItemDataFromContext(
-            this.core.save.dungeonItemManager
+                this.core.save.dungeonItemManager
             ) as IDungeonItemSave;
         }
 
@@ -638,7 +624,7 @@ export class MMOnlineClient {
 
         mergeInventoryData(this.clientStorage.inventoryStorage, packet.inventory);
         mergeQuestSaveData(this.clientStorage.questStorage, packet.quest);
-        if(this.clientStorage.syncMode === 1) mergeDungeonItemData(this.ModLoader, this.clientStorage.dungeonItemStorage, packet.dungeonItems, ProxySide.CLIENT, this.ModLoader.clientLobby);
+        if (this.clientStorage.syncMode === 1) mergeDungeonItemData(this.ModLoader, this.clientStorage.dungeonItemStorage, packet.dungeonItems, ProxySide.CLIENT, this.ModLoader.clientLobby);
 
         if (this.clientStorage.syncMode === 1) {
             mergeBottleDataTime(this.clientStorage.bottleStorage, packet.bottle);
@@ -660,7 +646,7 @@ export class MMOnlineClient {
 
         applyQuestSaveToContext(this.clientStorage.questStorage, this.core.save);
 
-        if(this.clientStorage.syncMode === 1) applyDungeonItemDataToContext(this.clientStorage.dungeonItemStorage, this.core.save.dungeonItemManager);
+        if (this.clientStorage.syncMode === 1) applyDungeonItemDataToContext(this.clientStorage.dungeonItemStorage, this.core.save.dungeonItemManager);
 
         this.ModLoader.gui.tunnel.send('MMOnline:onSubscreenPacket', new GUITunnelPacket('MMOnline', 'MMOnline:onSubscreenPacket', packet));
     }
@@ -947,6 +933,21 @@ export class MMOnlineClient {
 
     @onViUpdate()
     onVi() {
+        if (!this.resourcesLoaded) {
+            /*             let base: string = path.resolve(__dirname, "gui", "sprites");
+                        fs.readdirSync(base).forEach((file: string) => {
+                            let p = path.resolve(base, file);
+                            let t: Texture = this.ModLoader.Gfx.createTexture();
+                            t.loadFromFile(p);
+                            this.itemIcons.set(file, t);
+                            //this.ModLoader.logger.debug("Loaded " + file + ".");
+                        }); */
+            this.font = this.ModLoader.Gfx.createFont();
+            this.font.loadFromFile(path.resolve(__dirname, "data", "HyliaSerifBeta-Regular.otf"), 22, 2);
+            changeKillfeedFont(this.font);
+            addToKillFeedQueue("Testing shit");
+            this.resourcesLoaded = true;
+        }
         if (this.clientStorage.pictoboxAlert.image !== undefined) {
             this.ModLoader.Gfx.addSprite(this.ModLoader.ImGui.getWindowDrawList(), this.clientStorage.pictoboxAlert.image, xywh(0, 0, 160, 112), xywh(this.clientStorage.pictoboxAlert.pos.x, this.clientStorage.pictoboxAlert.pos.y, this.clientStorage.pictoboxAlert.size.x, this.clientStorage.pictoboxAlert.size.y), rgba(255, 255, 255, this.clientStorage.pictoboxAlert.opacity), FlipFlags.None);
             if (this.clientStorage.pictoboxAlert.opacity > 0) {
@@ -963,20 +964,15 @@ export class MMOnlineClient {
         if (this.ModLoader.ImGui.beginMainMenuBar()) {
             if (this.ModLoader.ImGui.beginMenu("Mods")) {
                 if (this.ModLoader.ImGui.beginMenu("MMO")) {
-                    if (this.ModLoader.ImGui.beginMenu("Teleport")) {
-                        this.ModLoader.ImGui.inputText("Destination", this.teleportDest);
-                        this.ModLoader.ImGui.inputText("Cutscene", this.cutsceneDest);
-                        if (this.ModLoader.ImGui.button("Warp")) {
-                            this.core.commandBuffer.runWarp(parseInt(this.teleportDest[0], 16), parseInt(this.cutsceneDest[0], 16), () => { });
+                    if (IS_DEV_BUILD) {
+                        if (this.ModLoader.ImGui.beginMenu("Teleport")) {
+                            this.ModLoader.ImGui.inputText("Destination", this.teleportDest);
+                            this.ModLoader.ImGui.inputText("Cutscene", this.cutsceneDest);
+                            if (this.ModLoader.ImGui.button("Warp")) {
+                                this.core.commandBuffer.runWarp(parseInt(this.teleportDest[0], 16), parseInt(this.cutsceneDest[0], 16), () => { });
+                            }
+                            this.ModLoader.ImGui.endMenu();
                         }
-                        this.ModLoader.ImGui.endMenu();
-                    }
-                    if (this.ModLoader.ImGui.beginMenu("Sword Debugging")) {
-                        if (this.ModLoader.ImGui.sliderInt("Sword", this.swordSlider, 0, 3)) {
-                            this.core.save.swords.swordLevel = this.swordSlider[0];
-                            this.core.save.sword_helper.updateSwordonB();
-                        }
-                        this.ModLoader.ImGui.endMenu();
                     }
                     this.ModLoader.ImGui.endMenu();
                 }
@@ -1057,7 +1053,7 @@ export class MMOnlineClient {
         this.ModLoader.clientSide.sendPacket(new MMO_PermFlagsPacket(this.clientStorage.permFlags, this.clientStorage.permEvents, this.ModLoader.clientLobby));
     }
 
-    mmrSyncCheck(){
+    mmrSyncCheck() {
         let skullShuffle0: number = this.ModLoader.emulator.rdramRead32(0x8014449C);
         let skullShuffle1: number = this.ModLoader.emulator.rdramRead32(0x801444A4);
         let strayShuffle0: number = this.ModLoader.emulator.rdramRead32(0x8014450C);
@@ -1065,9 +1061,9 @@ export class MMOnlineClient {
         let strayShuffle2: number = this.ModLoader.emulator.rdramRead32(0x8014451C);
         let strayShuffle3: number = this.ModLoader.emulator.rdramRead32(0x8014452C);
 
-        if(skullShuffle0 === 0x00000000 && skullShuffle1 === 0x00000000) this.clientStorage.isSkulltulaSync = true;
-        if(strayShuffle0 === 0x00000000 && strayShuffle1 === 0x00000000 && strayShuffle2 === 0x00000000 && strayShuffle3 === 0x00000000) this.clientStorage.isFairySync = true;
-        
+        if (skullShuffle0 === 0x00000000 && skullShuffle1 === 0x00000000) this.clientStorage.isSkulltulaSync = true;
+        if (strayShuffle0 === 0x00000000 && strayShuffle1 === 0x00000000 && strayShuffle2 === 0x00000000 && strayShuffle3 === 0x00000000) this.clientStorage.isFairySync = true;
+
         this.ModLoader.logger.info("Skulltula Sync: " + this.clientStorage.isFairySync);
         this.ModLoader.logger.info("Fairy Sync: " + this.clientStorage.isSkulltulaSync);
     }

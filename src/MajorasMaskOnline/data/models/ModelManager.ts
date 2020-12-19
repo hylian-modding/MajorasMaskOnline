@@ -31,7 +31,6 @@ import { Z64_EventConfig } from '@MajorasMaskOnline/WorldEvents/Z64_EventConfig'
 import { Z64OnlineEvents, Z64Online_EquipmentPak, Z64Online_ModelAllocation, Z64_AllocateModelPacket, Z64_EquipmentPakPacket, Z64_GiveModelPacket, Z64_IconAllocatePacket, Z64_ModifyModelPacket } from '@MajorasMaskOnline/Z64OnlineAPI/Z64OnlineAPI';
 import { IMMCore, MMForms } from 'MajorasMask/API/MMAPI';
 import { MMChildManifest } from 'Z64Lib/API/MM/MMChildManifest';
-import { PatchTypes } from 'modloader64_api/Patchers/PatchManager';
 
 export class ModelManagerClient {
   @ModLoaderAPIInject()
