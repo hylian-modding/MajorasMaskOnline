@@ -24,7 +24,7 @@ export const ITEM_FLAG_ARR_SIZE = 0x18;
 export const MASK_FLAG_ARR_SIZE = 0x18;
 export const WEEK_EVENT_ARR_SIZE = 0x64;
 
-export const IS_DEV_BUILD: boolean = true;
+export const IS_DEV_BUILD: boolean = false;
 
 export interface IMMOnlineLobbyConfig {
     data_syncing: boolean;
