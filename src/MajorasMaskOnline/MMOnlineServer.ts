@@ -1,20 +1,18 @@
 import { EventHandler, EventsServer, EventServerJoined, EventServerLeft, bus } from 'modloader64_api/EventHandler';
-//import { ActorHookingManagerServer } from './data/ActorHookingSystem';
 import { MMOnlineStorage } from './MMOnlineStorage';
-import { ParentReference, SidedProxy, ProxySide } from 'modloader64_api/SidedProxy/SidedProxy';
+import { ParentReference, ProxySide, SidedProxy } from 'modloader64_api/SidedProxy/SidedProxy';
 import { ModLoaderAPIInject } from 'modloader64_api/ModLoaderAPIInjector';
 import MMOnline from './MMOnline';
 import { IModLoaderAPI, ModLoaderEvents } from 'modloader64_api/IModLoaderAPI';
 import { ServerNetworkHandler, IPacketHeader } from 'modloader64_api/NetworkHandler';
-import { MMOnline_PlayerScene, MMOnlineEvents } from './MMOAPI/MMOAPI';
 import { MMO_ScenePacket, MMO_BottleUpdatePacket, MMO_DownloadRequestPacket, MMO_DownloadResponsePacket, MMO_SubscreenSyncPacket, MMO_ServerFlagUpdate, MMO_BankSyncPacket, MMO_DownloadResponsePacket2, MMO_ClientFlagUpdate, MMO_ClientSceneContextUpdate, MMO_TimePacket, MMO_PictoboxPacket, MMO_PermFlagsPacket, MMO_StrayFairyPacket, MMO_SkullPacket } from './data/MMOPackets';
-//import { MMO_KeyRebuildPacket, KeyLogManagerServer } from './data/keys/KeyLogManager';
-import { mergeInventoryData, mergeEquipmentData, mergeQuestSaveData, mergeDungeonItemData, MMO_SceneStruct, mergePhotoData, mergeBottleData, mergeBottleDataTime, PhotoSave, StraySave, mergeStrayData, mergeSkullData, SkullSave } from './data/MMOSaveData';
-import { PuppetOverlord } from './data/linkPuppet/PuppetOverlord';
+import { mergeInventoryData, mergeEquipmentData, mergeQuestSaveData, mergeDungeonItemData, mergePhotoData, mergeBottleData, mergeBottleDataTime, PhotoSave, mergeStrayData, mergeSkullData } from './data/MMOSaveData';
 import { InjectCore } from 'modloader64_api/CoreInjection';
-import * as API from 'MajorasMask/API/MMAPI';
+import * as API from 'MajorasMask/API/Imports';
 import { MMOnlineStorageClient } from './MMOnlineStorageClient';
 import { parseFlagChanges } from './parseFlagChanges';
+import { Z64OnlineEvents, Z64_PlayerScene } from './Z64OnlineAPI/Z64OnlineAPI';
+import { WorldEvents } from './WorldEvents/WorldEvents';
 
 export class MMOnlineServer {
     @ModLoaderAPIInject()
@@ -23,12 +21,9 @@ export class MMOnlineServer {
     core!: API.IMMCore;
     @ParentReference()
     parent!: MMOnline;
-
-    /*@SidedProxy(ProxySide.SERVER, ActorHookingManagerServer)
-    actorHooks!: ActorHookingManagerServer;
-    @SidedProxy(ProxySide.SERVER, KeyLogManagerServer)
-    keys!: KeyLogManagerServer;*/
     clientStorage: MMOnlineStorageClient = new MMOnlineStorageClient();
+    @SidedProxy(ProxySide.SERVER, WorldEvents)
+    worldEvents!: WorldEvents;
 
     sendPacketToPlayersInScene(packet: IPacketHeader) {
         try {
@@ -113,7 +108,7 @@ export class MMOnlineServer {
                 packet.scene +
                 '.'
             );
-            bus.emit(MMOnlineEvents.SERVER_PLAYER_CHANGED_SCENES, new MMOnline_PlayerScene(packet.player, packet.lobby, packet.scene));
+            bus.emit(Z64OnlineEvents.SERVER_PLAYER_CHANGED_SCENES, new Z64_PlayerScene(packet.player, packet.lobby, packet.scene));
         } catch (err) {
         }
     }

@@ -1,14 +1,14 @@
 {
   "name": "MajorasMaskOnline",
-  "version": "2.0.116",
+  "version": "1.0.0",
   "description": "",
   "main": "MMOnline.js",
   "author": "Psi-Hate, Denoflions, Drahsid",
   "credits": "",
   "license": "GPL-3.0",
   "core": "MajorasMask",
-  "updateUrl": "",
-  "devUrl": "",
+  "updateUrl": "https://nexus.inpureprojects.info/ModLoader64/mods/MMO/update/update.json",
+  "devUrl": "https://nexus.inpureprojects.info/ModLoader64/mods/MMO/dev/update.json",
   "modloader64_deps": {
     "Z64Lib": "https://github.com/hylian-modding/ML64-Z64Lib.git",
     "MajorasMask": "https://github.com/hylian-modding/Core-MajorasMask.git"

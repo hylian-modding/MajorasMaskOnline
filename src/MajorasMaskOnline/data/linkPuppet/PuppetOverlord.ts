@@ -5,20 +5,19 @@ import { MMO_PuppetPacket, MMO_SceneRequestPacket, MMO_ScenePacket, MMO_PuppetWr
 import fs from 'fs';
 import { ModLoaderAPIInject } from 'modloader64_api/ModLoaderAPIInjector';
 import { InjectCore } from 'modloader64_api/CoreInjection';
-import { IPuppetOverlord } from '../../MMOAPI/IPuppetOverlord';
 import { Postinit, onTick } from 'modloader64_api/PluginLifecycle';
 import { bus, EventHandler, EventsClient } from 'modloader64_api/EventHandler';
-import { IMMOnlineHelpers, MMOnlineEvents, RemoteSoundPlayRequest } from '../../MMOAPI/MMOAPI';
 import { HorseData } from './HorseData';
-import { IMMCore, MMForms, MMEvents } from 'MajorasMask/API/MMAPI';
 import { IActor } from 'MajorasMask/API/IActor';
 import { Z64RomTools } from 'Z64Lib/API/Z64RomTools';
 import { MMOnlineClient } from '../../MMOnlineClient';
 import { PlayerSchedule, get_scaled_time, PlayerScheduleData, RECORD_TICK_MODULO, get_scaled_time_floor, get_schedule_data_index_at_time, get_linear_time } from '../MMOPlayerSchedule';
 import { MMOnlineStorageClient } from '../../MMOnlineStorageClient';
 import MMOnline from '../../MMOnline';
+import { IZ64OnlineHelpers, RemoteSoundPlayRequest, Z64OnlineEvents } from '@MajorasMaskOnline/Z64OnlineAPI/Z64OnlineAPI';
+import { IMMCore, MMEvents, MMForms } from 'MajorasMask/API/MMAPI';
 
-export class PuppetOverlord implements IPuppetOverlord {
+export class PuppetOverlord {
   private puppets: Map<string, Puppet> = new Map<string, Puppet>();
   private awaiting_spawn: Puppet[] = new Array<Puppet>();
   fakeClientPuppet!: Puppet;
@@ -26,7 +25,7 @@ export class PuppetOverlord implements IPuppetOverlord {
   private playersAwaitingPuppets: INetworkPlayer[] = new Array<
     INetworkPlayer
   >();
-  private parent: IMMOnlineHelpers;
+  private parent: IZ64OnlineHelpers;
   private Epona!: HorseData;
   private queuedSpawn: boolean = false;
 
@@ -38,7 +37,7 @@ export class PuppetOverlord implements IPuppetOverlord {
   private core!: IMMCore;
   clientStorage!: MMOnlineStorageClient;
 
-  constructor(parent: IMMOnlineHelpers, core: IMMCore, clientStorage: MMOnlineStorageClient) {
+  constructor(parent: IZ64OnlineHelpers, core: IMMCore, clientStorage: MMOnlineStorageClient) {
     this.parent = parent;
     this.core = core;
     this.clientStorage = clientStorage;
@@ -251,7 +250,7 @@ export class PuppetOverlord implements IPuppetOverlord {
 
       //if ((this.clientStorage.syncMode === 2 && Math.abs(scaled_time - linear_time) > 135) || this.clientStorage.syncMode !== 2) puppet.processIncomingPuppetData(actualPacket.data);
       let e = new RemoteSoundPlayRequest(packet.player, actualPacket.data, actualPacket.data.sound);
-      bus.emit(MMOnlineEvents.ON_REMOTE_PLAY_SOUND, e);
+      bus.emit(Z64OnlineEvents.ON_REMOTE_PLAY_SOUND, e);
       puppet.processIncomingPuppetData(actualPacket.data, e);
       //if (actualPacket.horse_data !== undefined) {
       /*         puppet.processIncomingHorseData(actualPacket.horse_data); */
@@ -424,13 +423,13 @@ export class PuppetOverlord implements IPuppetOverlord {
     this.localPlayerLoadingZone();
   }
 
-  @EventHandler(MMOnlineEvents.PLAYER_PUPPET_SPAWNED)
+  @EventHandler(Z64OnlineEvents.PLAYER_PUPPET_SPAWNED)
   onSpawn(puppet: Puppet) {
     this.ModLoader.logger.debug("Unlocking puppet spawner.")
     this.queuedSpawn = false;
   }
 
-  @EventHandler(MMOnlineEvents.PLAYER_PUPPET_PRESPAWN)
+  @EventHandler(Z64OnlineEvents.PLAYER_PUPPET_PRESPAWN)
   onPreSpawn(puppet: Puppet) {
     this.ModLoader.logger.debug("Locking puppet spawner.")
     this.queuedSpawn = true;
@@ -439,6 +438,22 @@ export class PuppetOverlord implements IPuppetOverlord {
   @EventHandler(ModLoaderEvents.ON_ROM_PATCHED)
   onRom(evt: any) {
     this.rom = evt.rom;
+  }
+
+  @EventHandler(Z64OnlineEvents.FORCE_PUPPET_RESPAWN_IMMEDIATE)
+  onForceRepop(evt: any) {
+    let puppet = this.puppets.get(evt.player.uuid);
+    if (puppet !== undefined) {
+      if (puppet.isSpawning) return;
+      if (puppet.form !== evt.age) return;
+      if (puppet.isShoveled) {
+        puppet.despawn();
+      }
+      if (puppet.isSpawned) {
+        puppet.despawn();
+        this.awaiting_spawn.push(puppet);
+      }
+    }
   }
 
 }

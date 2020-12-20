@@ -7,7 +7,7 @@ import zlib from 'zlib';
 import Vector3 from "modloader64_api/math/Vector3";
 import { Postinit } from 'modloader64_api/PluginLifecycle';
 import * as sf from 'modloader64_api/Sound/sfml_audio';
-import { MMOnlineEvents, RemoteSoundPlayRequest } from "../../MMOAPI/MMOAPI";
+import { RemoteSoundPlayRequest, Z64OnlineEvents } from "../../Z64OnlineAPI/Z64OnlineAPI";
 
 export class OotO_SoundPackLoadPacket extends Packet {
     totalSize: number;
@@ -41,7 +41,7 @@ export class SoundManagerClient {
         return Math.floor(Math.random() * (max - min + 1)) + min;
     }
 
-    @EventHandler(MMOnlineEvents.ON_LOAD_SOUND_PACK)
+    @EventHandler(Z64OnlineEvents.ON_LOAD_SOUND_PACK)
     onSoundPackLoaded(rawSounds: any) {
         let size: number = 0;
         Object.keys(rawSounds).forEach((key: string) => {
@@ -94,7 +94,7 @@ export class SoundManagerClient {
         });
     }
 
-    @EventHandler(MMOnlineEvents.ON_REMOTE_PLAY_SOUND)
+    @EventHandler(Z64OnlineEvents.ON_REMOTE_PLAY_SOUND)
     onSound(remote: RemoteSoundPlayRequest) {
         if (this.PlayerSounds.has(remote.player.uuid)) {
             let rawPos: Buffer = remote.puppet.pos;
