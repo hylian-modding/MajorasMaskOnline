@@ -327,6 +327,7 @@ export class ChristmasClient implements IWorldEvent {
             if (e.checked === true) {
                 this.alreadyUnlocked.push(name);
             }
+            items.push(name);
         });
         this.heap.equipment!.forEach((value: Buffer[], key: string) => {
             for (let i = 0; i < value.length; i++) {
@@ -337,6 +338,7 @@ export class ChristmasClient implements IWorldEvent {
                 if (e.checked === true) {
                     this.alreadyUnlocked.push(name);
                 }
+                items.push(name);
             }
         });
         for (let i = 0; i < this.alreadyUnlocked.length; i++) {
