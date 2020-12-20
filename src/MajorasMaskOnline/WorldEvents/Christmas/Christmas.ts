@@ -222,7 +222,7 @@ export class ChristmasClient implements IWorldEvent {
     @InjectCore()
     core!: IMMCore;
     collectionFlags!: Buffer[];
-    url: string = "https://repo.modloader64.com/mods/Ooto/events/christmas/MM_Christmas_content_beta_3.content";
+    url: string = "https://repo.modloader64.com/mods/Ooto/events/christmas/MM_Christmas_content_final.content";
     GuiVariables: ChristmasGuiStuff = new ChristmasGuiStuff();
     resourceLoad: boolean = false;
     title!: TitleScreenData;
@@ -255,8 +255,8 @@ export class ChristmasClient implements IWorldEvent {
         this.ModLoader.config.setData("MM_Christmas", "disableEvent", false);
         this.disableEvent = this.config.disableEvent;
         this.title = new TitleScreenData();
-        this.heap = new AssetHeap(this.ModLoader, "Christmas", undefined, path.resolve(global.ModLoader.startdir, "Christmas"));
-        //this.heap = new AssetHeap(this.ModLoader, "Christmas", this.url, undefined);
+        //this.heap = new AssetHeap(this.ModLoader, "Christmas", undefined, path.resolve(global.ModLoader.startdir, "Christmas"));
+        this.heap = new AssetHeap(this.ModLoader, "Christmas", this.url, undefined);
         this.collectionFlags = [];
         for (let i = 0; i < 31; i++) {
             this.collectionFlags.push(Buffer.alloc(100));
