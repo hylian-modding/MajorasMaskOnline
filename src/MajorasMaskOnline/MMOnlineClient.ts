@@ -945,7 +945,6 @@ export class MMOnlineClient {
             this.font = this.ModLoader.Gfx.createFont();
             this.font.loadFromFile(path.resolve(__dirname, "data", "HyliaSerifBeta-Regular.otf"), 22, 2);
             changeKillfeedFont(this.font);
-            addToKillFeedQueue("Testing shit");
             this.resourcesLoaded = true;
         }
         if (this.clientStorage.pictoboxAlert.image !== undefined) {
