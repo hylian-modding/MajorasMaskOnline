@@ -117,6 +117,12 @@ class ChristmasRNGReward extends ChristmasReward {
                     } else if (client.costumesGear.has(data)) {
                         new ChristmasEquipmentCostumeReward(data, "Costume: " + data, this.trigger, this.ModLoader, this.core).run(client);
                     }
+                    if (override !== undefined) {
+                        addToKillFeedQueue("Winner!");
+                    }
+                    if (client.rewardsMap.length === 0) {
+                        addToKillFeedQueue("All rewards found today!");
+                    }
                 } else {
                     this.doFail(client);
                 }
@@ -237,6 +243,7 @@ export class ChristmasClient implements IWorldEvent {
     disableEvent: boolean = false;
     @SidedProxy(ProxySide.CLIENT, CreditsController)
     credits!: CreditsController;
+    alreadyUnlocked: Array<string> = [];
 
     @Preinit()
     preinit() {
@@ -314,13 +321,28 @@ export class ChristmasClient implements IWorldEvent {
         this.heap.costumes.get(MMForms.HUMAN)!.forEach((value: Buffer, index: number) => {
             let name = CostumeHelper.getCostumeName(value);
             this.costumesChild.set(name, value);
+            let e = { name: name, age: MMForms.HUMAN, data: value, event: "Christmas 2020", checked: false } as Z64_EventReward;
+            bus.emit(Z64_RewardEvents.CHECK_REWARD, e);
+            if (e.checked === true) {
+                this.alreadyUnlocked.push(name);
+            }
         });
         this.heap.equipment!.forEach((value: Buffer[], key: string) => {
             for (let i = 0; i < value.length; i++) {
                 let name = CostumeHelper.getCostumeName(value[i]);
                 this.costumesGear.set(name, value[i]);
+                let e = { name: name, age: 0x69, data: value[i], event: "Christmas 2020", checked: false, equipmentCategory: CostumeHelper.getEquipmentCategory(value[i]) } as Z64_EventReward;
+                bus.emit(Z64_RewardEvents.CHECK_REWARD, e);
+                if (e.checked === true) {
+                    this.alreadyUnlocked.push(name);
+                }
             }
         });
+        for (let i = 0; i < this.alreadyUnlocked.length; i++) {
+            if (this.rewardsMap.indexOf(this.alreadyUnlocked[i]) > -1) {
+                this.ModLoader.logger.debug(this.alreadyUnlocked[i] + " already unlocked. Removing from item pool.");
+            }
+        }
     }
 
     @EventHandler(ModLoaderEvents.ON_ROM_PATCHED)
