@@ -24,13 +24,14 @@ import { Z64RomTools, trimBuffer } from 'Z64Lib/API/Z64RomTools';
 import { InjectCore } from 'modloader64_api/CoreInjection';
 import { zzstatic } from 'Z64Lib/API/zzstatic';
 import { Z64LibSupportedGames } from 'Z64Lib/API/Z64LibSupportedGames';
-import { Preinit } from 'modloader64_api/PluginLifecycle';
+import { Postinit, Preinit } from 'modloader64_api/PluginLifecycle';
 import { Heap } from 'modloader64_api/heap';
 import { MMOnlineStorageClient } from '@MajorasMaskOnline/MMOnlineStorageClient';
 import { Z64_EventConfig } from '@MajorasMaskOnline/WorldEvents/Z64_EventConfig';
 import { Z64OnlineEvents, Z64Online_EquipmentPak, Z64Online_ModelAllocation, Z64_AllocateModelPacket, Z64_EquipmentPakPacket, Z64_GiveModelPacket, Z64_IconAllocatePacket, Z64_ModifyModelPacket } from '@MajorasMaskOnline/Z64OnlineAPI/Z64OnlineAPI';
 import { IMMCore, MMForms } from 'MajorasMask/API/MMAPI';
 import { MMChildManifest } from 'Z64Lib/API/MM/MMChildManifest';
+import { Console } from 'console';
 
 export class ModelManagerClient {
   @ModLoaderAPIInject()
@@ -58,6 +59,7 @@ export class ModelManagerClient {
   equipmentHeap!: Heap;
   proxyProcessFlags: Buffer = Buffer.alloc(2);
   equipmentMapping!: Z64Online_ModelAllocation;
+  heightModAddr!: number;
 
   constructor() {
     this.allocationManager = new ModelAllocationManager();
@@ -502,11 +504,27 @@ export class ModelManagerClient {
     }
   }
 
+  private heightFix(model: Buffer) {
+    try {
+      if (this.heightModAddr === undefined) {
+        let ram = this.ModLoader.emulator.rdramReadBuffer(0x0, 8 * 1024 * 1024);
+        this.heightModAddr = ram.indexOf(Buffer.from('3F25A5A6', 'hex'));
+      }
+      if (model.readUInt8(0x500B) === 0x04) {
+        this.ModLoader.emulator.rdramWriteF32(this.heightModAddr, 0.647059);
+      } else if (model.readUInt8(0x500B) === 0x68) {
+        this.ModLoader.emulator.rdramWriteF32(this.heightModAddr, 1.0);
+      }
+    } catch (err) {
+    }
+  }
+
   @EventHandler(OotEvents.ON_SCENE_CHANGE)
   onSceneChange(scene: number) {
     if (this.equipmentHeap === undefined) {
       this.createEquipmentHeap();
     }
+    this.heightFix(this.clientStorage.humanModel);
     if (this.core.save.form === MMForms.HUMAN) {
       if (this.proxyProcessFlags[0] > 0 && scene > -1) {
         return;
@@ -551,6 +569,7 @@ export class ModelManagerClient {
         let proxy = trimBuffer(fs.readFileSync(path.resolve(__dirname, "zobjs", "zz_human_proxy.zobj")));
         this.ModLoader.emulator.rdramWriteBuffer(link.pointer, proxy);
         this.ModLoader.utils.setTimeoutFrames(() => {
+          this.heightFix(this.clientStorage.humanModel);
           this.ModLoader.logger.debug("Loading new model...");
           bus.emit(Z64OnlineEvents.FORCE_LOAD_MODEL_BLOCK, this.clientStorage.humanProxy.slot);
           this.dealWithEquipmentPaks(MMForms.HUMAN);
