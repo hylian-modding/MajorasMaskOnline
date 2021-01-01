@@ -258,7 +258,7 @@ export class ChristmasClient implements IWorldEvent {
         //this.heap = new AssetHeap(this.ModLoader, "Christmas", undefined, path.resolve(global.ModLoader.startdir, "Christmas"));
         this.heap = new AssetHeap(this.ModLoader, "Christmas", this.url, undefined);
         this.collectionFlags = [];
-        for (let i = 0; i < 31; i++) {
+        for (let i = 0; i < 32; i++) {
             this.collectionFlags.push(Buffer.alloc(100));
         }
         //this.rewardsToday.push(new ChristmasEquipmentCostumeReward("Ice Sword", "An icey blade.", 43, this.ModLoader, this.core));
@@ -326,7 +326,7 @@ export class ChristmasClient implements IWorldEvent {
         let tex = path.resolve(__dirname, "cache");
         tcWrap(() => { fs.mkdirSync(tex) });
         tcWrap(() => {
-            let p = path.resolve(".", "saves", this.ModLoader.clientLobby, "christmas_flags_mm.json");
+            let p = path.resolve(".", "saves", this.ModLoader.clientLobby, "christmas_flags_mm_v2.json");
             if (fs.existsSync(p)) {
                 this.collectionFlags = JSON.parse(fs.readFileSync(p).toString());
             }
@@ -461,7 +461,7 @@ export class ChristmasClient implements IWorldEvent {
             for (let i = 0; i < 1; i++) {
                 let used: number[] = [];
                 let trees: number[] = [];
-                for (let j = 0; j < 80; j++) {
+                /* for (let j = 0; j < 80; j++) {
                     let c = this.getRandomInt(0, clone.length);
                     while (used.indexOf(c) === -1) {
                         c = this.getRandomInt(0, clone.length);
@@ -469,6 +469,9 @@ export class ChristmasClient implements IWorldEvent {
                         trees.push(c);
                     }
 
+                } */
+                for (let j = 0; j < clone.length; j++) {
+                    trees.push(j);
                 }
                 days[i] = trees;
             }
@@ -683,7 +686,7 @@ export class ChristmasClient implements IWorldEvent {
                 }
             }
             this.collectionFlags[this.treeDay].writeUInt8(1, treeId);
-            let p = path.resolve(".", "saves", this.ModLoader.clientLobby, "christmas_flags_mm.json");
+            let p = path.resolve(".", "saves", this.ModLoader.clientLobby, "christmas_flags_mm_v2.json");
             fs.writeFileSync(p, JSON.stringify(this.collectionFlags));
         }
     }
@@ -731,7 +734,7 @@ export class ChristmasServer implements IWorldEvent {
             this.rewardData = JSON.parse(fs.readFileSync(path.resolve(global.ModLoader.startdir, "christmas2020_rewardmap.json")).toString());
         } else {
             this.rewardData = {};
-            for (let i = 0; i < 31; i++) {
+            for (let i = 0; i < 32; i++) {
                 this.rewardData[i.toString()] = [];
             }
         }
