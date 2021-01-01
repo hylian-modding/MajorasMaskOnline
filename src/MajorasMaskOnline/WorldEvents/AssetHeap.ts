@@ -35,6 +35,7 @@ export class AssetHeap {
     heapAssets!: HeapAsset[];
     costumes!: Map<MMForms, Buffer[]>;
     equipment!: Map<string, Buffer[]>;
+    hotfixes!: Map<string, Buffer>;
 
     constructor(ModLoader: IModLoaderAPI, name: string, assetUrl?: string, assetPath?: string) {
         this.ModLoader = ModLoader;
@@ -79,6 +80,7 @@ export class AssetHeap {
     preinit() {
         this.costumes = new Map<MMForms, Buffer[]>();
         this.equipment = new Map<string, Buffer[]>();
+        this.hotfixes = new Map<string, Buffer>();
         this.heapAssets = [];
         this.assets = new Map<string, Buffer>();
         this.curLookupSlot = 0;
@@ -242,6 +244,9 @@ export class AssetHeap {
                     this.equipment.set(cat, []);
                 }
                 this.equipment.get(cat)!.push(value);
+            } else if (key.indexOf("costumes/hotfixes") > -1) {
+                // These are patches to fix assets.
+                this.hotfixes.set(path.parse(key).name, value);
             }
             // Start injecting stuff.
             if (key.startsWith("assets/ROM")) {

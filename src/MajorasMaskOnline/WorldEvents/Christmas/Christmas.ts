@@ -222,7 +222,7 @@ export class ChristmasClient implements IWorldEvent {
     @InjectCore()
     core!: IMMCore;
     collectionFlags!: Buffer[];
-    url: string = "https://repo.modloader64.com/mods/Ooto/events/christmas/MM_Christmas_content_final.content";
+    url: string = "https://repo.modloader64.com/mods/Ooto/events/christmas/MM_Christmas_content_final_hotfix1.content";
     GuiVariables: ChristmasGuiStuff = new ChristmasGuiStuff();
     resourceLoad: boolean = false;
     title!: TitleScreenData;
@@ -426,6 +426,9 @@ export class ChristmasClient implements IWorldEvent {
         }
         try {
             this.heap.onRomPatched(evt);
+            this.heap.hotfixes.forEach((value: Buffer, key: string) => {
+                bus.emit(Z64_RewardEvents.APPLY_REWARD_PATCH, { name: key, data: value });
+            });
         } catch (err) {
             console.log(err.stack);
         }
@@ -606,8 +609,11 @@ export class ChristmasClient implements IWorldEvent {
                     }
                 }
                 if (valid) {
-                    if (this.collectionFlags[this.treeDay].readUInt8(treeIndex) > 0) {
-                        valid = false;
+                    try {
+                        if (this.collectionFlags[this.treeDay].readUInt8(treeIndex) > 0) {
+                            valid = false;
+                        }
+                    } catch (err) {
                     }
                 }
                 let p = possibleSpawns[i];
