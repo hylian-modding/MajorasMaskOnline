@@ -1,6 +1,6 @@
 {
   "name": "MajorasMaskOnline",
-  "version": "1.0.16",
+  "version": "1.0.19",
   "description": "This is an online mod for [ModLoader64](https://github.com/hylian-modding/ModLoader64).",
   "main": "index.js",
   "dependencies": {},

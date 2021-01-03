@@ -11,7 +11,6 @@ import { CostumeHelper } from './CostumeHelper';
 import { Z64_EventConfig } from './Z64_EventConfig';
 import { Z64OnlineEvents, Z64Online_EquipmentPak, Z64Online_ModelAllocation } from '@MajorasMaskOnline/Z64OnlineAPI/Z64OnlineAPI';
 import { MMForms } from 'MajorasMask/API/MMAPI';
-import { ChristmasClient, ChristmasServer } from './Christmas/Christmas';
 import { MLPatchLib } from './ML64PatchLib';
 import { trimBuffer } from 'Z64Lib/API/Z64RomTools';
 
@@ -357,8 +356,4 @@ export class WorldEvents {
     core!: IOOTCore;
     @SidedProxy(ProxySide.CLIENT, WorldEventRewards)
     rewards!: WorldEventRewards;
-    @SidedProxy(ProxySide.CLIENT, ChristmasClient)
-    christmasClient!: ChristmasClient;
-    @SidedProxy(ProxySide.SERVER, ChristmasServer)
-    christmasServer!: ChristmasServer;
 }
