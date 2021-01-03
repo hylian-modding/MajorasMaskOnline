@@ -11,13 +11,15 @@ import { CostumeHelper } from './CostumeHelper';
 import { Z64_EventConfig } from './Z64_EventConfig';
 import { Z64OnlineEvents, Z64Online_EquipmentPak, Z64Online_ModelAllocation } from '@MajorasMaskOnline/Z64OnlineAPI/Z64OnlineAPI';
 import { MMForms } from 'MajorasMask/API/MMAPI';
-import { ChristmasClient, ChristmasServer } from './Christmas/Christmas';
+import { MLPatchLib } from './ML64PatchLib';
+import { trimBuffer } from 'Z64Lib/API/Z64RomTools';
 
 export interface IWorldEvent {
 }
 
 export class RewardContainer {
     events: any = {};
+    patches: any = {};
 
     findRewardByKey(key: string): Buffer | undefined {
         let eventKeys = Object.keys(this.events);
@@ -29,7 +31,12 @@ export class RewardContainer {
                 let itemKeys = Object.keys(items);
                 for (let k = 0; k < itemKeys.length; k++) {
                     if (itemKeys[k] === key) {
-                        return items[itemKeys[k]];
+                        if (this.patches.hasOwnProperty(itemKeys[k])) {
+                            let pp = new MLPatchLib();
+                            return trimBuffer(pp.apply(items[itemKeys[k]], this.patches[itemKeys[k]]));
+                        } else {
+                            return items[itemKeys[k]];
+                        }
                     }
                 }
             }
@@ -49,7 +56,12 @@ export class RewardContainer {
                 let eqKeys = Object.keys(eqItems);
                 for (let k = 0; k < eqKeys.length; k++) {
                     if (eqKeys[k] === key) {
-                        return eqItems[eqKeys[k]];
+                        if (this.patches.hasOwnProperty(eqKeys[k])) {
+                            let pp = new MLPatchLib();
+                            return trimBuffer(pp.apply(eqItems[eqKeys[k]], this.patches[eqKeys[k]]));
+                        } else {
+                            return eqItems[eqKeys[k]];
+                        }
                     }
                 }
             }
@@ -62,6 +74,9 @@ export class RewardContainer {
         this.events = data.events;
         for (let i = 0; i < clone.length; i++) {
             this.createEvent(clone[i]);
+        }
+        if (data.hasOwnProperty("patches")) {
+            this.patches = data.patches;
         }
         return this;
     }
@@ -102,7 +117,8 @@ export class RewardContainerOld {
 
 export const enum Z64_RewardEvents {
     UNLOCK_PLAYAS = "Z64:WorldEvent_UnlockPlayas",
-    CHECK_REWARD = "Z64:WorldEvent_CheckReward"
+    CHECK_REWARD = "Z64:WorldEvent_CheckReward",
+    APPLY_REWARD_PATCH = "Z64:WorldEvent_ApplyRewardPatch"
 }
 
 export interface Z64_EventReward {
@@ -173,6 +189,13 @@ export class WorldEventRewards {
                 reward.checked = this.rewards.events[reward.event].Equipment.items[reward.equipmentCategory!].hasOwnProperty(reward.name);
                 break;
         }
+    }
+
+    @EventHandler(Z64_RewardEvents.APPLY_REWARD_PATCH)
+    onApplyPatch(patch: any) {
+        this.rewards.patches[patch.name] = patch.data;
+        let sc = new StorageContainer("MM_holiday_event_rewards_v3");
+        sc.storeObject(this.rewards);
     }
 
     private migrateRewardsFile1() {
@@ -333,8 +356,4 @@ export class WorldEvents {
     core!: IOOTCore;
     @SidedProxy(ProxySide.CLIENT, WorldEventRewards)
     rewards!: WorldEventRewards;
-    @SidedProxy(ProxySide.CLIENT, ChristmasClient)
-    christmasClient!: ChristmasClient;
-    @SidedProxy(ProxySide.SERVER, ChristmasServer)
-    christmasServer!: ChristmasServer;
 }
