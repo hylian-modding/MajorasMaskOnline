@@ -29,7 +29,7 @@ import { Heap } from 'modloader64_api/heap';
 import { MMOnlineStorageClient } from '@MajorasMaskOnline/MMOnlineStorageClient';
 import { Z64_EventConfig } from '@MajorasMaskOnline/WorldEvents/Z64_EventConfig';
 import { Z64OnlineEvents, Z64Online_EquipmentPak, Z64Online_ModelAllocation, Z64_AllocateModelPacket, Z64_EquipmentPakPacket, Z64_GiveModelPacket, Z64_IconAllocatePacket, Z64_ModifyModelPacket } from '@MajorasMaskOnline/Z64OnlineAPI/Z64OnlineAPI';
-import { IMMCore, MMForms } from 'MajorasMask/API/MMAPI';
+import { IMMCore, MMEvents, MMForms } from 'MajorasMask/API/MMAPI';
 import { MMChildManifest } from 'Z64Lib/API/MM/MMChildManifest';
 import { Console } from 'console';
 
@@ -506,14 +506,31 @@ export class ModelManagerClient {
 
   private heightFix(model: Buffer) {
     try {
+      console.log("Height Fix");
+      
+      let childHeightAddr: number = 0x80779238; //Length = 0xDC
+
+      //0x0 - 0x92
+      let defaultAdultHeight1 = "4260000042B400003F80000042DE0000428C0000429ECCCD426C0000422400004198000042100000423333334260000042880000428C00004190000041700000428C00000009123F016700081256017C000917EA016700081256017C000917EA0167000917EA016700091E0D017C000917EA016700091E0D017C00081256017C000917EA0167F9C81256017CF9C917EA0167";
+      //0x98 - 0xA0
+      let defaultAdultHeight2 = "4204000041EB79720400D5400400D5480400D6600400DB900400DB980400DBA00400DBA80400DAB00400DAB80400DA900400DA980400DB700400DB780400DB880400DB80";
+      
+      //0x0 - 0xDC
+      let defaultChildHeight = "42200000427000003F25A5A6428E00004248000042440000421C000041D800004198000041B000004201999A420000004240000042352D2E4160000041400000425C0000FFE80DED036CFFE80D92035EFFE8137103A900081256017C000917EA0167FFE8137103A9FFE8195F03A9000917EA016700091E0D017C00081256017C000917EA0167F9C81256017CF9C917EA016700200000000041B0000041EB79720400D1280400D1700400D1B80400D1F80400D2000400D2080400D2100400DAB00400DAB80400DA900400DA980400D1D80400D1E00400D1F00400D1E8";
+      
       if (this.heightModAddr === undefined) {
         let ram = this.ModLoader.emulator.rdramReadBuffer(0x0, 8 * 1024 * 1024);
-        this.heightModAddr = ram.indexOf(Buffer.from('3F25A5A6', 'hex'));
+        this.heightModAddr = ram.indexOf(Buffer.from('42200000427000003F25A5A6428E00004248000042440000', 'hex'));
       }
       if (model.readUInt8(0x500B) === 0x04) {
-        this.ModLoader.emulator.rdramWriteF32(this.heightModAddr, 0.647059);
+        console.log("Height Fix Child");
+        this.clientStorage.isAdultSizedHuman = false;
+        this.ModLoader.emulator.rdramWriteBuffer(this.heightModAddr, Buffer.from(defaultChildHeight, 'hex'));
       } else if (model.readUInt8(0x500B) === 0x68) {
-        this.ModLoader.emulator.rdramWriteF32(this.heightModAddr, 1.0);
+        console.log("Height Fix Adult");
+        this.clientStorage.isAdultSizedHuman = true;
+        this.ModLoader.emulator.rdramWriteBuffer(this.heightModAddr, Buffer.from(defaultAdultHeight1, 'hex'));
+        this.ModLoader.emulator.rdramWriteBuffer(this.heightModAddr + 0x98, Buffer.from(defaultAdultHeight2, 'hex'));
       }
     } catch (err) {
     }
@@ -584,6 +601,13 @@ export class ModelManagerClient {
         }, 1);
       }
     }
+  }
+
+  @EventHandler(MMEvents.ON_UNPAUSE)
+  onUnpause() {
+    this.ModLoader.utils.setTimeoutFrames(() => {
+    this.heightFix(this.clientStorage.humanModel);
+    },1);
   }
 
   @EventHandler(Z64OnlineEvents.REFRESH_EQUIPMENT)

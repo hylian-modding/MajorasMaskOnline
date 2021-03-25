@@ -139,7 +139,7 @@ static void init(entity_t *en, z64_global_t *gl)
 		(en->puppet).form = (en->actor).variable;
 		(en->puppet).playas.isZZ = true;
 		uint32_t base = 0x80900000;
-		if (en->puppet.form <= 4)
+		if (en->puppet.form <= 5)
 		{
 			switch ((en->puppet).form)
 			{

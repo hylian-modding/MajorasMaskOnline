@@ -712,7 +712,7 @@ export class InventorySave implements API.IInventoryFields {
   FIELD_MASK_CAPTAIN = false;
   FIELD_MASK_GIANT = false;
   FIELD_MASK_FIERCE_DEITY = false;
-
+  
   wallet: API.Wallet = API.Wallet.CHILD;
   quiver: API.AmmoUpgrade = API.AmmoUpgrade.NONE;
   dekuSticksCapacity: API.AmmoUpgrade = API.AmmoUpgrade.NONE;
@@ -1001,6 +1001,8 @@ export class QuestSave implements IQuestSave {
   map_visited = 0;
   map_visible = 0;
 
+  great_spin = false;
+
   magic_meter_size: API.Magic = API.Magic.NONE;
   double_defense = 0;
 }
@@ -1176,6 +1178,10 @@ export function mergeQuestSaveData(save: IQuestSave, incoming: IQuestSave) {
   }
   if (incoming.double_defense > save.double_defense) {
     save.double_defense = incoming.double_defense;
+  }
+
+  if (incoming.great_spin > save.great_spin) {
+    save.great_spin = incoming.great_spin;
   }
 }
 

@@ -130,6 +130,7 @@ export class MMOnlineClient {
         for (let name in API.EventFlags) {
             if (typeof (name) === 'string') {
                 let value = parseInt(API.EventFlags[name]);
+                //if(name.includes()) return; //For blacklisting certain flags if necessary
                 if (name.startsWith("PERM")) {
                     this.permFlagBits.push(value);
                     this.permFlagNames.set(this.permFlagBits.indexOf(value), flags.flags[value]);
@@ -1166,6 +1167,6 @@ export class MMOnlineClient {
                 }
             }
         }
-        if (this.core.helper.isTitleScreen && this.core.global.scene_framecount === 1 && !this.core.save.checksum) this.mmrSyncCheck();
+        if (this.core.helper.isTitleScreen() && this.core.global.scene_framecount === 1 && !this.core.save.checksum) this.mmrSyncCheck();
     }
 }
