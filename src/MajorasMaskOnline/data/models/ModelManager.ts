@@ -24,7 +24,7 @@ import { Z64RomTools, trimBuffer } from 'Z64Lib/API/Z64RomTools';
 import { InjectCore } from 'modloader64_api/CoreInjection';
 import { zzstatic } from 'Z64Lib/API/zzstatic';
 import { Z64LibSupportedGames } from 'Z64Lib/API/Z64LibSupportedGames';
-import { Postinit, Preinit } from 'modloader64_api/PluginLifecycle';
+import { onTick, Postinit, Preinit } from 'modloader64_api/PluginLifecycle';
 import { Heap } from 'modloader64_api/heap';
 import { MMOnlineStorageClient } from '@MajorasMaskOnline/MMOnlineStorageClient';
 import { Z64_EventConfig } from '@MajorasMaskOnline/WorldEvents/Z64_EventConfig';
@@ -507,17 +507,17 @@ export class ModelManagerClient {
   private heightFix(model: Buffer) {
     try {
       console.log("Height Fix");
-      
+
       let childHeightAddr: number = 0x80779238; //Length = 0xDC
 
       //0x0 - 0x92
       let defaultAdultHeight1 = "4260000042B400003F80000042DE0000428C0000429ECCCD426C0000422400004198000042100000423333334260000042880000428C00004190000041700000428C00000009123F016700081256017C000917EA016700081256017C000917EA0167000917EA016700091E0D017C000917EA016700091E0D017C00081256017C000917EA0167F9C81256017CF9C917EA0167";
       //0x98 - 0xA0
       let defaultAdultHeight2 = "4204000041EB79720400D5400400D5480400D6600400DB900400DB980400DBA00400DBA80400DAB00400DAB80400DA900400DA980400DB700400DB780400DB880400DB80";
-      
+
       //0x0 - 0xDC
       let defaultChildHeight = "42200000427000003F25A5A6428E00004248000042440000421C000041D800004198000041B000004201999A420000004240000042352D2E4160000041400000425C0000FFE80DED036CFFE80D92035EFFE8137103A900081256017C000917EA0167FFE8137103A9FFE8195F03A9000917EA016700091E0D017C00081256017C000917EA0167F9C81256017CF9C917EA016700200000000041B0000041EB79720400D1280400D1700400D1B80400D1F80400D2000400D2080400D2100400DAB00400DAB80400DA900400DA980400D1D80400D1E00400D1F00400D1E8";
-      
+
       if (this.heightModAddr === undefined) {
         let ram = this.ModLoader.emulator.rdramReadBuffer(0x0, 8 * 1024 * 1024);
         this.heightModAddr = ram.indexOf(Buffer.from('42200000427000003F25A5A6428E00004248000042440000', 'hex'));
@@ -542,6 +542,7 @@ export class ModelManagerClient {
       this.createEquipmentHeap();
     }
     this.heightFix(this.clientStorage.humanModel);
+    this.colorCache = [];
     if (this.core.save.form === MMForms.HUMAN) {
       if (this.proxyProcessFlags[0] > 0 && scene > -1) {
         return;
@@ -565,10 +566,12 @@ export class ModelManagerClient {
 
   @EventHandler(Z64OnlineEvents.CHANGE_CUSTOM_MODEL_ADULT_GAMEPLAY)
   onChangeModel(evt: Z64Online_ModelAllocation) {
+    this.colorCache = [];
   }
 
   @EventHandler(Z64OnlineEvents.CHANGE_CUSTOM_MODEL_CHILD_GAMEPLAY)
   onChangeModelChild(evt: Z64Online_ModelAllocation) {
+    this.colorCache = [];
     if (this.clientStorage.humanProxy === undefined) {
       return;
     }
@@ -606,8 +609,8 @@ export class ModelManagerClient {
   @EventHandler(MMEvents.ON_UNPAUSE)
   onUnpause() {
     this.ModLoader.utils.setTimeoutFrames(() => {
-    this.heightFix(this.clientStorage.humanModel);
-    },1);
+      this.heightFix(this.clientStorage.humanModel);
+    }, 1);
   }
 
   @EventHandler(Z64OnlineEvents.REFRESH_EQUIPMENT)
@@ -619,6 +622,34 @@ export class ModelManagerClient {
 
   @EventHandler(EventsClient.ON_INJECT_FINISHED)
   onLoaded(evt: any) {
+  }
+
+  private lastColor: number = 0;
+  private colorCache: Array<number> = [];
+
+  private color_shit() {
+    let link = this.doesLinkObjExist(MMForms.HUMAN);
+    if (!link.exists) return;
+    if (this.colorCache.length === 0) {
+      let buf = this.ModLoader.emulator.rdramReadBuffer(this.clientStorage.humanProxy.pointer, 0x37800);
+      for (let i = 0; i < buf.byteLength; i += 0x8) {
+        if (buf.readUInt32BE(i) === 0xFA000000 && buf.readUInt32BE(i + 0x4) === 0x696969FF) {
+          this.ModLoader.logger.debug("CACHED COLOR COMMAND AT " + i.toString(16).toUpperCase());
+          this.colorCache.push(i + 0x4);
+        }
+      }
+    }
+    for (let i = 0; i < this.colorCache.length; i++) {
+      this.ModLoader.emulator.rdramWrite32(this.clientStorage.humanProxy.pointer + this.colorCache[i], this.ModLoader.emulator.rdramRead32(0x809E3430));
+    }
+    this.lastColor = this.ModLoader.emulator.rdramRead32(0x809E3430);
+  }
+
+  @onTick()
+  onTick() {
+    if (this.ModLoader.emulator.rdramRead32(0x809E3430) !== this.lastColor) {
+      this.color_shit();
+    }
   }
 
   doesLinkObjExist(age: MMForms) {
