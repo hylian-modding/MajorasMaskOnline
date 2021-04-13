@@ -27,6 +27,7 @@ import { number_ref, string_ref } from 'modloader64_api/Sylvain/ImGui';
 import { flags } from './data/permflags';
 import { Z64OnlineEvents, Z64_PlayerScene } from './Z64OnlineAPI/Z64OnlineAPI';
 import { WorldEvents } from './WorldEvents/WorldEvents';
+import { BitDepth, BMP_Image } from './Bitmap';
 
 export let TIME_SYNC_TRIGGERED: boolean = false;
 
@@ -932,6 +933,38 @@ export class MMOnlineClient {
         this.core.save.minimap_flags = this.clientStorage.minimapStorage;
     }
 
+    bitmapFromPictograph() {
+        let bitmap = new BMP_Image(160, 112, BitDepth.BPP_8, 32);
+        for (let i = 0; i < 32; i++) {
+            let colors = Buffer.alloc(4);
+            colors[1] = Math.round(i * 250 / 31);
+            colors[2] = Math.round(i * 160 / 31);
+            colors[3] = Math.round(i * 160 / 31);
+            bitmap.colorTable.writeUInt32LE(colors.readUInt32BE(0), i * 4)
+        }
+        for (let i = 0; i < 160 * 112; i++) {
+            let bits = (() => {
+                return {
+                    byte: Math.floor(i * 5 / 8),
+                    bitOffset: (i * 5) % 8
+                }
+            })();
+            let pixel: number;
+            let pictograph = this.core.save.photo.pictograph_photoChunk;
+            try {
+                pixel = ((pictograph.readUInt16BE(bits.byte) & (31 << (16 - bits.bitOffset - 5))) >> (16 - bits.bitOffset - 5));
+            } catch {
+                pixel = ((pictograph.readUInt8(bits.byte) & (31 << (8 - bits.bitOffset - 5))) >> (8 - bits.bitOffset - 5));
+            }
+            bitmap.pixelData.writeUInt8(pixel, i);
+        }
+        let filename = `pictograph_${Date.now().toString()}.bmp`;
+        fs.writeFile(path.resolve("./screenshots", filename), bitmap.file, (err) => {
+            if (err) this.ModLoader.logger.error(`${err}`);
+            this.ModLoader.logger.info(`Saved file to ./screenshots/${filename}`);
+        });
+    }
+
     @onViUpdate()
     onVi() {
         if (!this.resourcesLoaded) {
@@ -973,6 +1006,11 @@ export class MMOnlineClient {
                             }
                             this.ModLoader.ImGui.endMenu();
                         }
+                    }
+                    if (this.ModLoader.ImGui.menuItem("Save Pictograph", undefined, undefined, this.core.save.photo.pictograph_used)) {
+                        this.ModLoader.utils.setTimeoutFrames(() => {
+                            this.bitmapFromPictograph();
+                        }, 0);
                     }
                     this.ModLoader.ImGui.endMenu();
                 }
