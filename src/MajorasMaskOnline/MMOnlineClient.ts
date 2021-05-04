@@ -712,17 +712,6 @@ export class MMOnlineClient {
 
     @EventHandler(Z64OnlineEvents.MAGIC_METER_INCREASED)
     onNeedsMagic(size: API.Magic) {
-        switch (size) {
-            case API.Magic.NONE:
-                this.core.save.magic_current = API.MagicQuantities.NONE;
-                break;
-            case API.Magic.NORMAL:
-                this.core.save.magic_current = API.MagicQuantities.NORMAL;
-                break;
-            case API.Magic.EXTENDED:
-                this.core.save.magic_current = API.MagicQuantities.EXTENDED;
-                break;
-        }
     }
 
     @EventHandler(API.MMEvents.ON_AGE_CHANGE)
